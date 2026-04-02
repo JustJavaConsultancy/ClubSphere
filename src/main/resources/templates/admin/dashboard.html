@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-blue-500 text-white p-6 rounded-lg shadow">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-lg font-semibold">Total Users</p>
+          <p th:text="${userCount}" class="text-3xl font-bold">1,250</p>
+        </div>
+        <span class="material-icons text-5xl opacity-50">people</span>
+      </div>
+    </div>
+    <div class="bg-green-500 text-white p-6 rounded-lg shadow">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-lg font-semibold">Upcoming Sessions</p>
+          <p th:text="${upcomingSession}" class="text-3xl font-bold">0</p>
+        </div>
+        <span class="material-icons text-5xl opacity-50">event_available</span>
+      </div>
+    </div>
+    <div class="bg-yellow-500 text-white p-6 rounded-lg shadow">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-lg font-semibold">Completed Sessions</p>
+          <p th:text="${completedSession}" class="text-3xl font-bold">0</p>
+        </div>
+        <span class="material-icons text-5xl opacity-50">event_available</span>
+      </div>
+    </div>
+    <!-- New Session Requests Card -->
+    <div class="bg-purple-500 text-white p-6 rounded-lg shadow">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-lg font-semibold">Session Requests</p>
+          <p th:text="${unapprovedSize}" class="text-3xl font-bold">12</p>
+        </div>
+        <span class="material-icons text-5xl opacity-50">pending_actions</span>
+      </div>
+      <div class="mt-4">
+        <a href="#session-requests" class="flex items-center justify-between bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+          <span>View All Requests</span>
+          <span class="material-icons text-sm">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <!--      Session requests-->
+  <div id="session-requests" class="bg-white p-6 rounded-lg shadow mb-6 hidden">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold text-gray-800">Session Requests</h2>
+      <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+        <span class="material-icons mr-1">list</span>
+        View All Session Requests
+      </a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-100">
+        <tr>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session Type</th>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Requested</th>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+        <tr class="session-card">
+          <td class="py-4 px-6 whitespace-nowrap">
+            <div class="flex items-center">
+              <img alt="Michael Chen avatar" class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">Michael Chen</div>
+                <div class="text-sm text-gray-500">michael.c@example.com</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">One-on-One Coaching</td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">2 hours ago</td>
+          <td class="py-4 px-6 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
+            <a class="text-indigo-600 hover:text-indigo-900 mr-3" href="#">Approve</a>
+            <a class="text-red-600 hover:text-red-900" href="#">Reject</a>
+          </td>
+        </tr>
+        <tr class="session-card">
+          <td class="py-4 px-6 whitespace-nowrap">
+            <div class="flex items-center">
+              <img alt="Sarah Johnson avatar" class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">Sarah Johnson</div>
+                <div class="text-sm text-gray-500">sarah.j@example.com</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">Group Workshop</td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">Yesterday</td>
+          <td class="py-4 px-6 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
+            <a class="text-indigo-600 hover:text-indigo-900 mr-3" href="#">Approve</a>
+            <a class="text-red-600 hover:text-red-900" href="#">Reject</a>
+          </td>
+        </tr>
+        <tr class="session-card">
+          <td class="py-4 px-6 whitespace-nowrap">
+            <div class="flex items-center">
+              <img alt="David Wilson avatar" class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&amp;auto=format&amp;fit=facearea&amp;facepad=2.25&amp;w=256&amp;h=256&amp;q=80">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">David Wilson</div>
+                <div class="text-sm text-gray-500">david.w@example.com</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">Career Consultation</td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">3 days ago</td>
+          <td class="py-4 px-6 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Under Review</span>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
+            <a class="text-indigo-600 hover:text-indigo-900 mr-3" href="#">Approve</a>
+            <a class="text-red-600 hover:text-red-900" href="#">Reject</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="bg-white p-6 rounded-lg shadow mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">New Users</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-100">
+        <tr>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+          <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+        <tr th:each="user : ${users}">
+          <td th:text="${user.firstName + ' ' + user.lastName}" class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">Jane Doe</td>
+          <td th:text="${user.email}" class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">jane.s@example.com</td>
+          <td class="py-4 px-6 whitespace-nowrap">
+            <span th:if="${user.status == 'Enabled'}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Enabled
+            </span>
+            <span th:if="${user.status != 'Enabled'}"
+                  class="px-2 inline-flex text-xs leading-5 font-semibold
+                  rounded-full bg-red-100 text-red-800">Disabled
+            </span>
+          </td>
+
+          <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
+            <a class="text-red-600 hover:text-red-900 ml-4" href="">Delete</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Upcoming Training Sessions</h2>
+      <div class="space-y-4">
+        <div th:if="${#lists.isEmpty(upcoming)}" class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="bg-indigo-100 p-4 rounded-full mb-4">
+            <span class="material-icons text-indigo-500 text-4xl">schedule</span>
+          </div>
+          <h3 class="text-lg font-medium text-gray-800 mb-2">No upcoming sessions</h3>
+          <p class="text-gray-500 mb-6 max-w-md">You don't have any training sessions scheduled yet. Create your first session to get started.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(upcoming)}" th:each="upcomingSession : ${upcoming}" class="p-4 border rounded-lg flex items-center justify-between">
+          <div>
+            <p th:text="${upcomingSession.moduleName}" class="font-semibold text-gray-800">Leadership Skills Training</p>
+            <p class="text-sm text-gray-500 mt-1"
+               th:text="(${T(java.time.LocalDate).parse(upcomingSession.startDate).equals(T(java.time.LocalDate).now())
+              ? 'Today'
+              : #temporals.format(T(java.time.LocalDate).parse(upcomingSession.startDate), 'EEE, MMM dd')})
+            + ', '
+            + ${#temporals.format(T(java.time.LocalDate).parse(upcomingSession.startDate)
+                .atTime(T(java.time.LocalTime).parse(upcomingSession.startTime)), 'h:mm a')}
+            + ' - '
+            + ${#temporals.format(T(java.time.LocalDate).parse(upcomingSession.startDate)
+                .atTime(T(java.time.LocalTime).parse(upcomingSession.startTime))
+                .plusMinutes(upcomingSession.duration), 'h:mm a')}">
+              Thu, Jun 15, 10:00 AM - 12:00 PM
+            </p>
+          </div>
+          <span class="px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 rounded-full">Upcoming</span>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Completed Training Sessions</h2>
+      <div class="space-y-4">
+        <div th:if="${#lists.isEmpty(completed)}" class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="bg-gray-100 p-4 rounded-full mb-4">
+            <span class="material-icons text-gray-500 text-4xl">event_available</span>
+          </div>
+          <h3 class="text-lg font-medium text-gray-800 mb-2">No completed sessions yet</h3>
+          <p class="text-gray-500 mb-6 max-w-md">Completed sessions will appear here once your training sessions are finished.</p>
+        </div>
+        <div th:if="${!#lists.isEmpty(completed)}" th:each="completedSession : ${completed}" class="p-4 border rounded-lg flex items-center justify-between">
+          <div>
+            <p th:text="${completedSession.moduleName}" class="font-semibold text-gray-800">Advanced Public Speaking</p>
+            <p class="text-sm text-gray-500 mt-1">Completed: <span th:text="${T(java.time.LocalDate).parse(completedSession.startDate).format(T(java.time.format.DateTimeFormatter).ofPattern('MMM dd, yyyy'))}"></span></p>
+          </div>
+          <span class="px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-200 rounded-full">Completed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

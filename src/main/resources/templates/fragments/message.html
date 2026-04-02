@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Success message fragment -->
+<div th:fragment="success" class="alert alert-success">
+    <span th:text="${successMessage}"></span>
+</div>
+
+<!-- Error message fragment -->
+<div th:fragment="error" class="alert alert-error">
+    <span th:text="${errorMessage}"></span>
+</div>
+
+</body>
+</html>

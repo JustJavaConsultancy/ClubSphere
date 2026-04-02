@@ -1,0 +1,232 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Invoice Review</title>
+    <style>
+        .btn-primary {
+            background-color: #2563EB;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #1D4ED8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+        }
+        .card {
+            background-color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .table-container {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .table-header {
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .table-row {
+            border-bottom: 1px solid #F3F4F6;
+            transition: background-color 0.2s ease;
+        }
+        .table-row:hover {
+            background-color: #F9FAFB;
+        }
+        .search-input {
+            background-color: #F9FAFB;
+            border: 1px solid #D1D5DB;
+            color: #374151;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #2563EB;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+        .search-container {
+            position: relative;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            z-index: 10;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6B7280;
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #D1D5DB;
+            margin-bottom: 1rem;
+        }
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        .empty-state-description {
+            color: #6B7280;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-transition {
+            transition: all 0.3s ease;
+        }
+        .action-btn {
+            background-color: #2563EB;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            background-color: #1D4ED8;
+            transform: translateY(-1px);
+        }
+        .filter-btn {
+            background-color: #F3F4F6;
+            color: #6B7280;
+            border: 1px solid #D1D5DB;
+            transition: all 0.2s ease;
+        }
+        .filter-btn:hover {
+            background-color: #E5E7EB;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="min-h-screen bg-gray-50 p-4 md:p-6">
+    <main class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Pending Invoices</h2>
+                <p class="text-gray-600 mt-1">Manage and track invoices to review</p>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl shadow-lg transform transition hover:scale-105">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-blue-100">Total Pending Invoices</p>
+                        <p class="text-2xl font-bold text-white"><span th:text="${allPendingCount}">24,500</span></p>
+                    </div>
+                    <span class="material-icons text-blue-200 text-3xl">schedule</span>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl shadow-lg transform transition hover:scale-105">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-green-100">Approved Invoices</p>
+                        <p class="text-2xl font-bold text-white" th:text="${allApprovedCount}">18</p>
+                    </div>
+                    <span class="material-icons text-green-200 text-3xl">check_circle</span>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-red-600 to-red-700 p-6 rounded-xl shadow-lg transform transition hover:scale-105">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-red-100">Declined Invoices</p>
+                        <p class="text-2xl font-bold text-white" th:text="${allDeclinedCount}">7</p>
+                    </div>
+                    <span class="material-icons text-red-200 text-3xl">cancel</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice List Header -->
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Recent Invoices</h3>
+                <p class="text-sm text-gray-600 mt-1">Your most recent invoices needing review</p>
+            </div>
+        </div>
+
+        <div class="table-container rounded-xl p-4 md:p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div class="flex items-center space-x-2">
+                    <button class="filter-btn p-2 rounded-lg"><span class="material-icons">add</span></button>
+                    <button class="filter-btn p-2 rounded-lg"><span class="material-icons">filter_list</span></button>
+                </div>
+                <div class="search-container relative w-full md:w-auto">
+                    <span class="material-icons search-icon">search</span>
+                    <input class="search-input rounded-lg pl-10 pr-4 py-2 w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search Invoices..." type="text"/>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(allPendingInvoice)}" class="empty-state">
+                <span class="material-icons empty-state-icon">inbox</span>
+                <h3 class="empty-state-title">No invoices yet</h3>
+                <p class="empty-state-description">
+                    Generated invoices are listed here.
+                </p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(allPendingInvoice)}" class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="table-header">
+                    <tr>
+                        <th class="py-3 px-2 md:py-4 md:px-3 text-sm font-semibold text-gray-600">Client Name</th>
+                        <th class="py-3 px-2 md:py-4 md:px-3 text-sm font-semibold text-gray-600">Business Name</th>
+                        <th class="py-3 px-2 md:py-4 md:px-3 text-sm font-semibold text-gray-600">Email</th>
+                        <th class="py-3 px-2 md:py-4 md:px-3 text-sm font-semibold text-gray-600">Due Date</th>
+                        <th class="py-3 px-2 md:py-4 md:px-3 text-sm font-semibold text-gray-600">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="invoice : ${allPendingInvoice}" class="table-row">
+                        <td th:text="${invoice.clientName}" class="py-3 px-2 md:py-4 md:px-3 text-gray-800 font-medium">Onboard New Employee</td>
+                        <td th:text="${invoice.businessName}" class="py-3 px-2 md:py-4 md:px-3 text-gray-600">2024-05-01</td>
+                        <td th:text="${invoice.email}" class="py-3 px-2 md:py-4 md:px-3 text-gray-600">2024-06-01</td>
+                        <td th:text="${invoice.dueDate}" class="py-3 px-2 md:py-4 md:px-3 text-gray-600">2024-06-01</td>
+                        <td class="py-3 px-2 md:py-4 md:px-3">
+                            <a class="action-btn" th:href="@{/invoice/invoice-review/{id}(id=${invoice.taskId})}">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script>
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        const createBtn = document.querySelector('.btn-primary');
+        if (createBtn) {
+            createBtn.addEventListener('mouseenter', () => {
+                createBtn.style.boxShadow = '0 0 20px rgba(37, 99, 235, 0.4)';
+            });
+            createBtn.addEventListener('mouseleave', () => {
+                createBtn.style.boxShadow = '';
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

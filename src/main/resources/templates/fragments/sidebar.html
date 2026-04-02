@@ -1,0 +1,165 @@
+<aside th:fragment="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 overflow-hidden transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:z-30 flex flex-col" id="desktop-sidebar" xmlns:th="http://www.thymeleaf.org">
+    <div class="flex-1 flex flex-col p-4 overflow-hidden">
+        <header class="flex items-center gap-3 mb-8 flex-shrink-0">
+            <div class="size-7 animate-pulse-slow">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                            d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
+                            fill="#2a5dea"
+                    ></path>
+                </svg>
+            </div>
+            <h1 class="text-xl font-bold gradient-text">Connect</h1>
+        </header>
+
+        <nav class="space-y-4 flex-1 overflow-y-auto">
+            <a  th:if="${!session.isSupportAdmin}" th:href="@{/}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700"
+               th:classappend="${currentPath == '/'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Home
+                <div>
+                    <span id="postCounter" class="badge-counter"></span>
+                </div>
+            </a>
+
+            <a th:if="${session.isSupportAdmin}" th:href="@{/support/dashboard}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700"
+               th:classappend="${currentPath == '/support/dashboard'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Home
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/admin/dashboard}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/admin/dashboard'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Dashboard
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/my-community}"
+               class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700"
+               th:classappend="${currentPath == '/my-community'} ? ' bg-blue-600 text-white'">
+                <span class="material-icons mr-3">handshake</span>
+                My Community
+            </a>
+
+            <a th:if="${!session.isSupportAdmin}" th:href="@{/network}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/network'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                My Network
+            </a>
+
+            <a th:if="${!session.isSupportAdmin}" th:href="@{/messages}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/messages'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Messages
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/my-groups}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/my-groups'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                My Groups
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/products}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/products' or currentPath == '/products/add' or #strings.startsWith(currentPath, '/products/edit')} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Sell Product/Service
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/invoice}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/invoice'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Invoice
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/invoice/invoice-review}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/invoice/invoice-review'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Invoice Review
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/sessions}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700"
+               th:classappend="${currentPath == '/sessions'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Training & Coaching
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/meetings}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700"
+               th:classappend="${currentPath == '/meetings' or currentPath == '/create-meeting'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Schedule & Meeting
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/modules}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/modules'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3V7zm0 9h7v7H3v-7zm9-9h7v7h-7V7zm0 9h7v7h-7v-7z" />
+                </svg>
+                Modules
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/gallery}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/gallery' or currentPath == '/gallery/add'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Gallery
+            </a>
+
+            <a th:if="${session.isSupportAdmin}" th:href="@{/support/my-tickets}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Tickets
+            </a>
+
+            <a th:if="${session.isSupportAdmin}" th:href="@{/support/agent/claim-ticket}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Claim Tickets
+            </a>
+
+            <a th:if="${session.isAdmin}" th:href="@{/users}" class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700 "
+               th:classappend="${currentPath == '/users'} ? ' bg-blue-600 text-white'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+                User Management
+            </a>
+        </nav>
+    </div>
+
+    <footer class="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+        <div class="flex items-center">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shadow-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVTJYkmJeXP9CMr48YxMfAjo22dGH1z1_ePNdqF3gPJt2S1OZvIzYmLbF1gxxqzYkM0Rb1UI0rQXNipMnYAHu7sTVxPfm2O_ZvDE-MMratIf4GP9IfMjT9joeWeib3U71__p8L8aZf5PBRkhWKjyjy6AZG0H2s4SRwuFktvatxiAUJKX1AbVeZitBZOHGgorTfHhlSWwUTqOEgkwJdXt94nk6-kVt7SxJKuOD6veLTJHMuG-J2BZP--a7CBnoMNmwokfd1McDQdI8");'></div>
+            <div class="ml-3">
+                <p th:text="${session.loggedInUser}" class="text-sm font-medium text-gray-700">Alex Morgan</p>
+                <p class="text-xs text-gray-500">Member</p>
+            </div>
+        </div>
+    </footer>
+</aside>

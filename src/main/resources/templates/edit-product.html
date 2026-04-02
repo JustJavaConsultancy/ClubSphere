@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product/Service</title>
+    <style>
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .image-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .image-upload-area:hover {
+            border-color: #2563eb;
+        }
+
+        .current-image {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-sm p-6 mb-6 text-white">
+        <h1 class="text-2xl font-bold mb-2">Edit Product/Service</h1>
+        <p class="opacity-90">Update your product or service details</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <form th:action="'/products/edit/' + ${product.id}"
+              method="post"
+              enctype="multipart/form-data"
+              onsubmit="return validateForm()"
+              id="productForm">
+
+            <div class="form-group">
+                <label for="name" class="form-label">
+                    Product/Service Name <span class="required">*</span>
+                </label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       class="form-input"
+                       th:value="${product.name}"
+                       placeholder="Enter product or service name"
+                       required>
+                <div id="nameError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">
+                    Description <span class="required">*</span>
+                </label>
+                <textarea id="description"
+                          name="description"
+                          class="form-input form-textarea"
+                          placeholder="Describe your product or service in detail"
+                          required th:text="${product.description}"></textarea>
+                <div id="descriptionError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="price" class="form-label">
+                    Price (USD) <span class="required">*</span>
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <input type="number"
+                           id="price"
+                           name="price"
+                           class="form-input pl-8"
+                           th:value="${product.price}"
+                           placeholder="0.00"
+                           step="0.01"
+                           min="0"
+                           required>
+                </div>
+                <div id="priceError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Product Image</label>
+
+                <div th:if="${product.imageUrl}" id="currentImageSection">
+                    <p class="text-sm text-gray-600 mb-2">Current Image:</p>
+                    <img th:src="${product.imageUrl}" th:alt="${product.name}" class="current-image">
+                    <div class="image-actions">
+                        <button type="button"
+                                onclick="showImageUpload()"
+                                class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors">
+                            Change Image
+                        </button>
+                        <button type="button"
+                                onclick="removeCurrentImage()"
+                                class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors">
+                            Remove Image
+                        </button>
+                    </div>
+                </div>
+
+                <div class="image-upload-area" id="imageUploadArea" th:style="${product.imageUrl} ? 'display: none;' : ''" onclick="document.getElementById('image').click()">
+                    <input type="file"
+                           id="image"
+                           name="image"
+                           accept="image/*"
+                           style="display: none;">
+                    <div id="uploadContent">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-gray-600">Click to upload a new image</p>
+                        <p class="text-sm text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                    <img id="imagePreview" class="image-preview" style="display: none;">
+                </div>
+
+                <input type="hidden" id="removeImage" name="removeImage" value="false">
+                <div id="imageError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                <a href="/products" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                        id="submitBtn"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Update Product/Service
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Image upload handling
+        document.getElementById('image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const uploadContent = document.getElementById('uploadContent');
+
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadContent.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function showImageUpload() {
+            document.getElementById('currentImageSection').style.display = 'none';
+            document.getElementById('imageUploadArea').style.display = 'block';
+            document.getElementById('removeImage').value = 'false';
+        }
+
+        function removeCurrentImage() {
+            document.getElementById('currentImageSection').style.display = 'none';
+            document.getElementById('imageUploadArea').style.display = 'block';
+            document.getElementById('removeImage').value = 'true';
+
+            // Clear the upload content
+            document.getElementById('uploadContent').style.display = 'block';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('image').value = '';
+        }
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+
+            // Validate name
+            const name = document.getElementById('name').value.trim();
+            if (!name) {
+                showError('nameError', 'Product/Service name is required');
+                isValid = false;
+            }
+
+            // Validate description
+            const description = document.getElementById('description').value.trim();
+            if (!description) {
+                showError('descriptionError', 'Description is required');
+                isValid = false;
+            }
+
+            // Validate price
+            const price = document.getElementById('price').value;
+            if (!price || parseFloat(price) <= 0) {
+                showError('priceError', 'Please enter a valid price');
+                isValid = false;
+            }
+
+            if (isValid) {
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').textContent = 'Updating...';
+            }
+
+            return isValid;
+        }
+
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+    </script>
+</div>
+</body>
+</html>

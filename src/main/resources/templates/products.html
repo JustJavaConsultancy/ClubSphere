@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Products & Services</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-sm p-6 mb-6 text-white">
+        <div class="flex justify-between items-center flex-wrap gap-4">
+            <div>
+                <h1 class="text-2xl font-bold mb-2">My Products & Services</h1>
+                <p class="opacity-90">Manage and showcase your products and services to the community</p>
+            </div>
+            <a href="/products/add" class="px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg font-medium hover:bg-opacity-30 transition-colors border border-white border-opacity-30">
+                Add Product/Service
+            </a>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(products)}" class="bg-white rounded-xl shadow-sm p-8 text-center">
+        <div class="inline-block bg-blue-100 p-4 rounded-full mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">No products yet</h3>
+        <p class="text-gray-500 mb-4">Start by adding your first product or service to share with the community</p>
+        <a href="/products/add" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            Add Your First Product
+        </a>
+    </div>
+
+    <!-- Products Grid -->
+    <div th:if="${!#lists.isEmpty(products)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div th:each="product : ${products}" class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <!-- Product Image -->
+            <div class="h-48 bg-gray-200 relative overflow-hidden">
+                <img th:if="${product.imageUrl}"
+                     th:src="${product.imageUrl}"
+                     th:alt="${product.name}"
+                     class="w-full h-full object-cover"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400" style="display: none;">
+                    <div class="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-sm">No Image</span>
+                    </div>
+                </div>
+                <div th:unless="${product.imageUrl}" class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div class="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-sm">No Image</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Content -->
+            <div class="p-6">
+                <!-- Product Meta -->
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
+                    <span>ID: #<span th:text="${product.id}">1</span></span>
+                    <span th:if="${product.createdAt}" th:text="${#temporals.format(product.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+                </div>
+
+                <!-- Product Title -->
+                <h3 class="text-lg font-semibold text-gray-800 mb-2" th:text="${product.name}">Product Name</h3>
+
+                <!-- Product Description -->
+                <p class="text-gray-600 text-sm mb-4 line-clamp-3" th:text="${product.description}">
+                    Product description goes here. This will be truncated if it's too long.
+                </p>
+
+                <!-- Product Price -->
+                <div class="text-2xl font-bold text-green-600 mb-4" th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}">$99.99</div>
+
+                <!-- Product Actions -->
+                <div class="flex gap-2">
+                    <a th:href="'/products/edit/' + ${product.id}"
+                       class="flex-1 px-3 py-2 bg-blue-600 text-white text-center rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                        Edit
+                    </a>
+                    <button class="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                            th:data-product-id="${product.id}"
+                            th:data-product-name="${product.name}"
+                            onclick="confirmDelete(this.dataset.productId, this.dataset.productName)">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Confirm Delete</h3>
+            <p class="text-gray-600 mb-4">Are you sure you want to delete "<strong id="deleteProductName"></strong>"?</p>
+            <p class="text-sm text-red-600 mb-6">This action cannot be undone.</p>
+            <div class="flex gap-3 justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                    Cancel
+                </button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(productId, productName) {
+            document.getElementById('deleteProductName').textContent = productName;
+            document.getElementById('deleteForm').action = '/products/delete/' + productId;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+
+    <style>
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</div>
+</body>
+</html>

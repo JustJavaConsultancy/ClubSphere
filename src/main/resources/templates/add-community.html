@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Community - Zam Connect</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gray-100: #f9fafb;
+            --gray-200: #f3f4f6;
+            --gray-300: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+        }
+
+        .add-community-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-community-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-200);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-300);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+            display: block;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+            display: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .toggle-info {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .toggle-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .toggle-description {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .form-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            .toggle-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .toggle-info {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <header class="add-community-header">
+        <div class="header-content">
+            <a href="/organizations" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-xl font-bold mb-1">Create Community</h1>
+                <p class="opacity-90 text-sm">Set up a new community for your organization</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        <div id="error-message" class="error-message" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <form id="community-form" th:action="@{/add-community}" method="post">
+            <!-- Community Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <div class="section-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    Community Details
+                </h2>
+
+                <div class="form-group">
+                    <label for="communityName" class="form-label">Community Name *</label>
+                    <input type="text"
+                           id="communityName"
+                           name="communityName"
+                           class="form-input"
+                           placeholder="Enter community name"
+                           th:value="${communityName}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="communityDescription" class="form-label">Community Description *</label>
+                    <textarea id="communityDescription"
+                              name="communityDescription"
+                              class="form-input form-textarea"
+                              placeholder="Describe what this community is about"
+                              th:text="${communityDescription}"
+                              required></textarea>
+                </div>
+            </div>
+
+            <!-- Privacy Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <div class="section-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    Privacy Settings
+                </h2>
+
+                <div class="toggle-group">
+                    <div class="toggle-info">
+                        <div class="toggle-title">Private Community</div>
+                        <div class="toggle-description">
+                            Private communities are invitation-only and won't appear in suggested communities for other users.
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="isPrivate" name="isPrivate" th:checked="${isPrivate}">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">
+                <i class="fas fa-plus"></i>
+                <span>Create Community</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('community-form').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submit-btn');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Hide previous messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Creating...</span>';
+
+            // Validate form
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#dc2626';
+                } else {
+                    field.style.borderColor = '#e5e7eb';
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                errorMessage.textContent = 'Please fill in all required fields.';
+                errorMessage.style.display = 'block';
+
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-plus"></i><span>Create Community</span>';
+
+                // Scroll to error
+                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        // Real-time validation
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.hasAttribute('required') && !this.value.trim()) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '#e5e7eb';
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.style.borderColor === 'rgb(220, 38, 38)' && this.value.trim()) {
+                    this.style.borderColor = '#e5e7eb';
+                }
+            });
+        });
+
+        // Toggle switch animation
+        document.getElementById('isPrivate').addEventListener('change', function() {
+            const description = this.closest('.toggle-group').querySelector('.toggle-description');
+            if (this.checked) {
+                description.textContent = 'This community will be private and invitation-only. Only invited users can join.';
+            } else {
+                description.textContent = 'This community will be public and appear in suggested communities for other users.';
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

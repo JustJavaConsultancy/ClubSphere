@@ -1,0 +1,87 @@
+<div class="modal-overlay" id="startChatModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="text-lg font-semibold text-gray-900">Start New Chat</h3>
+        </div>
+        <div class="modal-body">
+            <div class="search-container relative mb-4">
+                <span class="search-icon material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                <input class="search-input w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none transition-all" placeholder="Search users..." type="text" id="userSearchStart"/>
+            </div>
+            <div class="user-list-start">
+                <div th:each="user : ${users}" class="user-item flex items-center p-3 cursor-pointer transition-colors select-user">
+                    <input type="hidden" class="user-id" th:value="${user.userId}" />
+                    <input type="hidden" class="user-firstname" th:value="${user.firstName}" />
+                    <input type="hidden" class="user-lastname" th:value="${user.lastName}" />
+                    <input type="hidden" class="user-online" th:value="${user.online}" />
+
+                    <div class="user-avatar rounded-full"
+                         th:text="${#strings.substring(user.firstName, 0, 1) + #strings.substring(user.lastName, 0, 1)}">
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></div>
+                        <div class="text-sm text-gray-500" th:text="${user.email}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer flex justify-end space-x-3">
+            <button class="btn-secondary" id="cancelStartChat">
+                Cancel
+            </button>
+            <button class="btn-primary" id="confirmStartChat">
+                Start Chat
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Group Chat Modal -->
+<div class="modal-overlay" id="createGroupModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="text-lg font-semibold text-gray-900">Create Group Chat</h3>
+        </div>
+        <div class="modal-body">
+            <div class="mb-4">
+                <input class="search-input w-full px-4 py-2 rounded-lg focus:outline-none transition-all"
+                       placeholder="Group name (required)"
+                       type="text"
+                       id="groupName"
+                       required />
+                <div class="error-message text-red-500 text-sm mt-1 hidden" id="groupNameError">Group name is required</div>
+            </div>
+            <div class="search-container relative mb-4">
+                <span class="search-icon material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                <input class="search-input w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none transition-all" placeholder="Search users..." type="text" id="userSearchGroup"/>
+            </div>
+            <div class="user-list-group">
+                <div th:each="user : ${users}" class="user-item flex items-center p-3 cursor-pointer transition-colors">
+                    <input type="hidden" class="user-id" th:value="${user.userId}" />
+                    <input type="hidden" class="user-firstname" th:value="${user.firstName}" />
+                    <input type="hidden" class="user-lastname" th:value="${user.lastName}" />
+
+                    <div class="user-avatar"
+                         th:text="${#strings.substring(user.firstName, 0, 1) + #strings.substring(user.lastName, 0, 1)}">
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></div>
+                        <div class="text-sm text-gray-500" th:text="${user.email}"></div>
+                    </div>
+                    <label class="checkbox-container">
+                        <input type="checkbox" class="user-checkbox" th:value="${user.userId}">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer flex justify-end space-x-3">
+            <button class="btn-secondary" id="cancelCreateGroup">
+                Cancel
+            </button>
+            <button class="btn-primary btn-disabled" id="confirmCreateGroup" disabled>
+                Create Group
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Community - Zam Connect</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gray-100: #f9fafb;
+            --gray-200: #f3f4f6;
+            --gray-300: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+        }
+
+        .community-selection-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .community-selection-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .community-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .community-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .community-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+            border-color: var(--primary);
+        }
+
+        .community-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .community-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .community-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .community-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .community-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .privacy-badge.public {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .privacy-badge.private {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .manage-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .manage-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-500);
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            color: var(--gray-300);
+        }
+
+        .create-community-btn {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .create-community-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .community-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .community-selection-header {
+                padding: 1.5rem;
+            }
+
+            .community-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <header class="community-selection-header">
+        <div class="header-content">
+            <h1 class="text-2xl font-bold mb-2">Select Community</h1>
+            <p class="opacity-90">Choose a community to manage its settings, groups, and members</p>
+        </div>
+    </header>
+
+    <!-- Communities Grid -->
+    <div class="community-grid" th:if="${!#lists.isEmpty(userCommunities)}">
+        <article class="community-card" th:each="community : ${userCommunities}"
+                 th:onclick="'selectCommunity(' + ${community.id} + ')'"
+                 role="button"
+                 tabindex="0"
+                 th:onkeypress="'if(event.key === \'Enter\') selectCommunity(' + ${community.id} + ')'">
+
+            <header class="community-name">
+                <div class="community-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span th:text="${community.communityName}">Community Name</span>
+            </header>
+
+            <p class="community-description" th:text="${community.communityDescription}">
+                Community description goes here...
+            </p>
+
+            <footer class="community-meta">
+                <div class="privacy-badge" th:classappend="${community.isPrivate} ? 'private' : 'public'">
+                    <i th:class="${community.isPrivate} ? 'fas fa-lock' : 'fas fa-globe'"></i>
+                    <span th:text="${community.isPrivate} ? 'Private' : 'Public'">Public</span>
+                </div>
+
+                <button class="manage-btn" th:onclick="'event.stopPropagation(); selectCommunity(' + ${community.id} + ')'">
+                    <i class="fas fa-cog"></i>
+                    <span>Manage</span>
+                </button>
+            </footer>
+        </article>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" th:if="${#lists.isEmpty(userCommunities)}">
+        <svg class="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <h2 class="text-xl font-semibold text-gray-700 mb-2">No Communities Found</h2>
+        <p class="text-gray-500 mb-4">You don't belong to any communities yet.</p>
+
+        <div th:if="${isAdmin}">
+            <button class="create-community-btn" onclick="window.location.href='/add-community'">
+                <i class="fas fa-plus"></i>
+                <span>Create New Community</span>
+            </button>
+        </div>
+        <div th:unless="${isAdmin}">
+            <p class="text-sm text-gray-400">Contact an administrator to join a community or request access.</p>
+        </div>
+    </div>
+
+    <script>
+        function selectCommunity(communityId) {
+            if (!communityId) {
+                console.error('Invalid community ID');
+                return;
+            }
+
+            // Store the selected mycommunity ID and redirect to mycommunity management
+            window.location.href = '/my-community?communityId=' + communityId;
+        }
+
+        // Add keyboard navigation support
+        document.addEventListener('DOMContentLoaded', function() {
+            const communityCards = document.querySelectorAll('.community-card');
+
+            communityCards.forEach(card => {
+                card.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        this.click();
+                    }
+                });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Conversation</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2/dist/stomp.min.js"></script>
+</head>
+<body>
+<div class="p-6" th:fragment="ticketDetail">
+    <input type="hidden" id="receiverId" th:value="${receiverId}">
+    <input type="hidden" id="senderId" th:value="${senderId}">
+    <input type="hidden" id="conversationId" th:value="${ticketId}">
+
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-gray-800">Ticket Details</h3>
+        <button class="text-gray-400 hover:text-gray-600" id="close-ticket-modal"
+                _="on click remove .active from #ticket-modal">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <h4 class="text-lg font-medium text-gray-800" id="modal-ticket-title" th:text="${ticket.subject}">Technical issue with video calls</h4>
+            <span class="ticket-status open" id="modal-ticket-status" th:text="${ticket.status}">Open</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Ticket ID:</span>
+                <span class="font-medium ml-2" id="modal-ticket-id" th:text="${ticketId}">CON-2837</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Category:</span>
+                <span class="font-medium ml-2" id="modal-ticket-category">Technical Issue</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Created:</span>
+                <span class="font-medium ml-2" id="modal-ticket-created" th:text="${#temporals.format(ticket.dateCreated, 'MMMM dd, yyyy HH:mm')}">June 12, 2023</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Last Updated:</span>
+                <span class="font-medium ml-2" id="modal-ticket-updated" th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">June 14, 2023</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Priority:</span>
+                <span class="font-medium ml-2" id="modal-ticket-priority" th:text="${ticket.priority}">High</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <h4 class="font-medium text-gray-800 mb-3">Description</h4>
+        <p class="text-gray-700 bg-gray-50 p-4 rounded-lg" id="modal-ticket-description" th:text="${ticket.description}">
+            I'm having trouble with video calls freezing during coaching sessions. This has happened multiple times this week, especially when screen sharing. The issue occurs about 10 minutes into the call and requires me to reconnect.
+        </p>
+    </div>
+
+    <div class="mb-6">
+        <h4 class="font-medium text-gray-800 mb-4">Conversation</h4>
+        <div id="conversation" class="space-y-4">
+            <div th:each="msg : ${messages}" th:classappend="${msg.sender} ? ' message user' : ' message other'">
+                <div class="bubble">
+                    <div class="sender" th:text="${msg.sender} ? 'You' : 'User'"></div>
+                    <p th:text="${msg.content}">Message content</p>
+                    <div class="timestamp" th:text="${msg.sentAt}">Timestamp</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h4 class="font-medium text-gray-800 mb-3">Add a Reply</h4>
+        <textarea id="messageInput" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Type your message here..."></textarea>
+        <div class="flex justify-end mt-3">
+            <button id="sendMessageBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 btn-transition">
+                Send Message
+            </button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script>
+        (function() {
+            // === WebSocket Manager ===
+            window.ticketSocketManager = window.ticketSocketManager || (function () {
+                let stompClient = null;
+
+                function connect(conversationId, senderId, receiverId, conversationBox) {
+                    if (stompClient && stompClient.connected) {
+                        console.log("🔗 WebSocket already connected.");
+                        return;
+                    }
+
+                    const socket = new SockJS('/ws');
+                    stompClient = Stomp.over(socket);
+
+                    stompClient.connect({}, function (frame) {
+                        console.log('✅ Connected:', frame);
+                        stompClient.subscribe(`/topic/support/${senderId}`, function (message) {
+                            const msg = JSON.parse(message.body);
+                            console.log("📩 Received:", msg);
+                            displayMessage(msg, "other", conversationBox);
+                        });
+                    }, function (error) {
+                        console.error('⚠️ WebSocket connection error:', error);
+                    });
+                }
+
+                function disconnect() {
+                    if (stompClient) {
+                        stompClient.disconnect(() => {
+                            console.log("❌ WebSocket connection closed.");
+                        });
+                        stompClient = null;
+                    }
+                }
+
+                function sendMessage(conversationId, senderId, receiverId, content, conversationBox) {
+                    if (!stompClient || !stompClient.connected) {
+                        console.warn("⚠️ Cannot send message, WebSocket not connected.");
+                        return;
+                    }
+                    const msg = { conversationId, senderId, receiverId, content };
+                    stompClient.send(`/app/support.sendMessage`, {}, JSON.stringify(msg));
+                    console.log("📤 Sent:", msg);
+                    displayMessage(msg, "user", conversationBox);
+                }
+
+                function displayMessage(msg, type, conversationBox) {
+                    const wrapper = document.createElement("div");
+                    wrapper.classList.add("message", type);
+
+                    const bubble = document.createElement("div");
+                    bubble.classList.add("bubble");
+
+                    const senderName = document.createElement("div");
+                    senderName.classList.add("sender");
+                    senderName.textContent = (type === "user") ? "You" : "User";
+
+                    const text = document.createElement("p");
+                    text.textContent = msg.content;
+
+                    const timestamp = document.createElement("div");
+                    timestamp.classList.add("timestamp");
+                    timestamp.textContent = msg.sentAt || new Date().toLocaleString();
+
+                    bubble.appendChild(senderName);
+                    bubble.appendChild(text);
+                    bubble.appendChild(timestamp);
+
+                    wrapper.appendChild(bubble);
+                    conversationBox.appendChild(wrapper);
+                    conversationBox.scrollTop = conversationBox.scrollHeight;
+                }
+
+                return { connect, disconnect, sendMessage };
+            })();
+
+            // === Local scoped variables ===
+            let receiverId = document.getElementById("receiverId").value;
+            let senderId = document.getElementById("senderId").value;
+            let conversationId = document.getElementById("conversationId").value;
+            let conversationBox = document.getElementById("conversation");
+
+            // Connect when modal opens
+            window.ticketSocketManager.connect(conversationId, senderId, receiverId, conversationBox);
+
+            // Handle send button
+            document.getElementById("sendMessageBtn").addEventListener("click", function () {
+                const content = document.getElementById("messageInput").value.trim();
+                if (!content) return;
+                window.ticketSocketManager.sendMessage(conversationId, senderId, receiverId, content, conversationBox);
+                document.getElementById("messageInput").value = "";
+            });
+
+            // Handle close modal => disconnect
+            document.getElementById("close-ticket-modal").addEventListener("click", function () {
+                window.ticketSocketManager.disconnect();
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

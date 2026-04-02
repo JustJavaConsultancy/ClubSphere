@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/settings.css">
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+    <style>
+        /* Status section specific styles */
+        .status-toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .status-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .status-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .status-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .status-slider {
+            background-color: #3B82F6;
+        }
+
+        input:checked + .status-slider:before {
+            transform: translateX(30px);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-public {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-private {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-explanation {
+            margin-top: 8px;
+            font-size: 0.875rem;
+            color: #6B7280;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+    <div class="max-w-3xl w-full mx-auto">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <span class="material-icons text-blue-600">tune</span>
+            Settings
+        </h1>
+
+        <!-- Admin / Community Status Visibility Card -->
+        <section th:if="${isAdmin}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span class="material-icons text-purple-600">visibility</span>
+                Community Status
+            </h2>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 mb-1">Control who can see your profile</p>
+                    <div id="communityStatusIndicator" class="status-indicator status-public"
+                         th:attr="data-privacy=${community.communityPrivacy}"
+                         _="on load
+                                if @data-privacy == 'true'
+                                    remove .status-public from me
+                                    add .status-private to me
+                                    add .bg-red-100 to me
+                                else
+                                    add .status-public to me
+                                end">
+                        <span id="communityStatusSubject" th:text="${community.communityPrivacy} ? 'lock' : 'public'"
+                              class="material-icons text-base">public</span>
+                        <span id="communityStatusDescription" th:text="${community.communityPrivacy} ? 'Private Community Profile'
+                                    : 'Public Community Profile'">Public Community Profile</span>
+                    </div>
+                    <div class="status-explanation" id="communityStatusExplanation"
+                         th:text="${community.communityPrivacy} ? 'Your community has been set to private'
+                         : 'Your community has been set to public'">
+                        Your community has been set to public.
+                    </div>
+                </div>
+                <label class="status-toggle">
+                    <input type="checkbox"
+                           _="on click
+                                if my.checked
+                                    remove .status-public from #communityStatusIndicator
+                                    add .status-private to #communityStatusIndicator
+                                    add .bg-red-100 to #communityStatusIndicator
+                                    put 'Your community is set to Private' into #communityStatusExplanation
+                                    put 'lock' into #communityStatusSubject
+                                    put 'Private Community Profile' into #communityStatusDescription
+                                else
+                                    remove .status-private from #communityStatusIndicator
+                                    remove .bg-red-100 from #communityStatusIndicator
+                                    add .status-public to #communityStatusIndicator
+                                    put 'Your community is set to Public' into #communityStatusExplanation
+                                    put 'public' into #communityStatusSubject
+                                    put 'Public Community Profile' into #communityStatusDescription
+                                end
+                                on htmx:afterRequest wait 1s location.reload()"
+                           id="communityStatusToggle"
+                           th:checked="${community.communityPrivacy}"
+                           hx-post="/update-communityStatus"
+                           hx-target="#communityStatusFeedback"
+                           hx-swap="innerHTML"
+                           hx-vals='js:{status: document.getElementById("communityStatusToggle").checked ? "private" : "public"}'>
+                    <span class="status-slider"></span>
+                </label>
+            </div>
+            <div class="mt-4 flex items-center gap-3">
+                <span id="communityStatusFeedback" class="text-sm text-green-600"></span>
+            </div>
+        </section>
+
+        <!-- Status Visibility Card -->
+        <section th:if="${!community.communityPrivacy}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span class="material-icons text-purple-600">visibility</span>
+                Profile Status
+            </h2>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 mb-1">Control who can see your profile</p>
+                    <div id="statusIndicator" class="status-indicator status-public">
+                        <span class="material-icons text-base">public</span>
+                        <span>Public Profile</span>
+                    </div>
+                    <div class="status-explanation" id="statusExplanation">
+                        Your profile is visible to everyone in the community.
+                    </div>
+                </div>
+                <label class="status-toggle">
+                    <input type="checkbox"
+                           id="statusToggle"
+                           th:checked="${user.privacy}"
+                           hx-post="/update-status"
+                           hx-target="#statusFeedback"
+                           hx-swap="innerHTML"
+                           hx-vals='js:{status: document.getElementById("statusToggle").checked ? "private" : "public"}'>
+                    <span class="status-slider"></span>
+                </label>
+            </div>
+            <div class="mt-4 flex items-center gap-3">
+                <span id="statusFeedback" class="text-sm text-green-600"></span>
+            </div>
+        </section>
+
+        <!-- Change Password Card -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+            <form hx-post="/change-password" hx-target="#passwordFeedback"
+                  hx-swap="innerHTML" id="passwordForm" class="space-y-4"
+                  _="on htmx:afterOnLoad
+                                remove .text-green-600 from #passwordFeedback
+                                add .text-red-600 to #passwordFeedback
+                                remove .cursor-progress from #savePasswordBtn">
+                <div>
+                    <label class="block text-sm text-gray-700 mb-1">Current password</label>
+                    <input id="currentPassword" name="oldPassword" type="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">New password</label>
+                        <input id="newPassword" name="newPassword" type="password"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="••••••••" required
+                               _="on input
+                               if me.value.length <= 7
+                                    put 'New password must be at least 8 characters' into #passwordFeedback.innerHTML
+                                    add .text-red-600 to #passwordFeedback
+                                    remove .text-green-600 from #passwordFeedback
+                               else
+                                    put 'New password has at least 8 characters' into #passwordFeedback.innerHTML
+                                    add .text-green-600 to #passwordFeedback
+                                    remove .text-red-600 from #passwordFeedback"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">Confirm new password</label>
+                        <input id="confirmPassword" name="confirmPassword" type="password"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="••••••••" required
+                               _="on input
+                               if me.value == #newPassword.value
+                                    set #savePasswordBtn.disabled to false
+                                    put 'Password match' into #passwordFeedback.innerHTML
+                                    add .brand-btn to #savePasswordBtn
+                                    remove .bg-sky-500 from #savePasswordBtn
+                                    add .text-green-600 to #passwordFeedback
+                                    remove .text-red-600 from #passwordFeedback
+                                    add .cursor-pointer to #savePasswordBtn
+                                    remove .pointer-events-none from #savePasswordBtn
+                               else
+                                    set #savePasswordBtn.disabled to true
+                                    put 'Password do not match' into #passwordFeedback.innerHTML
+                                    add .text-red-600 to #passwordFeedback
+                                    remove .text-green-600 from #passwordFeedback
+                                    add .bg-sky-500 to #savePasswordBtn
+                                    remove .brand-btn from #savePasswordBtn
+                                    remove .cursor-pointer from #savePasswordBtn
+                                    add .pointer-events-none to #savePasswordBtn
+                               ">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="submit" id="savePasswordBtn" class="bg-sky-500 text-white px-4 py-2 rounded-lg pointer-events-none"
+                            disabled
+                            _="on click
+                                add .cursor-progress to #savePasswordBtn
+                                put '' into #passwordFeedback.innerHTML">Update Password</button>
+                    <span id="passwordFeedback" class="text-sm"></span>
+                </div>
+            </form>
+        </section>
+
+        <!-- Upgrade Level Card -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <h2 class="text-lg font-semibold text-gray-900 mb-1">Upgrade Level</h2>
+            <p class="text-sm text-gray-600 mb-4">Choose your access level. Higher levels include all features from lower levels.</p>
+
+            <div class="grid sm:grid-cols-3 gap-4">
+                <label class="tier-card border border-gray-200 rounded-lg p-4 cursor-pointer">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="badge badge-bronze"><span class="material-icons icon-crown">military_tech</span> Bronze</span>
+                        <input type="radio" name="level" value="1" class="level-radio" th:checked="${user.level == '1'}">
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Level 1</h3>
+                    <p class="text-xs text-gray-500 mb-2">Explorer</p>
+                    <ul class="feature-list text-sm text-gray-600 space-y-1">
+                        <li class="enabled"><span class="dot"></span> View posts</li>
+                        <li class="enabled"><span class="dot"></span> Make comments</li>
+                        <li><span class="dot"></span> Create posts</li>
+                        <li><span class="dot"></span> Create groups</li>
+                    </ul>
+                </label>
+                <label class="tier-card border border-gray-200 rounded-lg p-4 cursor-pointer">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="badge badge-silver"><span class="material-icons icon-crown">military_tech</span> Silver</span>
+                        <input type="radio" name="level" value="2" class="level-radio" th:checked="${user.level == '2'}">
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Level 2</h3>
+                    <p class="text-xs text-gray-500 mb-2">Creator</p>
+                    <ul class="feature-list text-sm text-gray-600 space-y-1">
+                        <li class="enabled"><span class="dot"></span> View posts</li>
+                        <li class="enabled"><span class="dot"></span> Make comments</li>
+                        <li class="enabled"><span class="dot"></span> Create posts</li>
+                        <li><span class="dot"></span> Create groups</li>
+                    </ul>
+                </label>
+                <label class="tier-card border border-gray-200 rounded-lg p-4 cursor-pointer">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="badge badge-gold"><span class="material-icons icon-crown">military_tech</span> Gold</span>
+                        <input type="radio" name="level" value="3" class="level-radio" th:checked="${user.level == '3'}">
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Level 3</h3>
+                    <p class="text-xs text-gray-500 mb-2">Champion</p>
+                    <ul class="feature-list text-sm text-gray-600 space-y-1">
+                        <li class="enabled"><span class="dot"></span> View posts</li>
+                        <li class="enabled"><span class="dot"></span> Make comments</li>
+                        <li class="enabled"><span class="dot"></span> Create posts</li>
+                        <li class="enabled"><span class="dot"></span> Create groups</li>
+                    </ul>
+                </label>
+            </div>
+
+            <div class="mt-4 flex items-center gap-3">
+                <button hx-post="/save-level" hx-include="[name='level']"
+                        type="button" id="upgradeLevelBtn" class="brand-btn px-4 py-2 rounded-lg">Save Level</button>
+                <span id="levelFeedback" class="text-sm text-gray-500"></span>
+            </div>
+        </section>
+    </div>
+    <script>
+    const statusToggle = document.getElementById("statusToggle");
+    const statusIndicator = document.getElementById("statusIndicator");
+    const statusExplanation = document.getElementById("statusExplanation");
+
+    function updateUI(isPublic) {
+        if (!isPublic) {
+            statusIndicator.classList.remove("status-private", "bg-red-100");
+            statusIndicator.classList.add("status-public");
+            statusIndicator.innerHTML = `
+                <span class="material-icons text-base">public</span>
+                <span>Public Profile</span>
+            `;
+            statusExplanation.innerHTML = "Your post is visible to everyone in the community.";
+        } else {
+            statusIndicator.classList.remove("status-public");
+            statusIndicator.classList.add("status-private", "bg-red-100");
+            statusIndicator.innerHTML = `
+                <span class="material-icons text-base">lock</span>
+                <span>Private Profile</span>
+            `;
+            statusExplanation.innerHTML = "Your post is only visible to the community admin.";
+        }
+    }
+
+    // Initialize on page load
+    updateUI(statusToggle.checked);
+
+    // Update UI when toggled
+    statusToggle.addEventListener("change", () => {
+        updateUI(statusToggle.checked);
+    });
+    </script>
+    <script src="/js/settings.js"></script>
+</main>
+</body>
+</html>

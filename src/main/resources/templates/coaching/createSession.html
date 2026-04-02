@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Training Session Creation</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        /* Your existing CSS styles remain unchanged */
+        .participant-item {
+            animation: fadeIn 0.3s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .search-results {
+            position: absolute;
+            width: calc(100% - 110px);
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: none;
+        }
+        .search-result-item {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .search-result-item:hover {
+            background-color: #f3f4f6;
+        }
+        .search-result-item img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #555;
+        }
+
+        /* Session Type Toggle Styles */
+        .session-type-toggle {
+            display: flex;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .session-type-option {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+        }
+        .session-type-option:last-child {
+            border-right: none;
+        }
+        .session-type-option.active {
+            background: #4f46e5;
+            color: white;
+        }
+        .session-type-option:hover:not(.active) {
+            background: #eef2ff;
+        }
+        .session-type-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .session-type-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .session-type-description {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        /* Video Upload Styles */
+        .video-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: #f9fafb;
+        }
+        .video-upload-area:hover {
+            border-color: #4f46e5;
+            background: #f0f4ff;
+        }
+        .video-upload-area.dragover {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+        .video-upload-icon {
+            font-size: 3.5rem;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+        .video-upload-area:hover .video-upload-icon {
+            color: #4f46e5;
+        }
+        .video-preview-container {
+            margin-top: 1.5rem;
+            display: none;
+        }
+        .video-preview {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .video-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+        .video-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .video-info-label {
+            font-weight: 500;
+            color: #6b7280;
+        }
+        .video-info-value {
+            color: #374151;
+        }
+        .video-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .video-library {
+            margin-top: 1.5rem;
+        }
+        .video-library-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .video-library-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .video-library-item:hover {
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .video-library-item.selected {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        .video-thumbnail {
+            width: 100%;
+            height: 120px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+        }
+        .video-library-info {
+            padding: 0.75rem;
+        }
+        .video-library-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .video-library-duration {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Certification-specific styles */
+        .certificate-preview {
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            text-align: center;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .certificate-badge {
+            background: linear-gradient(135deg, #2a5dea, #8a3ffc);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Certificate Customization Styles */
+        .certificate-customization {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            display: none; /* Hidden by default */
+        }
+
+        .customization-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab:hover:not(.active) {
+            color: #6b7280;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .color-input {
+            width: 3rem;
+            height: 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+
+        .font-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .font-option {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .font-option:hover {
+            border-color: #4f46e5;
+        }
+
+        .font-option.selected {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .logo-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .logo-upload-area:hover {
+            border-color: #4f46e5;
+        }
+
+        .logo-upload-area.dragover {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .logo-preview {
+            max-width: 200px;
+            max-height: 100px;
+            margin: 0 auto 1rem;
+        }
+
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-container {
+            position: relative;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            min-height: 400px;
+            background: white;
+        }
+
+        .certificate-preview-content {
+            width: 100%;
+            min-height: 400px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            padding: 2rem;
+        }
+
+        .certificate-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .certificate-logo {
+            max-width: 150px;
+            max-height: 80px;
+            margin-bottom: 1.5rem;
+        }
+
+        .certificate-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .certificate-text {
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .certificate-name {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid;
+            padding-bottom: 0.5rem;
+        }
+
+        .certificate-details {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 2rem;
+        }
+
+        .certificate-signature {
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 200px;
+            height: 1px;
+            background-color: #000;
+            margin: 0.5rem auto;
+        }
+
+        .template-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .template-option {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-option:hover {
+            border-color: #4f46e5;
+        }
+
+        .template-option.selected {
+            border-color: #4f46e5;
+        }
+
+        .template-preview {
+            height: 120px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template-name {
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d5db;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #4f46e5;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        /* Professional Certificate Styling */
+        .certificate-border {
+            border: 15px solid;
+            padding: 2.5rem;
+            position: relative;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .certificate-seal {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .certificate-ribbon {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 30px;
+            background: linear-gradient(135deg, #2a5dea, #8a3ffc);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .certificate-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: bold;
+            opacity: 0.05;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Logo positioning classes */
+        .logo-top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .logo-top-center {
+            align-self: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        /* Signature Styles */
+        .signature-tab-content {
+            display: none;
+        }
+
+        .signature-tab-content.active {
+            display: block;
+        }
+
+        .signature-type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .signature-type {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .signature-type:hover {
+            border-color: #4f46e5;
+        }
+
+        .signature-type.selected {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .signature-method-icon {
+            font-size: 2.5rem;
+            color: #4f46e5;
+            margin-bottom: 0.5rem;
+        }
+
+        .signature-canvas-container {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            margin-bottom: 1rem;
+        }
+
+        #signature-canvas {
+            width: 100%;
+            height: 200px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .signature-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .signature-preview {
+            max-width: 300px;
+            max-height: 100px;
+            margin: 1rem auto;
+            border: 1px dashed #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9fafb;
+        }
+
+        .signature-preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .signature-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .signature-upload-area:hover {
+            border-color: #4f46e5;
+        }
+
+        .signature-upload-area.dragover {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .font-signature-preview {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.5rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* File input styling */
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Animation for certificate preview */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .certificate-preview-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Loading spinner */
+        .upload-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Upload status messages */
+        .upload-status {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            text-align: center;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .upload-status.uploading {
+            display: block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        .upload-status.success {
+            display: block;
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .upload-status.error {
+            display: block;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .grid-cols-2, .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .template-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .font-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .customization-tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+
+            .certificate-border {
+                padding: 1.5rem;
+                border-width: 10px;
+            }
+
+            .certificate-title {
+                font-size: 1.5rem;
+            }
+
+            .certificate-name {
+                font-size: 1.25rem;
+            }
+
+            .certificate-text {
+                font-size: 1rem;
+            }
+
+            .signature-type-selector {
+                flex-direction: column;
+            }
+
+            .session-type-toggle {
+                flex-direction: column;
+            }
+            .session-type-option {
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            .session-type-option:last-child {
+                border-bottom: none;
+            }
+            .video-library-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="bg-white p-8 rounded-2xl shadow-lg transform hover:scale-[1.01] transition-transform duration-500">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">Create New Training Session</h1>
+        <p class="text-gray-600 mt-2">Set up a new coaching session and invite participants</p>
+
+        <!-- Community Context Display -->
+        <div th:if="${selectedCommunityName != null}" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Creating session for community</h3>
+                    <p class="text-sm text-blue-600" th:text="${selectedCommunityName}">Community Name</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Updated form with th:action and id -->
+    <form th:action="@{/create-session}" method="post" class="space-y-8" id="sessionForm" enctype="multipart/form-data">
+        <!-- Session Type Selection -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Type</h3>
+            <div class="session-type-toggle">
+                <div class="session-type-option active" data-type="live">
+                    <div class="session-type-icon">
+                        <span class="material-icons">video_call</span>
+                    </div>
+                    <div class="session-type-title">Live Session</div>
+                    <div class="session-type-description">Conduct a real-time training session</div>
+                </div>
+                <div class="session-type-option" data-type="recorded">
+                    <div class="session-type-icon">
+                        <span class="material-icons">play_circle</span>
+                    </div>
+                    <div class="session-type-title">Recorded Session</div>
+                    <div class="session-type-description">Use a pre-recorded video</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="module">Module</label>
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">category</span>
+                <select class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="module" name="moduleId" required>
+                    <option value="">Select a module</option>
+                    <option
+                            th:each="module : ${modules}"
+                            th:value="${module.id}"
+                            th:text="${module.name}">
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-top:1rem">
+            <a th:href="@{/add-model}">
+                <button class="px-6 py-3 bg-indigo-100 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-200 transition-colors flex items-center gap-2" type="button">
+                    <span class="material-icons">add</span> Add New Module
+                </button>
+            </a>
+        </div>
+
+        <!-- Live Session Fields (shown by default) -->
+        <div id="live-session-fields">
+
+        </div>
+
+
+        <!-- Recorded Session Fields (hidden by default) -->
+        <div id="recorded-session-fields" style="display: none;">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Upload Training Video</label>
+                <div class="video-upload-area" id="video-upload-area">
+                    <div class="video-upload-icon">
+                        <span class="material-icons">cloud_upload</span>
+                    </div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-2">Upload your training video</h4>
+                    <p class="text-gray-500 mb-4">Drag & drop your video file here or click to browse</p>
+                    <p class="text-xs text-gray-500">Supported formats: MP4, MOV, AVI, WMV | Max size: 500MB</p>
+                    <input type="file" id="video-file" name="videoFile" accept="video/*" class="file-input">
+                </div>
+
+                <!-- Video Preview -->
+                <div class="video-preview-container" id="video-preview-container">
+                    <h4 class="text-md font-medium text-gray-700 mb-2">Video Preview</h4>
+                    <video class="video-preview" id="video-preview" controls>
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-info" id="video-info">
+                        <div class="video-info-item">
+                            <span class="video-info-label">File Name:</span>
+                            <span class="video-info-value" id="video-file-name">-</span>
+                        </div>
+                        <div class="video-info-item">
+                            <span class="video-info-label">File Size:</span>
+                            <span class="video-info-value" id="video-file-size">-</span>
+                        </div>
+                        <div class="video-info-item">
+                            <span class="video-info-label">Duration:</span>
+                            <span class="video-info-value" id="video-duration">-</span>
+                        </div>
+                    </div>
+                    <div class="video-actions">
+                        <button type="button" id="change-video-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
+                            <span class="material-icons" style="font-size: 1rem;">swap_horiz</span> Change Video
+                        </button>
+                        <button type="button" id="remove-video-btn" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2">
+                            <span class="material-icons" style="font-size: 1rem;">delete</span> Remove
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Library -->
+                <div class="video-library hidden" id="video-library">
+                    <h4 class="text-md font-medium text-gray-700 mb-2">Or select from your video library</h4>
+                    <div class="video-library-items" id="video-library-items">
+                        <!-- Video library items will be populated dynamically -->
+                        <div class="video-library-item" data-video-id="1" data-video-url="/api/videos/1">
+                            <div class="video-thumbnail">
+                                <span class="material-icons">play_circle</span>
+                            </div>
+                            <div class="video-library-info">
+                                <div class="video-library-title">Introduction to Training</div>
+                                <div class="video-library-duration">15:30</div>
+                            </div>
+                        </div>
+                        <div class="video-library-item" data-video-id="2" data-video-url="/api/videos/2">
+                            <div class="video-thumbnail">
+                                <span class="material-icons">play_circle</span>
+                            </div>
+                            <div class="video-library-info">
+                                <div class="video-library-title">Advanced Techniques</div>
+                                <div class="video-library-duration">22:45</div>
+                            </div>
+                        </div>
+                        <div class="video-library-item" data-video-id="3" data-video-url="/api/videos/3">
+                            <div class="video-thumbnail">
+                                <span class="material-icons">play_circle</span>
+                            </div>
+                            <div class="video-library-info">
+                                <div class="video-library-title">Case Study Analysis</div>
+                                <div class="video-library-duration">18:15</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Certification Options Section -->
+        <div class="border-t border-gray-200 pt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Certification Settings</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex items-center">
+                    <input type="checkbox" id="enable-certification" name="hasCertificate" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="enable-certification" class="ml-2 block text-sm text-gray-900">
+                        Enable certification for this session
+                    </label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="auto-certify" name="auto-certify" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="auto-certify" class="ml-2 block text-sm text-gray-900">
+                        Auto-certify upon completion
+                    </label>
+                </div>
+            </div>
+
+            <!-- Certificate Customization Section - Hidden by default -->
+            <div class="certificate-customization" id="certificate-customization">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Certificate Customization</h3>
+
+                <!-- Tabs for different customization sections -->
+                <div class="customization-tabs">
+                    <div class="tab active" data-tab="template">Template</div>
+                    <div class="tab" data-tab="content">Content</div>
+                    <div class="tab" data-tab="design">Design</div>
+                    <div class="tab" data-tab="logo">Logo & Branding</div>
+                    <div class="tab" data-tab="signature">Signature</div>
+                </div>
+
+                <!-- Template Tab -->
+                <div class="tab-content active" id="template-tab">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">Select Certificate Template</h4>
+                    <div class="template-selector">
+                        <div class="template-option selected" data-template="classic">
+                            <div class="template-preview">
+                                <div style="width: 80%; height: 60%; background: linear-gradient(135deg, #2a5dea, #8a3ffc); border-radius: 4px;"></div>
+                            </div>
+                            <div class="template-name">Classic</div>
+                        </div>
+                        <div class="template-option" data-template="modern">
+                            <div class="template-preview">
+                                <div style="width: 80%; height: 60%; background: linear-gradient(135deg, #10b981, #059669); border-radius: 4px;"></div>
+                            </div>
+                            <div class="template-name">Modern</div>
+                        </div>
+                        <div class="template-option" data-template="elegant">
+                            <div class="template-preview">
+                                <div style="width: 80%; height: 60%; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 4px;"></div>
+                            </div>
+                            <div class="template-name">Elegant</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="certificate-template">Certificate Template</label>
+                            <select class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="certificate-template" name="certificate-template">
+                                <option>Standard Template</option>
+                                <option>Premium Template</option>
+                                <option>Custom Template</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="validity-period">Validity Period</label>
+                            <select class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="validity-period" name="validity-period">
+                                <option>No expiration</option>
+                                <option>1 Year</option>
+                                <option>2 Years</option>
+                                <option>3 Years</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Tab -->
+                <div class="tab-content" id="content-tab">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">Certificate Content</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="certificate-title">Certificate Title</label>
+                            <input type="text" id="certificate-title" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="Certificate of Completion">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="issuing-organization">Issuing Organization</label>
+                            <input type="text" id="issuing-organization" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="Training Academy">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="certificate-text">Certificate Text</label>
+                        <textarea id="certificate-text" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" rows="3">This is to certify that [Participant Name] has successfully completed the [Course Name] training program on [Completion Date].</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="signatory-name">Signatory Name</label>
+                            <input type="text" id="signatory-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="John Doe">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="signatory-title">Signatory Title</label>
+                            <input type="text" id="signatory-title" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="Head of Training">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Design Tab -->
+                <div class="tab-content" id="design-tab">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">Design Customization</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="background-color">Background Color</label>
+                            <div class="color-picker">
+                                <input type="color" id="background-color" class="color-input" value="#ffffff">
+                                <input type="text" id="background-color-text" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="#ffffff">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="primary-color">Primary Color</label>
+                            <div class="color-picker">
+                                <input type="color" id="primary-color" class="color-input" value="#4f46e5">
+                                <input type="text" id="primary-color-text" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="#4f46e5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
+                        <div class="font-selector">
+                            <div class="font-option selected" data-font="inter">
+                                <div style="font-family: 'Inter', sans-serif;">Inter</div>
+                            </div>
+                            <div class="font-option" data-font="roboto">
+                                <div style="font-family: 'Roboto', sans-serif;">Roboto</div>
+                            </div>
+                            <div class="font-option" data-font="open-sans">
+                                <div style="font-family: 'Open Sans', sans-serif;">Open Sans</div>
+                            </div>
+                            <div class="font-option" data-font="lora">
+                                <div style="font-family: 'Lora', serif;">Lora</div>
+                            </div>
+                            <div class="font-option" data-font="playfair">
+                                <div style="font-family: 'Playfair Display', serif;">Playfair</div>
+                            </div>
+                            <div class="font-option" data-font="montserrat">
+                                <div style="font-family: 'Montserrat', sans-serif;">Montserrat</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="title-size">Title Font Size</label>
+                            <input type="range" id="title-size" class="w-full" min="16" max="48" value="32">
+                            <div class="text-center text-sm text-gray-500" id="title-size-value">32px</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="name-size">Name Font Size</label>
+                            <input type="range" id="name-size" class="w-full" min="16" max="36" value="28">
+                            <div class="text-center text-sm text-gray-500" id="name-size-value">28px</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="text-size">Text Font Size</label>
+                            <input type="range" id="text-size" class="w-full" min="12" max="24" value="18">
+                            <div class="text-center text-sm text-gray-500" id="text-size-value">18px</div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group mt-4">
+                        <input type="checkbox" id="add-border" checked>
+                        <label for="add-border" class="text-sm text-gray-700">Add decorative border</label>
+                    </div>
+                    <div class="checkbox-group mt-2">
+                        <input type="checkbox" id="add-watermark" checked>
+                        <label for="add-watermark" class="text-sm text-gray-700">Add watermark</label>
+                    </div>
+                    <div class="checkbox-group mt-2">
+                        <input type="checkbox" id="add-seal" checked>
+                        <label for="add-seal" class="text-sm text-gray-700">Add official seal</label>
+                    </div>
+                </div>
+
+                <!-- Logo & Branding Tab -->
+                <div class="tab-content" id="logo-tab">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">Logo & Branding</h4>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Logo</label>
+                        <div class="logo-upload-area" id="logo-upload-area">
+                            <div class="logo-preview" id="logo-preview">
+                                <span class="material-icons" style="font-size: 3rem; color: #9ca3af;">image</span>
+                                <div class="upload-spinner" id="logo-spinner"></div>
+                            </div>
+                            <p class="text-gray-500">Drag & drop your logo here or click to browse</p>
+                            <p class="text-xs text-gray-500 mt-2">Recommended: PNG or JPG, max 2MB</p>
+                            <input type="file" id="logo-file" accept="image/*" class="file-input">
+                        </div>
+                        <div class="upload-status" id="logo-upload-status"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="logo-size">Logo Size</label>
+                            <input type="range" id="logo-size" class="w-full" min="50" max="200" value="150">
+                            <div class="text-center text-sm text-gray-500" id="logo-size-value">150px</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="logo-position">Logo Position</label>
+                            <select id="logo-position" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input">
+                                <option value="top-center">Top Center</option>
+                                <option value="top-left">Top Left</option>
+                                <option value="top-right">Top Right</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="organization-name">Organization Name</label>
+                        <input type="text" id="organization-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="Training Academy">
+                    </div>
+
+                    <div class="checkbox-group mt-4">
+                        <input type="checkbox" id="show-organization" checked>
+                        <label for="show-organization" class="text-sm text-gray-700">Show organization name on certificate</label>
+                    </div>
+                </div>
+
+                <!-- Signature Tab -->
+                <div class="tab-content" id="signature-tab">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">Certificate Signature</h4>
+
+                    <div class="signature-type-selector">
+                        <div class="signature-type selected" data-type="upload">
+                            <div class="signature-method-icon">
+                                <span class="material-icons">image</span>
+                            </div>
+                            <h5 class="font-medium">Upload Signature</h5>
+                            <p class="text-sm text-gray-500">Upload an image of your signature</p>
+                        </div>
+                        <div class="signature-type" data-type="draw">
+                            <div class="signature-method-icon">
+                                <span class="material-icons">draw</span>
+                            </div>
+                            <h5 class="font-medium">Draw Signature</h5>
+                            <p class="text-sm text-gray-500">Draw your signature using mouse or touch</p>
+                        </div>
+                        <div class="signature-type" data-type="font">
+                            <div class="signature-method-icon">
+                                <span class="material-icons">text_fields</span>
+                            </div>
+                            <h5 class="font-medium">Font Signature</h5>
+                            <p class="text-sm text-gray-500">Use a stylized font for your signature</p>
+                        </div>
+                    </div>
+
+                    <!-- Upload Signature Method -->
+                    <div class="signature-tab-content active" id="upload-signature">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Signature Image</label>
+                            <div class="signature-upload-area" id="signature-upload-area">
+                                <div class="signature-preview" id="signature-preview">
+                                    <span class="material-icons" style="font-size: 3rem; color: #9ca3af;">autograph</span>
+                                    <div class="upload-spinner" id="signature-spinner"></div>
+                                </div>
+                                <p class="text-gray-500">Drag & drop your signature here or click to browse</p>
+                                <p class="text-xs text-gray-500 mt-2">Recommended: PNG with transparent background</p>
+                                <input type="file" id="signature-file" accept="image/*" class="file-input">
+                            </div>
+                            <div class="upload-status" id="signature-upload-status"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-2" for="signature-size">Signature Size</label>
+                                <input type="range" id="signature-size" class="w-full" min="50" max="200" value="120">
+                                <div class="text-center text-sm text-gray-500" id="signature-size-value">120px</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-2" for="signature-opacity">Signature Opacity</label>
+                                <input type="range" id="signature-opacity" class="w-full" min="50" max="100" value="100">
+                                <div class="text-center text-sm text-gray-500" id="signature-opacity-value">100%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Draw Signature Method -->
+                    <div class="signature-tab-content" id="draw-signature">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Draw Your Signature</label>
+                            <div class="signature-canvas-container">
+                                <canvas id="signature-canvas"></canvas>
+                            </div>
+                            <div class="signature-actions">
+                                <button id="clear-signature" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2" type="button">
+                                    <span class="material-icons" style="font-size: 1rem;">refresh</span> Clear
+                                </button>
+                                <button id="save-signature" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2" type="button">
+                                    <span class="material-icons" style="font-size: 1rem;">save</span> Save Signature
+                                </button>
+                            </div>
+                            <div class="signature-preview" id="drawn-signature-preview">
+                                <span class="text-gray-400">Your drawn signature will appear here</span>
+                            </div>
+                            <div class="upload-status" id="drawn-signature-upload-status"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-2" for="pen-color">Pen Color</label>
+                                <div class="color-picker">
+                                    <input type="color" id="pen-color" class="color-input" value="#000000">
+                                    <input type="text" id="pen-color-text" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="#000000">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-2" for="pen-size">Pen Size</label>
+                                <input type="range" id="pen-size" class="w-full" min="1" max="10" value="3">
+                                <div class="text-center text-sm text-gray-500" id="pen-size-value">3px</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Font Signature Method -->
+                    <div class="signature-tab-content" id="font-signature">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="font-signature-text">Signature Text</label>
+                            <input type="text" id="font-signature-text" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="John Doe">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Signature Style</label>
+                            <div class="font-selector">
+                                <div class="font-option selected" data-signature-font="dancing-script">
+                                    <div style="font-family: 'Dancing Script', cursive;">Dancing Script</div>
+                                </div>
+                                <div class="font-option" data-signature-font="great-vibes">
+                                    <div style="font-family: 'Great Vibes', cursive;">Great Vibes</div>
+                                </div>
+                                <div class="font-option" data-signature-font="brush-script">
+                                    <div style="font-family: 'Brush Script MT', cursive;">Brush Script</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="signature-preview font-signature-preview" id="font-signature-preview" style="font-family: 'Dancing Script', cursive;">
+                            John Doe
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-2" for="font-signature-size">Font Size</label>
+                                <input type="range" id="font-signature-size" class="w-full" min="16" max="48" value="28">
+                                <div class="text-center text-sm text-gray-500" id="font-signature-size-value">28px</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-2" for="font-signature-color">Font Color</label>
+                                <div class="color-picker">
+                                    <input type="color" id="font-signature-color" class="color-input" value="#000000">
+                                    <input type="text" id="font-signature-color-text" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" value="#000000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Certificate Preview - Hidden by default -->
+            <div class="mt-6 certificate-preview" id="certificate-preview" style="display: none;">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">Certificate Preview</h4>
+                <div class="preview-container">
+                    <div class="certificate-preview-content">
+                        <div class="certificate-content" id="certificate-content">
+                            <!-- This will be dynamically updated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden inputs for form data -->
+        <input type="hidden" id="certificateHtml" name="certificateHtml">
+        <input type="hidden" id="sessionType" name="sessionType" value="live">
+        <!-- REMOVED: <input type="hidden" id="videoLink" name="videoLink"> -->
+        <input type="hidden" id="hasCertificate" name="hasCertificate" value="false">
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="description">Description</label>
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-4 text-gray-400">description</span>
+                <textarea class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="description" name="description" placeholder="Provide a short description of the training session..." rows="4" required></textarea>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="startDate">Date</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">event</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="startDate" name="startDate" type="date" required/>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="startTime">Time</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">schedule</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="startTime" name="startTime" type="time" required/>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="duration">Duration (minutes)</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">hourglass_top</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="duration" min="15" name="duration" step="15" type="number" required/>
+                </div>
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Add Participants</label>
+            <div class="flex gap-4 relative">
+                <div class="relative flex-grow">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">person_add</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="participants-input" placeholder="Search by name or email" type="text"/>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+                <button class="px-6 py-3 bg-indigo-100 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-200 transition-colors flex items-center gap-2" id="add-participant-btn" type="button">
+                    <span class="material-icons">add</span> Add
+                </button>
+            </div>
+            <div class="mt-4 space-y-3" id="participants-list">
+                <!-- Participants will be added here dynamically -->
+            </div>
+            <!-- Hidden input to store participants as JSON (IDs only) -->
+            <input type="hidden" id="participants-hidden" name="users">
+        </div>
+        <div class="flex justify-end pt-6 border-t border-gray-200">
+            <a th:href="@{/sessions}">
+                <button class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors mr-4" type="button">Cancel</button>
+            </a>
+            <button class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2" type="submit">
+                <span class="material-icons">save</span>
+                Create Session
+            </button>
+        </div>
+    </form>
+
+    <script>
+        let participants = [];
+        let selectedParticipants = [];
+        let uploadedLogoUrl = null;
+        let uploadedSignatureUrl = null;
+
+        const participantsInput = document.getElementById('participants-input');
+        const searchResults = document.getElementById('search-results');
+        const addParticipantBtn = document.getElementById('add-participant-btn');
+        const participantsList = document.getElementById('participants-list');
+        const participantsHidden = document.getElementById('participants-hidden');
+
+        // Get mycommunity context from Thymeleaf
+        const selectedCommunityId = /*[[${selectedCommunityId}]]*/ null;
+        const selectedCommunityName = /*[[${selectedCommunityName}]]*/ null;
+
+        console.log('Community context:', {
+            selectedCommunityId,
+            selectedCommunityName
+        });
+
+        // Session type toggle functionality
+        const sessionTypeOptions = document.querySelectorAll('.session-type-option');
+        const liveSessionFields = document.getElementById('live-session-fields');
+        const recordedSessionFields = document.getElementById('recorded-session-fields');
+        const sessionTypeInput = document.getElementById('sessionType');
+        const moduleSelect = document.getElementById('module');
+        const hasCertificateInput = document.getElementById('hasCertificate');
+        // REMOVED: const videoLinkInput = document.getElementById('videoLink');
+
+        // Initialize session type
+        sessionTypeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove active class from all options
+                sessionTypeOptions.forEach(opt => opt.classList.remove('active'));
+                // Add active class to clicked option
+                option.classList.add('active');
+
+                const sessionType = option.getAttribute('data-type');
+                sessionTypeInput.value = sessionType;
+
+                // Show/hide appropriate fields
+                if (sessionType === 'live') {
+                    liveSessionFields.style.display = 'block';
+                    recordedSessionFields.style.display = 'none';
+                    // Make module required for live sessions
+                    moduleSelect.required = true;
+                } else {
+                    liveSessionFields.style.display = 'none';
+                    recordedSessionFields.style.display = 'block';
+                    // Module not required for recorded sessions
+                    moduleSelect.required = false;
+                }
+            });
+        });
+
+        // Video upload functionality
+        const videoUploadArea = document.getElementById('video-upload-area');
+        const videoFileInput = document.getElementById('video-file');
+        const videoPreviewContainer = document.getElementById('video-preview-container');
+        const videoPreview = document.getElementById('video-preview');
+        const videoInfo = document.getElementById('video-info');
+        const changeVideoBtn = document.getElementById('change-video-btn');
+        const removeVideoBtn = document.getElementById('remove-video-btn');
+        const videoLibraryItems = document.querySelectorAll('.video-library-item');
+
+        // Handle video file selection
+        videoUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            videoUploadArea.classList.add('dragover');
+        });
+
+        videoUploadArea.addEventListener('dragleave', () => {
+            videoUploadArea.classList.remove('dragover');
+        });
+
+        videoUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            videoUploadArea.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length) {
+                handleVideoFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        videoFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleVideoFile(e.target.files[0]);
+            }
+        });
+
+        function handleVideoFile(file) {
+            if (!file.type.match('video.*')) {
+                alert('Please select a video file');
+                return;
+            }
+
+            if (file.size > 500 * 1024 * 1024) {
+                alert('File size must be less than 500MB');
+                return;
+            }
+
+            // Create object URL for preview
+            const videoUrl = URL.createObjectURL(file);
+            videoPreview.src = videoUrl;
+
+            // Update video info
+            document.getElementById('video-file-name').textContent = file.name;
+            document.getElementById('video-file-size').textContent = formatFileSize(file.size);
+
+            // Get video duration
+            videoPreview.addEventListener('loadedmetadata', function() {
+                document.getElementById('video-duration').textContent = formatDuration(videoPreview.duration);
+            });
+
+            // Show preview container
+            videoPreviewContainer.style.display = 'block';
+
+            // Clear any selected video from library
+            videoLibraryItems.forEach(item => item.classList.remove('selected'));
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Change video button
+        changeVideoBtn.addEventListener('click', () => {
+            videoFileInput.click();
+        });
+
+        // Remove video button
+        removeVideoBtn.addEventListener('click', () => {
+            videoPreview.src = '';
+            videoPreviewContainer.style.display = 'none';
+            // Clear the file input
+            videoFileInput.value = '';
+        });
+
+        // Video library selection
+        videoLibraryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove selected class from all items
+                videoLibraryItems.forEach(i => i.classList.remove('selected'));
+                // Add selected class to clicked item
+                item.classList.add('selected');
+
+                const videoUrl = item.getAttribute('data-video-url');
+
+                // For library videos, we'll use a different approach
+                // You might want to store the video ID instead of URL
+                // For now, we'll clear the file input and set a flag
+                videoFileInput.value = '';
+
+                // Update preview
+                videoPreview.src = videoUrl;
+                document.getElementById('video-file-name').textContent = item.querySelector('.video-library-title').textContent;
+                document.getElementById('video-file-size').textContent = 'Library Video';
+                document.getElementById('video-duration').textContent = item.querySelector('.video-library-duration').textContent;
+
+                videoPreviewContainer.style.display = 'block';
+            });
+        });
+
+        // Handle certificate checkbox
+        document.getElementById('enable-certification').addEventListener('change', function() {
+            hasCertificateInput.value = this.checked;
+        });
+
+        // Form validation and submission
+        document.getElementById('sessionForm').addEventListener('submit', function(e) {
+            // Validate session type specific requirements
+            const sessionType = sessionTypeInput.value;
+            const moduleId = moduleSelect.value;
+            const description = document.getElementById('description').value;
+            const videoFile = videoFileInput.files[0];
+
+            if (!description.trim()) {
+                alert('Please provide a session description');
+                e.preventDefault();
+                return;
+            }
+
+            if (sessionType === 'live' && !moduleId) {
+                alert('Please select a module for live sessions');
+                e.preventDefault();
+                return;
+            }
+
+            if (sessionType === 'recorded' && !videoFile) {
+                alert('Please select or upload a video for recorded sessions');
+                e.preventDefault();
+                return;
+            }
+
+            if (selectedParticipants.length === 0) {
+                alert('Please add at least one participant');
+                e.preventDefault();
+                return;
+            }
+
+            // Update certificate HTML before submission if certification is enabled
+            const enableCertification = document.getElementById('enable-certification');
+            const certificateHtmlInput = document.getElementById('certificateHtml');
+
+            if (enableCertification && enableCertification.checked) {
+                updateCertificatePreview();
+            } else {
+                certificateHtmlInput.value = '';
+            }
+
+            // Log form data for debugging
+            const formData = new FormData(this);
+            console.log('=== FORM SUBMISSION DATA ===');
+            console.log('Session Type:', sessionTypeInput.value);
+            console.log('Module ID:', moduleSelect.value);
+            console.log('Has Certificate:', hasCertificateInput.value);
+            console.log('Video File:', videoFile ? videoFile.name : 'None');
+            console.log('Description:', document.getElementById('description').value);
+            console.log('Start Date:', document.getElementById('startDate').value);
+            console.log('Start Time:', document.getElementById('startTime').value);
+            console.log('Duration:', document.getElementById('duration').value);
+            console.log('Participants:', selectedParticipants.map(p => p.id));
+            console.log('Certificate HTML Length:', certificateHtmlInput.value ? certificateHtmlInput.value.length : 0);
+            console.log('Community Context:', { selectedCommunityId, selectedCommunityName });
+            console.log('============================');
+
+            // Form will submit normally if all validations pass
+        });
+
+        // UPDATED: Participant functionality with mycommunity-aware loading
+        async function loadParticipants() {
+            try {
+                // Use mycommunity-aware endpoint for coaching sessions
+                let url = "/api/session-participants";
+                if (selectedCommunityId) {
+                    url += `?communityId=${selectedCommunityId}`;
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Failed to fetch users");
+                const users = await response.json();
+
+                console.log("Loaded session participants from API:", users); // Debug log
+
+                participants = users.map(u => {
+                    // Ensure we have valid user ID - use userId field from backend
+                    const userId = u.userId || u.id;
+                    if (!userId) {
+                        console.warn("User missing ID:", u);
+                        return null;
+                    }
+
+                    return {
+                        id: userId, // Use the correct user ID field
+                        name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+                        email: u.email || '',
+                        avatar: u.avatar && u.avatar.length === 1
+                            ? `https://ui-avatars.com/api/?name=${u.avatar}&background=random`
+                            : (u.avatar || `https://ui-avatars.com/api/?name=${u.firstName}+${u.lastName}&background=random`)
+                    };
+                }).filter(p => p !== null); // Remove any null entries
+
+                console.log("Processed session participants:", participants); // Debug log
+                console.log(`Loaded ${participants.length} eligible participants for ${selectedCommunityId ? 'community ' + selectedCommunityName : 'general session'}`);
+            } catch (err) {
+                console.error("Error loading session participants:", err);
+                // Fallback to general user endpoint if mycommunity-specific fails
+                try {
+                    const response = await fetch("/api-v/publicUsers");
+                    if (!response.ok) throw new Error("Failed to fetch users");
+                    const users = await response.json();
+
+                    participants = users.map(u => {
+                        const userId = u.userId || u.id;
+                        if (!userId) return null;
+
+                        return {
+                            id: userId,
+                            name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+                            email: u.email || '',
+                            avatar: u.avatar && u.avatar.length === 1
+                                ? `https://ui-avatars.com/api/?name=${u.avatar}&background=random`
+                                : (u.avatar || `https://ui-avatars.com/api/?name=${u.firstName}+${u.lastName}&background=random`)
+                        };
+                    }).filter(p => p !== null);
+
+                    console.log("Fallback: Loaded general participants:", participants);
+                } catch (fallbackErr) {
+                    console.error("Fallback participant loading also failed:", fallbackErr);
+                }
+            }
+        }
+
+        function filterParticipants(searchTerm) {
+            return participants.filter(p =>
+                p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.email.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        function displaySearchResults(results) {
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            results.forEach(p => {
+                const isSelected = selectedParticipants.some(sp => sp.id === p.id);
+
+                const item = document.createElement('div');
+                item.className = `search-result-item ${isSelected ? 'opacity-50 cursor-not-allowed' : ''}`;
+                item.innerHTML = `
+                    <img src="${p.avatar}" alt="${p.name}">
+                    <div>
+                        <p class="font-medium">${p.name}</p>
+                        <p class="text-sm text-gray-500">${p.email}</p>
+                    </div>
+                `;
+
+                if (!isSelected) {
+                    item.addEventListener('click', () => {
+                        addParticipant(p);
+                        participantsInput.value = '';
+                        searchResults.style.display = 'none';
+                    });
+                }
+
+                searchResults.appendChild(item);
+            });
+
+            searchResults.style.display = 'block';
+        }
+
+        function addParticipant(participant) {
+            if (selectedParticipants.some(p => p.id === participant.id)) return;
+
+            // Validate participant has valid ID
+            if (!participant.id) {
+                console.error("Cannot add participant without ID:", participant);
+                alert("Error: Selected participant has invalid ID");
+                return;
+            }
+
+            selectedParticipants.push(participant);
+            renderParticipantsList();
+        }
+
+        function removeParticipant(id) {
+            selectedParticipants = selectedParticipants.filter(p => p.id !== id);
+            renderParticipantsList();
+        }
+
+        function renderParticipantsList() {
+            participantsList.innerHTML = '';
+            selectedParticipants.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg participant-item';
+                div.style.animationDelay = `${i * 0.1}s`;
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <img alt="${p.name}" class="w-10 h-10 rounded-full mr-3" src="${p.avatar}">
+                        <div>
+                            <p class="font-medium text-gray-800">${p.name}</p>
+                            <p class="text-sm text-gray-500">${p.email}</p>
+                            <p class="text-xs text-gray-400">ID: ${p.id}</p>
+                        </div>
+                    </div>
+                    <button class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-500 transition-colors delete-btn" data-id="${p.id}">
+                        <span class="material-icons">close</span>
+                    </button>
+                `;
+                participantsList.appendChild(div);
+            });
+
+            // ✅ CORRECTED: Store as comma-separated string of user IDs (Spring expects this format)
+            const userIds = selectedParticipants.map(p => p.id);
+            participantsHidden.value = userIds.join(','); // Convert array to comma-separated string
+            console.log('Stored user IDs for submission:', participantsHidden.value); // Debug log
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    removeParticipant(e.currentTarget.getAttribute('data-id'));
+                });
+            });
+        }
+
+        participantsInput.addEventListener('input', e => {
+            const term = e.target.value.trim();
+            if (term.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            displaySearchResults(filterParticipants(term));
+        });
+
+        participantsInput.addEventListener('focus', () => {
+            const term = participantsInput.value.trim();
+            if (term.length > 0) displaySearchResults(filterParticipants(term));
+        });
+
+        document.addEventListener('click', e => {
+            if (!participantsInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        addParticipantBtn.addEventListener('click', () => {
+            const term = participantsInput.value.trim();
+            if (!term) return;
+            const matches = filterParticipants(term);
+            if (matches.length > 0) {
+                addParticipant(matches[0]);
+            }
+            participantsInput.value = '';
+            searchResults.style.display = 'none';
+        });
+
+        document.addEventListener('DOMContentLoaded', loadParticipants);
+
+        // Certificate Customization Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle certification details based on checkbox
+            const enableCertification = document.getElementById('enable-certification');
+            const certificateCustomization = document.getElementById('certificate-customization');
+            const certificatePreview = document.getElementById('certificate-preview');
+
+            if (enableCertification) {
+                // Initially hide certificate customization and preview
+                certificateCustomization.style.display = 'none';
+                certificatePreview.style.display = 'none';
+
+                enableCertification.addEventListener('change', function() {
+                    if (this.checked) {
+                        certificateCustomization.style.display = 'block';
+                        certificatePreview.style.display = 'block';
+                        // Initialize certificate preview when first shown
+                        updateCertificatePreview();
+                    } else {
+                        certificateCustomization.style.display = 'none';
+                        certificatePreview.style.display = 'none';
+                    }
+                });
+            }
+
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Template selection
+            const templateOptions = document.querySelectorAll('.template-option');
+            templateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    templateOptions.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    updateCertificatePreview();
+                });
+            });
+
+            // Font selection
+            const fontOptions = document.querySelectorAll('.font-option');
+            fontOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    fontOptions.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    updateCertificatePreview();
+                });
+            });
+
+            // Logo upload functionality
+            const logoUploadArea = document.getElementById('logo-upload-area');
+            const logoFileInput = document.getElementById('logo-file');
+            const logoPreview = document.getElementById('logo-preview');
+            const logoSpinner = document.getElementById('logo-spinner');
+            const logoUploadStatus = document.getElementById('logo-upload-status');
+
+            logoUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                logoUploadArea.classList.add('dragover');
+            });
+
+            logoUploadArea.addEventListener('dragleave', () => {
+                logoUploadArea.classList.remove('dragover');
+            });
+
+            logoUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                logoUploadArea.classList.remove('dragover');
+
+                if (e.dataTransfer.files.length) {
+                    handleLogoFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            logoFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleLogoFile(e.target.files[0]);
+                }
+            });
+
+            async function handleLogoFile(file) {
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File size must be less than 2MB');
+                    return;
+                }
+
+                // Show uploading message and spinner
+                logoUploadStatus.textContent = 'Uploading logo... Please wait.';
+                logoUploadStatus.className = 'upload-status uploading';
+                logoSpinner.style.display = 'block';
+                logoPreview.innerHTML = '';
+
+                try {
+                    // Upload to endpoint
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('type', 'logo');
+
+                    const response = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Store the public URL
+                        uploadedLogoUrl = result.publicUrl;
+
+                        // Update preview with the URL from the endpoint
+                        logoPreview.innerHTML = `<img src="${result.publicUrl}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+
+                        // Show success message
+                        logoUploadStatus.textContent = 'Logo uploaded successfully!';
+                        logoUploadStatus.className = 'upload-status success';
+
+                        updateCertificatePreview();
+                    } else {
+                        // Show error message
+                        logoUploadStatus.textContent = 'Failed to upload logo: ' + result.message;
+                        logoUploadStatus.className = 'upload-status error';
+                        logoPreview.innerHTML = '<span class="material-icons" style="font-size: 3rem; color: #9ca3af;">image</span>';
+                    }
+                } catch (error) {
+                    console.error('Error uploading logo:', error);
+                    logoUploadStatus.textContent = 'Error uploading logo: ' + error.message;
+                    logoUploadStatus.className = 'upload-status error';
+                    logoPreview.innerHTML = '<span class="material-icons" style="font-size: 3rem; color: #9ca3af;">image</span>';
+                } finally {
+                    // Hide loading spinner
+                    logoSpinner.style.display = 'none';
+
+                    // Auto-hide success message after 3 seconds
+                    if (logoUploadStatus.className.includes('success')) {
+                        setTimeout(() => {
+                            logoUploadStatus.style.display = 'none';
+                        }, 3000);
+                    }
+                }
+            }
+
+            // Upload signature functionality
+            const signatureUploadArea = document.getElementById('signature-upload-area');
+            const signatureFileInput = document.getElementById('signature-file');
+            const signaturePreview = document.getElementById('signature-preview');
+            const signatureSpinner = document.getElementById('signature-spinner');
+            const signatureUploadStatus = document.getElementById('signature-upload-status');
+
+            signatureUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                signatureUploadArea.classList.add('dragover');
+            });
+
+            signatureUploadArea.addEventListener('dragleave', () => {
+                signatureUploadArea.classList.remove('dragover');
+            });
+
+            signatureUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                signatureUploadArea.classList.remove('dragover');
+
+                if (e.dataTransfer.files.length) {
+                    handleSignatureFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            signatureFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleSignatureFile(e.target.files[0]);
+                }
+            });
+
+            async function handleSignatureFile(file) {
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+
+                // Show uploading message and spinner
+                signatureUploadStatus.textContent = 'Uploading signature... Please wait.';
+                signatureUploadStatus.className = 'upload-status uploading';
+                signatureSpinner.style.display = 'block';
+                signaturePreview.innerHTML = '';
+
+                try {
+                    // Upload to endpoint
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('type', 'signature');
+
+                    const response = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Store the public URL
+                        uploadedSignatureUrl = result.publicUrl;
+
+                        // Update preview with the URL from the endpoint
+                        signaturePreview.innerHTML = `<img src="${result.publicUrl}" alt="Signature" style="max-width: 100%; max-height: 100%;">`;
+
+                        // Show success message
+                        signatureUploadStatus.textContent = 'Signature uploaded successfully!';
+                        signatureUploadStatus.className = 'upload-status success';
+
+                        updateCertificatePreview();
+                    } else {
+                        // Show error message
+                        signatureUploadStatus.textContent = 'Failed to upload signature: ' + result.message;
+                        signatureUploadStatus.className = 'upload-status error';
+                        signaturePreview.innerHTML = '<span class="material-icons" style="font-size: 3rem; color: #9ca3af;">autograph</span>';
+                    }
+                } catch (error) {
+                    console.error('Error uploading signature:', error);
+                    signatureUploadStatus.textContent = 'Error uploading signature: ' + error.message;
+                    signatureUploadStatus.className = 'upload-status error';
+                    signaturePreview.innerHTML = '<span class="material-icons" style="font-size: 3rem; color: #9ca3af;">autograph</span>';
+                } finally {
+                    // Hide loading spinner
+                    signatureSpinner.style.display = 'none';
+
+                    // Auto-hide success message after 3 seconds
+                    if (signatureUploadStatus.className.includes('success')) {
+                        setTimeout(() => {
+                            signatureUploadStatus.style.display = 'none';
+                        }, 3000);
+                    }
+                }
+            }
+
+            // Color pickers
+            const colorInputs = document.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                const textInput = document.getElementById(input.id + '-text');
+
+                input.addEventListener('input', () => {
+                    textInput.value = input.value;
+                    updateCertificatePreview();
+                });
+
+                textInput.addEventListener('input', () => {
+                    if (/^#[0-9A-F]{6}$/i.test(textInput.value)) {
+                        input.value = textInput.value;
+                        updateCertificatePreview();
+                    }
+                });
+            });
+
+            // Range inputs
+            const rangeInputs = document.querySelectorAll('input[type="range"]');
+            rangeInputs.forEach(input => {
+                const valueDisplay = document.getElementById(input.id + '-value');
+
+                input.addEventListener('input', () => {
+                    valueDisplay.textContent = input.value + (input.id.includes('size') ? 'px' : '');
+                    updateCertificatePreview();
+                });
+            });
+
+            // Text inputs that affect preview
+            const textInputs = [
+                'certificate-title', 'certificate-text', 'issuing-organization',
+                'signatory-name', 'signatory-title', 'organization-name'
+            ];
+
+            textInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', updateCertificatePreview);
+            });
+
+            // Checkboxes that affect preview
+            const checkboxes = [
+                'add-border', 'show-organization', 'add-watermark', 'add-seal'
+            ];
+
+            checkboxes.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateCertificatePreview);
+            });
+
+            // Select elements that affect preview
+            const selectElements = [
+                'logo-position'
+            ];
+
+            selectElements.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateCertificatePreview);
+            });
+
+            // Signature Functionality
+            // Signature type selection
+            const signatureTypes = document.querySelectorAll('.signature-type');
+            const signatureTabContents = document.querySelectorAll('.signature-tab-content');
+
+            signatureTypes.forEach(type => {
+                type.addEventListener('click', () => {
+                    // Remove selected class from all types
+                    signatureTypes.forEach(t => t.classList.remove('selected'));
+                    // Add selected class to clicked type
+                    type.classList.add('selected');
+
+                    // Hide all signature tab contents
+                    signatureTabContents.forEach(content => content.classList.remove('active'));
+
+                    // Show the selected signature tab content
+                    const signatureType = type.getAttribute('data-type');
+                    document.getElementById(signatureType + '-signature').classList.add('active');
+
+                    // Initialize canvas if drawing is selected
+                    if (signatureType === 'draw') {
+                        initializeSignatureCanvas();
+                    }
+
+                    updateCertificatePreview();
+                });
+            });
+
+            // Draw signature functionality
+            let signatureCanvas, signatureCtx;
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            function initializeSignatureCanvas() {
+                signatureCanvas = document.getElementById('signature-canvas');
+                signatureCtx = signatureCanvas.getContext('2d');
+
+                // Set canvas size
+                signatureCanvas.width = signatureCanvas.offsetWidth;
+                signatureCanvas.height = signatureCanvas.offsetHeight;
+
+                // Set initial styles
+                signatureCtx.strokeStyle = document.getElementById('pen-color').value;
+                signatureCtx.lineWidth = document.getElementById('pen-size').value;
+                signatureCtx.lineCap = 'round';
+                signatureCtx.lineJoin = 'round';
+
+                // Clear canvas
+                clearSignatureCanvas();
+
+                // Add event listeners
+                signatureCanvas.addEventListener('mousedown', startDrawing);
+                signatureCanvas.addEventListener('mousemove', draw);
+                signatureCanvas.addEventListener('mouseup', stopDrawing);
+                signatureCanvas.addEventListener('mouseout', stopDrawing);
+
+                // Touch events for mobile devices
+                signatureCanvas.addEventListener('touchstart', handleTouchStart);
+                signatureCanvas.addEventListener('touchmove', handleTouchMove);
+                signatureCanvas.addEventListener('touchend', stopDrawing);
+            }
+
+            function handleTouchStart(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                signatureCanvas.dispatchEvent(mouseEvent);
+            }
+
+            function handleTouchMove(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                signatureCanvas.dispatchEvent(mouseEvent);
+            }
+
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+
+                signatureCtx.beginPath();
+                signatureCtx.moveTo(lastX, lastY);
+                signatureCtx.lineTo(e.offsetX, e.offsetY);
+                signatureCtx.stroke();
+
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            function clearSignatureCanvas() {
+                signatureCtx.fillStyle = 'white';
+                signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            }
+
+            // Clear signature button
+            document.getElementById('clear-signature').addEventListener('click', () => {
+                clearSignatureCanvas();
+            });
+
+            // Save signature button
+            document.getElementById('save-signature').addEventListener('click', async () => {
+                const dataURL = signatureCanvas.toDataURL('image/png');
+
+                // Convert data URL to blob
+                const response = await fetch(dataURL);
+                const blob = await response.blob();
+
+                // Create file from blob
+                const file = new File([blob], 'signature.png', { type: 'image/png' });
+
+                // Show uploading message and spinner
+                const drawnSignaturePreview = document.getElementById('drawn-signature-preview');
+                const drawnSignatureUploadStatus = document.getElementById('drawn-signature-upload-status');
+
+                drawnSignatureUploadStatus.textContent = 'Uploading signature... Please wait.';
+                drawnSignatureUploadStatus.className = 'upload-status uploading';
+                drawnSignaturePreview.innerHTML = '<div class="upload-spinner"></div>';
+
+                try {
+                    // Upload to endpoint
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('type', 'signature');
+
+                    const uploadResponse = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await uploadResponse.json();
+
+                    if (result.success) {
+                        // Store the public URL
+                        uploadedSignatureUrl = result.publicUrl;
+
+                        // Update preview with the URL from the endpoint
+                        drawnSignaturePreview.innerHTML = `<img src="${result.publicUrl}" alt="Drawn Signature" style="max-width: 100%; max-height: 100%;">`;
+
+                        // Show success message
+                        drawnSignatureUploadStatus.textContent = 'Signature uploaded successfully!';
+                        drawnSignatureUploadStatus.className = 'upload-status success';
+
+                        updateCertificatePreview();
+                    } else {
+                        // Show error message
+                        drawnSignatureUploadStatus.textContent = 'Failed to upload signature: ' + result.message;
+                        drawnSignatureUploadStatus.className = 'upload-status error';
+                        drawnSignaturePreview.innerHTML = '<span class="text-gray-400">Your drawn signature will appear here</span>';
+                    }
+                } catch (error) {
+                    console.error('Error uploading drawn signature:', error);
+                    drawnSignatureUploadStatus.textContent = 'Error uploading signature: ' + error.message;
+                    drawnSignatureUploadStatus.className = 'upload-status error';
+                    drawnSignaturePreview.innerHTML = '<span class="text-gray-400">Your drawn signature will appear here</span>';
+                } finally {
+                    // Auto-hide success message after 3 seconds
+                    if (drawnSignatureUploadStatus.className.includes('success')) {
+                        setTimeout(() => {
+                            drawnSignatureUploadStatus.style.display = 'none';
+                        }, 3000);
+                    }
+                }
+            });
+
+            // Pen color and size controls
+            document.getElementById('pen-color').addEventListener('input', (e) => {
+                signatureCtx.strokeStyle = e.target.value;
+                document.getElementById('pen-color-text').value = e.target.value;
+            });
+
+            document.getElementById('pen-color-text').addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    document.getElementById('pen-color').value = e.target.value;
+                    signatureCtx.strokeStyle = e.target.value;
+                }
+            });
+
+            document.getElementById('pen-size').addEventListener('input', (e) => {
+                signatureCtx.lineWidth = e.target.value;
+                document.getElementById('pen-size-value').textContent = e.target.value + 'px';
+            });
+
+            // Font signature functionality
+            document.getElementById('font-signature-text').addEventListener('input', (e) => {
+                document.getElementById('font-signature-preview').textContent = e.target.value;
+                updateCertificatePreview();
+            });
+
+            const fontSignatureOptions = document.querySelectorAll('[data-signature-font]');
+            fontSignatureOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    fontSignatureOptions.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+
+                    const fontFamily = getSignatureFontFamily(option.getAttribute('data-signature-font'));
+                    document.getElementById('font-signature-preview').style.fontFamily = fontFamily;
+                    updateCertificatePreview();
+                });
+            });
+
+            document.getElementById('font-signature-size').addEventListener('input', (e) => {
+                document.getElementById('font-signature-preview').style.fontSize = e.target.value + 'px';
+                document.getElementById('font-signature-size-value').textContent = e.target.value + 'px';
+                updateCertificatePreview();
+            });
+
+            document.getElementById('font-signature-color').addEventListener('input', (e) => {
+                document.getElementById('font-signature-preview').style.color = e.target.value;
+                document.getElementById('font-signature-color-text').value = e.target.value;
+                updateCertificatePreview();
+            });
+
+            document.getElementById('font-signature-color-text').addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    document.getElementById('font-signature-color').value = e.target.value;
+                    document.getElementById('font-signature-preview').style.color = e.target.value;
+                    updateCertificatePreview();
+                }
+            });
+
+            // Signature size and opacity controls
+            document.getElementById('signature-size').addEventListener('input', (e) => {
+                document.getElementById('signature-size-value').textContent = e.target.value + 'px';
+                updateCertificatePreview();
+            });
+
+            document.getElementById('signature-opacity').addEventListener('input', (e) => {
+                document.getElementById('signature-opacity-value').textContent = e.target.value + '%';
+                updateCertificatePreview();
+            });
+        });
+
+        // Function to update certificate preview
+        function updateCertificatePreview() {
+            const certificateContent = document.getElementById('certificate-content');
+            const previewContainer = document.querySelector('.preview-container');
+            const previewContent = document.querySelector('.certificate-preview-content');
+
+            if (!certificateContent) return;
+
+            // Get values from form elements
+            const template = document.querySelector('.template-option.selected')?.getAttribute('data-template') || 'classic';
+            const title = document.getElementById('certificate-title')?.value || 'Certificate of Completion';
+            const text = document.getElementById('certificate-text')?.value || 'This is to certify that [Participant Name] has successfully completed the [Course Name] training program on [Completion Date].';
+            const organization = document.getElementById('issuing-organization')?.value || 'Training Academy';
+            const signatoryName = document.getElementById('signatory-name')?.value || 'John Doe';
+            const signatoryTitle = document.getElementById('signatory-title')?.value || 'Head of Training';
+            const backgroundColor = document.getElementById('background-color')?.value || '#ffffff';
+            const primaryColor = document.getElementById('primary-color')?.value || '#4f46e5';
+            const font = document.querySelector('.font-option.selected')?.getAttribute('data-font') || 'inter';
+            const titleSize = (document.getElementById('title-size')?.value || '32') + 'px';
+            const nameSize = (document.getElementById('name-size')?.value || '28') + 'px';
+            const textSize = (document.getElementById('text-size')?.value || '18') + 'px';
+            const addBorder = document.getElementById('add-border')?.checked || true;
+            const showOrganization = document.getElementById('show-organization')?.checked || true;
+            const logoSize = (document.getElementById('logo-size')?.value || '150') + 'px';
+            const logoPosition = document.getElementById('logo-position')?.value || 'top-center';
+            const organizationName = document.getElementById('organization-name')?.value || 'Training Academy';
+            const addWatermark = document.getElementById('add-watermark')?.checked || true;
+            const addSeal = document.getElementById('add-seal')?.checked || true;
+
+            // Get logo if available - use the uploaded URL
+            const logoUrl = uploadedLogoUrl;
+
+            // Get signature data
+            const signatureType = document.querySelector('.signature-type.selected')?.getAttribute('data-type') || 'upload';
+            let signatureHTML = '';
+
+            if (signatureType === 'upload') {
+                // Use the uploaded signature URL
+                if (uploadedSignatureUrl) {
+                    const signatureSize = document.getElementById('signature-size')?.value || '120' + 'px';
+                    const signatureOpacity = (document.getElementById('signature-opacity')?.value || '100') / 100;
+                    signatureHTML = `<div class="certificate-signature-image" style="max-width: ${signatureSize}; opacity: ${signatureOpacity};">
+                                        <img src="${uploadedSignatureUrl}" alt="Signature" style="max-width: 100%;">
+                                    </div>`;
+                }
+            } else if (signatureType === 'draw') {
+                // Use the uploaded signature URL for drawn signature
+                if (uploadedSignatureUrl) {
+                    const signatureSize = document.getElementById('signature-size')?.value || '120' + 'px';
+                    const signatureOpacity = (document.getElementById('signature-opacity')?.value || '100') / 100;
+                    signatureHTML = `<div class="certificate-signature-image" style="max-width: ${signatureSize}; opacity: ${signatureOpacity};">
+                                        <img src="${uploadedSignatureUrl}" alt="Signature" style="max-width: 100%;">
+                                    </div>`;
+                }
+            } else if (signatureType === 'font') {
+                const signatureText = document.getElementById('font-signature-text')?.value || 'John Doe';
+                const signatureFont = document.querySelector('[data-signature-font].selected')?.getAttribute('data-signature-font') || 'dancing-script';
+                const signatureSize = document.getElementById('font-signature-size')?.value || '28' + 'px';
+                const signatureColor = document.getElementById('font-signature-color')?.value || '#000000';
+                signatureHTML = `<div class="certificate-signature-text" style="font-family: ${getSignatureFontFamily(signatureFont)}; font-size: ${signatureSize}; color: ${signatureColor};">
+                                    ${signatureText}
+                                </div>`;
+            }
+
+            // Apply styles to certificate preview
+            certificateContent.style.backgroundColor = backgroundColor;
+            certificateContent.style.fontFamily = getFontFamily(font);
+
+            // Add border class if needed
+            if (addBorder) {
+                certificateContent.classList.add('certificate-border');
+                certificateContent.style.borderColor = primaryColor;
+            } else {
+                certificateContent.classList.remove('certificate-border');
+                certificateContent.style.border = 'none';
+            }
+
+            // Generate HTML for certificate preview
+            let html = '';
+
+            // Add ribbon for professional look
+            html += `<div class="certificate-ribbon">CERTIFICATE</div>`;
+
+            // Add watermark if enabled
+            if (addWatermark) {
+                html += `<div class="certificate-watermark" style="color: ${primaryColor}20;">${organizationName}</div>`;
+            }
+
+            // Add logo if available - with proper positioning
+            if (logoUrl) {
+                const logoClass = getLogoPositionClass(logoPosition);
+                html += `<div class="${logoClass}" style="max-width: ${logoSize};">
+                            <img src="${logoUrl}" alt="Logo" style="max-width: 100%; max-height: 100%;">
+                        </div>`;
+            }
+
+            // Add organization name if enabled
+            if (showOrganization) {
+                html += `<div class="organization-name" style="color: ${primaryColor}; font-weight: 600; margin-bottom: 1rem; font-size: 1.25rem;">${organizationName}</div>`;
+            }
+
+            // Add certificate title
+            html += `<div class="certificate-title" style="color: ${primaryColor}; font-size: ${titleSize}; margin-bottom: 1rem;">${title}</div>`;
+
+            // Add certificate text
+            html += `<div class="certificate-text" style="font-size: ${textSize}; margin-bottom: 1.5rem;">${text}</div>`;
+
+            // Add participant name (placeholder)
+            html += `<div class="certificate-name" style="color: ${primaryColor}; font-size: ${nameSize}; margin-bottom: 1.5rem; border-bottom-color: ${primaryColor};">Participant Name</div>`;
+
+            // Add completion date (placeholder)
+            html += `<div class="completion-date" style="font-size: ${textSize}; margin-bottom: 2rem;">Completed on: ${new Date().toLocaleDateString()}</div>`;
+
+            // Add signature area
+            html += `<div class="certificate-details">
+                        <div class="certificate-signature">
+                            ${signatureHTML}
+                            <div class="signature-line" style="background-color: ${primaryColor};"></div>
+                            <div style="margin-top: 0.5rem; font-weight: 600;">${signatoryName}</div>
+                            <div style="font-size: 0.875rem;">${signatoryTitle}</div>
+                        </div>
+                        <div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 0.875rem; margin-top: 0.5rem;">Certificate ID: CERT-001</div>
+                            </div>
+                        </div>
+                    </div>`;
+
+            // Add official seal if enabled
+            if (addSeal) {
+                html += `<div class="certificate-seal" style="border-color: ${primaryColor}; color: ${primaryColor};">
+                            <div>OFFICIAL<br>SEAL</div>
+                        </div>`;
+            }
+
+            certificateContent.innerHTML = html;
+
+            // Apply template-specific styles
+            applyTemplateStyles(template, primaryColor);
+
+            // Update the hidden input with the certificate HTML
+            const certificateHtmlInput = document.getElementById('certificateHtml');
+            if (certificateHtmlInput) {
+                certificateHtmlInput.value = previewContent.innerHTML;
+            }
+
+            // Auto-adjust container height based on content
+            setTimeout(() => {
+                const contentHeight = certificateContent.scrollHeight;
+                previewContent.style.height = Math.max(500, contentHeight + 100) + 'px';
+                previewContainer.style.minHeight = Math.max(500, contentHeight + 40) + 'px';
+            }, 10);
+        }
+
+        function getFontFamily(font) {
+            const fontMap = {
+                'inter': "'Inter', sans-serif",
+                'roboto': "'Roboto', sans-serif",
+                'open-sans': "'Open Sans', sans-serif",
+                'lora': "'Lora', serif",
+                'playfair': "'Playfair Display', serif",
+                'montserrat': "'Montserrat', sans-serif"
+            };
+            return fontMap[font] || "'Inter', sans-serif";
+        }
+
+        function getSignatureFontFamily(font) {
+            const fontMap = {
+                'dancing-script': "'Dancing Script', cursive",
+                'great-vibes': "'Great Vibes', cursive",
+                'brush-script': "'Brush Script MT', cursive"
+            };
+            return fontMap[font] || "'Dancing Script', cursive";
+        }
+
+        function getLogoPositionClass(position) {
+            const positionMap = {
+                'top-center': 'logo-top-center',
+                'top-left': 'logo-top-left',
+                'top-right': 'logo-top-right'
+            };
+            return positionMap[position] || 'logo-top-center';
+        }
+
+        function applyTemplateStyles(template, primaryColor) {
+            const certificateContent = document.getElementById('certificate-content');
+            if (!certificateContent) return;
+
+            // Reset styles
+            certificateContent.style.background = '';
+            certificateContent.style.border = '';
+
+            switch(template) {
+                case 'classic':
+                    certificateContent.style.background = `linear-gradient(135deg, ${primaryColor}10, ${primaryColor}05)`;
+                    break;
+                case 'modern':
+                    certificateContent.style.background = `radial-gradient(circle at top right, ${primaryColor}08, transparent 50%),
+                                                          radial-gradient(circle at bottom left, ${primaryColor}08, transparent 50%)`;
+                    break;
+                case 'elegant':
+                    certificateContent.style.background = `repeating-linear-gradient(45deg, transparent, transparent 10px, ${primaryColor}05 10px, ${primaryColor}05 20px)`;
+                    break;
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

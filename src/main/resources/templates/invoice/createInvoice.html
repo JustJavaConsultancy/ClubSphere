@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${status=='new'} ? 'Create New Invoice' : 'Edit Invoice'">Create Invoice</title>
+    <style>
+        .btn-primary {
+            background-color: #2563EB;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #1D4ED8;
+        }
+        .btn-secondary {
+            background-color: #6B7280;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #4B5563;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #E5E7EB;
+        }
+        .form-input {
+            background-color: white;
+            border: 1px solid #D1D5DB;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .form-label {
+            color: #374151;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="min-h-screen bg-gray-50 py-8">
+    <main >
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900" th:text="${status=='new'} ? 'Create New Invoice' : 'Edit Invoice'">
+                        Create New Invoice
+                    </h1>
+                    <p class="text-gray-600 mt-1">Fill in your invoice details</p>
+                </div>
+                <button onclick="window.history.back()" class="btn-secondary flex items-center px-4 py-2 rounded-lg text-white">
+                    <span class="material-icons mr-2">arrow_back</span>
+                    Back
+                </button>
+            </div>
+        </div>
+
+        <form th:attr="action=${status == 'new'} ? '/invoice/create-invoice' : '/invoice/submit-editInvoice'"
+              method="post" id="invoiceForm">
+
+            <!-- Template Selection -->
+            <div class="mb-6">
+                <label class="form-label block text-sm mb-2">
+                    <span class="material-icons align-text-bottom mr-1 text-base">format_paint</span>
+                    Select Template
+                </label>
+                <select name="templateHtml" class="form-input w-full px-4 py-2.5 rounded-lg">
+                    <option value="">Default Template</option>
+                    <option th:each="template : ${templates}"
+                            th:value="${template.designHtml}"
+                            th:text="${template.designName}">
+                        Template Name
+                    </option>
+                </select>
+                <p class="text-sm text-gray-500 mt-2">
+                    Choose a template for your invoice design
+                </p>
+            </div>
+
+            <!-- Client Information -->
+            <div class="card rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Client Information</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label block text-sm mb-2">Business Name *</label>
+                        <input name="businessName" th:value="${status != 'new'} ? ${reviewData.businessName} : ''"
+                               type="text" class="form-input w-full px-4 py-2 rounded-lg"
+                               placeholder="Acme Corporation" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label block text-sm mb-2">Client Name *</label>
+                            <input name="clientName" th:value="${status != 'new'} ? ${reviewData.clientName} : ''"
+                                   type="text" class="form-input w-full px-4 py-2 rounded-lg"
+                                   placeholder="Jane Doe" required>
+                        </div>
+                        <div>
+                            <label class="form-label block text-sm mb-2">Email *</label>
+                            <input name="email" th:value="${status != 'new'} ? ${reviewData.email} : ''"
+                                   type="email" class="form-input w-full px-4 py-2 rounded-lg"
+                                   placeholder="contact@acme.com" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label block text-sm mb-2">Address *</label>
+                        <input name="address" th:value="${status != 'new'} ? ${reviewData.address} : ''"
+                               type="text" class="form-input w-full px-4 py-2 rounded-lg"
+                               placeholder="Ikeja, Lagos" required>
+                    </div>
+                    <div>
+                        <label class="form-label block text-sm mb-2">Phone (Optional)</label>
+                        <input name="phoneNumber" th:value="${status != 'new'} ? ${reviewData.phoneNumber} : ''"
+                               type="tel" class="form-input w-full px-4 py-2 rounded-lg"
+                               placeholder="+1 (555) 123-4567">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="card rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Invoice Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label block text-sm mb-2">Amount *</label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 bg-gray-100 text-gray-700 border border-r-0 border-gray-300 rounded-l-lg">₦</span>
+                            <input name="amount" th:value="${status != 'new'} ? ${reviewData.amount} : ''"
+                                   type="number" class="form-input flex-1 rounded-r-lg rounded-l-none"
+                                   placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label block text-sm mb-2">Due Date *</label>
+                        <input name="dueDate" th:value="${status != 'new'} ? ${reviewData.dueDate} : ''"
+                               type="date" class="form-input w-full px-4 py-2 rounded-lg" required>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="form-label block text-sm mb-2">Description (Optional)</label>
+                    <textarea name="description" th:text="${status != 'new'} ? ${reviewData.description} : ''"
+                              class="form-input w-full px-4 py-2 rounded-lg" rows="3"
+                              placeholder="Service description" required></textarea>
+                </div>
+            </div>
+
+            <!-- hidden input for taskId -->
+            <input id="taskId" name="taskId" type="hidden"
+                   th:value="${status != 'new'} ? ${reviewData.taskId} : ''">
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" onclick="window.history.back()"
+                        class="btn-secondary flex items-center px-5 py-2.5 rounded-lg text-white">
+                    <span class="material-icons mr-2">cancel</span>
+                    Cancel
+                </button>
+                <button type="submit"
+                        th:text="${status=='new'} ? 'Create Invoice' : 'Update Invoice'"
+                        class="btn-primary flex items-center px-6 py-2.5 rounded-lg text-white font-medium">
+                    <span class="material-icons mr-2">check_circle</span>
+                    <span th:text="${status=='new'} ? 'Create Invoice' : 'Save Changes'">Create Invoice</span>
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Simple form validation
+        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+            const requiredFields = this.querySelectorAll('input[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                field.classList.remove('border-red-500');
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+
+        // Format amount on blur
+        const amountInput = document.querySelector('input[name="amount"]');
+        if (amountInput) {
+            amountInput.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = parseFloat(this.value).toFixed(2);
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

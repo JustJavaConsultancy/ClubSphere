@@ -1,0 +1,22 @@
+package com.justjava.mycommunity.support;
+
+import com.justjava.mycommunity.chat.dto.ConversationDto;
+import lombok.Data;
+
+import java.time.OffsetDateTime;
+
+@Data
+public class TicketDTO {
+    private Long id;
+    private String subject;
+
+    private String description;
+    private String priority;
+    private String status;
+    private OffsetDateTime dateCreated;
+    private OffsetDateTime lastUpdated;
+    private String userId;
+    public String agentUserId;
+    private ConversationDto conversation;
+
+}

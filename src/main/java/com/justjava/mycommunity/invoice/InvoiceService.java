@@ -1,0 +1,32 @@
+package com.justjava.mycommunity.invoice;
+
+import com.justjava.mycommunity.processes.CustomProcessService;
+import com.justjava.mycommunity.task.TaskService;
+import org.flowable.task.api.Task;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+@Service("invoiceService")
+public class InvoiceService {
+
+    private final TaskService taskService;
+    private final CustomProcessService processService;
+
+    public InvoiceService(final TaskService taskService, final CustomProcessService processService){
+        this.taskService = taskService;
+        this.processService = processService;
+    }
+
+    public void seniorReviewTask(String taskId, Map<String, Object> variables){
+        Task singleTask = taskService.findTaskById(taskId);
+//        System.out.println("This is the senior review form with variables:::" + variables);
+        taskService.completeTask(singleTask.getId(), variables);
+    }
+
+    public void editInvoiceTask(String taskId, Map<String, Object> variables){
+        Task singleTask = taskService.findTaskById(taskId);
+//        System.out.println("This is the editInvoice task with variables:::" + variables);
+        taskService.completeTask(singleTask.getId(), variables);
+    }
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat App</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+<main layout:fragment="content" class="!max-w-none !px-0 !py-0 !mx-0 !w-full" style="max-width: none !important; padding: 0 !important; margin: 0 !important;">
+    <div class="w-full h-full !p-0 !m-0 !max-w-none" style="max-width: none !important; padding: 0 !important; margin: 0 !important;">
+    <input id="currentUserId" th:value="${currentUser}" type="hidden">
+    <input id="currentUserName" th:value="${currentUserName}" type="hidden">
+        
+    <!-- Start New Chat Modal -->
+    <div th:replace="~{messages/startChatModal.html}"></div>
+        
+        <!-- Main Chat Container - Full width and height -->
+        <div class="chat-container">
+        <!-- Chat sidebar -->
+        <div th:replace="~{messages/sidebar.html}"></div>
+            
+        <!-- Chat content -->
+            <div class="chat-content">
+            <!-- Default header state (no chat selected) -->
+            <div th:replace="~{messages/header.html}"></div>
+                
+            <!-- Messages container -->
+            <div th:replace="~{messages/messages.html}"></div>
+                
+            <!-- Message input -->
+            <div th:replace="~{messages/input.html}"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="/js/chat.js"></script>
+
+    <!-- Video Call Scripts -->
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <script src="/js/videocall.js"></script>
+</main>
+</body>
+</html>

@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Connect</title>
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+    <style>
+        /* Mobile-optimized home styles */
+        .welcome-card {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(42, 36, 148, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .community-context {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .community-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .mobile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-card:active {
+            transform: scale(0.98);
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .post-card:active {
+            transform: scale(0.99);
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .avatar-small {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+        }
+
+        .brand-btn {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .brand-btn:active {
+            transform: scale(0.95);
+        }
+
+        .brand-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .brand-btn-purple {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: #374151;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        .secondary-btn:active {
+            background: #f3f4f6;
+            transform: scale(0.95);
+        }
+
+        .post-input {
+            width: 100%;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .post-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .comment-input {
+            width: 100%;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 12px 16px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 40px;
+        }
+
+        .action-btn:active {
+            background: rgba(42, 36, 148, 0.1);
+            color: #2A2494;
+            transform: scale(0.95);
+        }
+
+        .comment-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .comment-section.expanded {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comment-container {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .comment-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .comment-container::-webkit-scrollbar-track {
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .comment-container::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .comment {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 12px;
+            margin-bottom: 12px;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-upcoming {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #2A2494;
+        }
+
+        .status-upcoming-purple {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #2A2494;
+        }
+
+        .coaching-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .coaching-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .meeting-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .meeting-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2A2494, #3730a3);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+        }
+
+        .empty-state-icon-purple {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+        }
+
+        .support-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .support-modal.active {
+            display: flex;
+        }
+
+        .support-modal-content {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .support-modal.active .support-modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin: 12px auto 0 auto;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .image-preview {
+            margin-top: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            max-height: 200px;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        /* Touch feedback */
+        .touch-feedback {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touch-feedback::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(42, 36, 148, 0.2) 0%, transparent 70%);
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            border-radius: inherit;
+        }
+
+        .touch-feedback:active::after {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Section headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .section-icon-purple {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .connection-status {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Hidden inputs -->
+    <input type="hidden" id="userId" th:value="${userId}">
+    <input type="hidden" id="isAdmin" th:value="${isAdmin}">
+    <input type="hidden" id="selectedCommunityId" th:value="${selectedCommunityId}">
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="welcome-content">
+            <!-- Community Context -->
+            <div th:if="${selectedCommunityName}" class="community-context">
+                <div class="community-icon">
+                    <span th:text="${#strings.substring(selectedCommunityName, 0, 2)}">CO</span>
+                </div>
+                <div>
+                    <div style="font-size: 12px; opacity: 0.8;">You're in</div>
+                    <div style="font-weight: 600;" th:text="${selectedCommunityName}">Community Name</div>
+                </div>
+            </div>
+
+            <h1 class="text-xl font-bold mb-2">
+                Welcome back,
+                <span th:text="${#strings.arraySplit(usersName, ' ')[#strings.arraySplit(usersName, ' ').length - 1]}">Alex</span>!
+            </h1>
+            <p th:if="${!#lists.isEmpty(upcomingEvents) or !#lists.isEmpty(upcomingMeetings)}" class="opacity-90 text-sm mb-4">
+                You have <span th:text="${upcomingEventNum + upcomingMeetingNum}">2</span> upcoming sessions. Stay connected with your community.
+            </p>
+            <p th:if="${#lists.isEmpty(upcomingEvents) and #lists.isEmpty(upcomingMeetings)}" class="opacity-90 text-sm mb-4">
+                You currently have no upcoming sessions. Stay tuned for new updates.
+            </p>
+            <div class="flex justify-between items-center">
+                <button th:if="${!isSupportAdmin}"
+                        class="secondary-btn touch-feedback"
+                        id="support-welcome-btn"
+                        style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+                    Get Support
+                </button>
+                <div id="mobile-connection-status" class="connection-status flex items-center gap-1 text-xs opacity-75">
+                    <span class="material-icons text-yellow-500 animate-spin">refresh</span> Loading
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Post Card -->
+    <div class="mobile-card touch-feedback">
+        <form hx-post="/mobile/create-post"
+              hx-trigger="click"
+              enctype="multipart/form-data"
+              method="POST"
+              hx-on::after-request="this.reset(); document.getElementById('image-preview').classList.add('hidden'); document.getElementById('preview-img').src='';">
+            <div class="flex gap-3 mb-4">
+                <div class="avatar">
+                    <span th:text="${#strings.substring(usersName,0,2)}">AA</span>
+                </div>
+                <div class="flex-1">
+                    <textarea
+                            name="content"
+                            th:placeholder="${selectedCommunityName != null ? 'Share an update with ' + selectedCommunityName + '...' : 'Share an update with the community...'}"
+                            class="post-input"
+                            rows="3"
+                            required
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Image Preview -->
+            <div id="image-preview" class="image-preview hidden">
+                <img id="preview-img" src="" alt="Preview">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center mt-4">
+                <div class="flex gap-2">
+                    <!-- Upload Image Button -->
+                    <label class="action-btn touch-feedback cursor-pointer">
+                        <input type="file" name="image" accept="image/*" class="hidden" id="upload-input">
+                        <span class="material-icons text-lg">image</span>
+                    </label>
+
+                    <!-- Emoji Button -->
+                    <button type="button" class="action-btn touch-feedback">
+                        <span class="material-icons text-lg">emoji_emotions</span>
+                    </button>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="brand-btn touch-feedback">
+                    <span class="material-icons text-lg">send</span>
+                    Post
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Posts Feed -->
+    <div id="listed-Posts" class="space-y-4">
+        <!-- Empty State -->
+        <div id="emptyPost" th:if="${#lists.isEmpty(allPosts)}" class="empty-state">
+            <div class="empty-state-icon">
+                <span class="material-icons text-violet-950 text-2xl">dynamic_feed</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">No posts yet</h3>
+            <p class="text-gray-600" th:text="${selectedCommunityName != null ? 'Be the first one to share something with ' + selectedCommunityName + '!' : 'Be the first one to share something with the community!'}">Be the first one to share something with the community!</p>
+        </div>
+
+        <!-- Posts -->
+        <article th:if="${!#lists.isEmpty(allPosts)}"
+                 th:each="posts : ${allPosts}"
+                 class="post-card touch-feedback fade-in">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex gap-3">
+                    <div th:text="${#strings.substring(posts.userFullName,0,2)}" class="avatar">
+                        AA
+                    </div>
+                    <div>
+                        <h3 th:text="${posts.userFullName}" class="font-semibold text-gray-900">Sophia Bennett</h3>
+                        <p class="text-xs text-gray-500">
+                            <span th:attr="data-time=${posts.dateCreated}" class="time-ago"></span> ·
+                            <span class="material-icons text-xs">public</span>
+                            <span th:if="${posts.communityName}" th:text="' · ' + ${posts.communityName}"></span>
+                        </p>
+                    </div>
+                </div>
+                <button class="action-btn">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+
+            <p th:text="${posts.content}" class="text-gray-700 mb-4 leading-relaxed">
+                Just finished an amazing project using React and Tailwind CSS! The power of component-based architecture combined with utility-first CSS is incredible. 🚀
+            </p>
+
+            <!-- Post Actions -->
+            <div class="flex justify-between items-center py-3 border-t border-gray-100 text-gray-500">
+                <button class="action-btn comment-btn touch-feedback"
+                        th:attr="data-post=${posts.postID}">
+                    <span class="material-icons text-lg">chat_bubble_outline</span>
+                    <span th:text="${#lists.size(posts.comments)} + ' comments'">7 comments</span>
+                </button>
+            </div>
+
+            <!-- Comment Section -->
+            <div class="comment-section mt-4" th:id="'comments-' + ${posts.postID}">
+                <div th:id="${'comments' + posts.postID}" class="comment-container space-y-3">
+                    <div th:each="comment : ${posts.comments}" class="flex gap-3 comment">
+                        <div th:text="${#strings.substring(comment.senderFullName,0,2)}" class="avatar avatar-small">
+                            AA
+                        </div>
+                        <div class="flex-1">
+                            <h4 th:text="${comment.senderFullName}" class="font-medium text-gray-900 text-sm">Michael Chen</h4>
+                            <p th:text="${comment.comment}" class="text-sm text-gray-600">This looks amazing!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Comment -->
+                <div class="flex gap-3 mt-4 pt-4">
+                    <div class="avatar avatar-small">
+                        <span th:text="${#strings.substring(usersName,0,2)}">AA</span>
+                    </div>
+                    <div class="flex-1">
+                        <form hx-post="/mobile/post-comment"
+                              hx-trigger="click"
+                              hx-on::after-request="this.reset();"
+                              class="flex gap-2">
+                            <input name="comment"
+                                   type="text"
+                                   placeholder="Write a comment..."
+                                   class="comment-input flex-1"
+                                   required>
+                            <input name="postId" type="hidden" th:value="${posts.postID}">
+                            <button class="brand-btn touch-feedback" style="padding: 8px 12px; min-height: 40px;">
+                                <span class="material-icons text-lg">send</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    <!-- Coaching Sessions Section -->
+    <div class="mobile-card" th:if="${!#lists.isEmpty(upcomingEvents)}">
+        <div class="section-header">
+            <div class="section-icon">
+                <span class="material-icons">video_call</span>
+            </div>
+            <h2 class="section-title">Upcoming Sessions</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div th:each="upcomingSession : ${upcomingEvents}" class="coaching-card">
+                <input id="sessionID" type="hidden" th:value="${upcomingSession.id}">
+                <span class="status-badge status-upcoming">Upcoming</span>
+                <h3 th:text="${upcomingSession.moduleName}" class="font-semibold text-gray-900 mb-2">Career Development Workshop</h3>
+                <div class="flex items-center text-sm text-gray-600 mb-4">
+                    <span class="material-icons text-lg mr-2">schedule</span>
+                    <span th:text="${upcomingSession.startTime} + ' - ' + ${upcomingSession.eventEndTime}">Today, 3:00 PM - 4:30 PM</span>
+                </div>
+
+                <button th:style="${upcomingSession.isReady} ? 'background: linear-gradient(135deg, #2A2494, #3730a3);' : 'background: #9ca3af;'"
+                        class="start-video-call-user brand-btn w-full touch-feedback"
+                        th:disabled="${!upcomingSession.isReady}"
+                        th:data-session-id="${upcomingSession.id}">
+          <span class="button-content">
+            <span class="material-icons">videocam</span>
+            Join Session
+          </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meetings Section -->
+    <div class="mobile-card" th:if="${!#lists.isEmpty(upcomingMeetings)}">
+        <div class="section-header">
+            <div class="section-icon section-icon-purple">
+                <span class="material-icons">groups</span>
+            </div>
+            <h2 class="section-title">Upcoming Meetings</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div th:each="upcomingMeeting : ${upcomingMeetings}" class="meeting-card">
+                <input class="meetingID" type="hidden" th:value="${upcomingMeeting.id}">
+                <span class="status-badge status-upcoming-purple">Upcoming</span>
+                <h3 th:text="${upcomingMeeting.moduleName}" class="font-semibold text-gray-900 mb-2">Team Meeting</h3>
+                <div class="flex items-center text-sm text-gray-600 mb-2">
+                    <span class="material-icons text-lg mr-2">schedule</span>
+                    <span th:text="${upcomingMeeting.startTime} + ' - ' + ${upcomingMeeting.eventEndTime}">Today, 2:00 PM - 3:00 PM</span>
+                </div>
+                <div th:if="${upcomingMeeting.participantNames != null and !#lists.isEmpty(upcomingMeeting.participantNames)}" class="mb-4">
+                    <p class="text-xs text-gray-500 mb-1">Participants:</p>
+                    <p class="text-sm text-gray-600" th:text="${#strings.listJoin(upcomingMeeting.participantNames, ', ')}">John, Jane, Bob</p>
+                </div>
+
+                <button th:style="${upcomingMeeting.isReady} ? 'background: linear-gradient(135deg, #2A2494, #3730a3);' : 'background: #9ca3af;'"
+                        class="start-video-call-meeting brand-btn-purple w-full touch-feedback"
+                        th:disabled="${!upcomingMeeting.isReady}"
+                        th:data-meeting-id="${upcomingMeeting.id}">
+          <span class="button-content">
+            <span class="material-icons">videocam</span>
+            Join Meeting
+          </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Section -->
+    <div class="mobile-card touch-feedback" th:if="${!isSupportAdmin}">
+        <div class="section-header">
+            <div class="section-icon">
+                <span class="material-icons">support_agent</span>
+            </div>
+            <h2 class="section-title">Need Help?</h2>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-4">Our support team is here to help you with any questions or issues you might have.</p>
+
+        <div class="space-y-3">
+            <button class="brand-btn w-full touch-feedback" id="support-card-btn">
+                <span class="material-icons">chat</span>
+                Contact Support
+            </button>
+            <a th:href="@{/support/my-tickets}" style="text-decoration: none;">
+                <button class="secondary-btn w-full touch-feedback">
+                    View My Tickets
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div class="support-modal" id="support-modal">
+        <div class="support-modal-content">
+            <div class="modal-handle"></div>
+
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Contact Support</h3>
+                    <button class="action-btn" id="close-support-modal">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+
+                <form id="support-form" hx-post="/support/submit-request">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <input type="text" name="subject"
+                               class="form-input"
+                               placeholder="What do you need help with?" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea name="description"
+                                  class="form-input"
+                                  rows="5"
+                                  placeholder="Please describe your issue in detail..." required></textarea>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Priority</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="radio" name="priority" value="low" class="mr-3" checked required>
+                                <span>Low Priority</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="priority" value="medium" class="mr-3" required>
+                                <span>Medium Priority</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="priority" value="high" class="mr-3" required>
+                                <span>High Priority</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" class="secondary-btn flex-1 touch-feedback" id="cancel-support">
+                            Cancel
+                        </button>
+                        <button type="submit" class="brand-btn flex-1 touch-feedback">
+                            <span class="material-icons">send</span>
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"
+            onload="console.log('SockJS loaded')"
+            onerror="console.error('Failed to load SockJS')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"
+            onload="console.log('STOMP loaded')"
+            onerror="console.error('Failed to load STOMP')"></script>
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"
+            onload="console.log('ZegoCloud loaded')"
+            onerror="console.error('Failed to load ZegoCloud')"></script>
+    <script src="/js/videoSession.js"
+            onload="console.log('VideoSession loaded')"
+            onerror="console.error('Failed to load videoSession.js')"></script>
+
+    <script>
+        (function () {
+            // Helper functions
+            const $ = (sel, root = document) => root.querySelector(sel);
+            const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
+
+            // Support modal functionality
+            const supportModal = $('#support-modal');
+            const toggleSupportModal = (show = null) => {
+                if (!supportModal) return;
+                const active = show === null ? !supportModal.classList.contains('active') : !!show;
+                supportModal.classList.toggle('active', active);
+                document.body.style.overflow = active ? 'hidden' : 'auto';
+            };
+
+            // Support modal triggers
+            ['support-card-btn', 'support-welcome-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', () => toggleSupportModal(true));
+            });
+
+            ['close-support-modal', 'cancel-support'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', () => toggleSupportModal(false));
+            });
+
+            // Time ago formatter
+            function formatTimeAgo(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffSeconds = Math.floor((now - date) / 1000);
+                const diffMinutes = Math.floor(diffSeconds / 60);
+                const diffHours = Math.floor(diffMinutes / 60);
+                const diffDays = Math.floor(diffHours / 24);
+
+                if (diffDays === 0) {
+                    if (diffHours > 0) return `${diffHours}h ago`;
+                    if (diffMinutes > 0) return `${diffMinutes}m ago`;
+                    return `${diffSeconds}s ago`;
+                } else if (diffDays === 1) {
+                    return `yesterday`;
+                } else if (diffDays < 7) {
+                    return `${diffDays}d ago`;
+                } else {
+                    return date.toLocaleDateString();
+                }
+            }
+
+            const renderAllTimeAgo = (root = document) => {
+                $$('.time-ago', root).forEach(el => (el.textContent = formatTimeAgo(el.dataset.time)));
+            };
+
+            // Create post HTML
+            function createPostHtml(post) {
+                const initials = (post.userFullName || '').substring(0, 2).toUpperCase();
+                const commentsHtml = (post.comments || []).map(c => `
+                    <div class="flex gap-3 comment">
+                        <div class="avatar avatar-small">${(c.senderFullName || '').substring(0,2).toUpperCase()}</div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-900 text-sm">${c.senderFullName}</h4>
+                            <p class="text-sm text-gray-600">${c.comment}</p>
+                        </div>
+                    </div>
+                `).join('');
+                const commentCount = (post.comments || []).length || 0;
+                const communityInfo = post.communityName ? ` · ${post.communityName}` : '';
+
+                return `
+                    <article class="post-card touch-feedback fade-in">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex gap-3">
+                                <div class="avatar">${initials}</div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">${post.userFullName}</h3>
+                                    <p class="text-xs text-gray-500">
+                                        <span class="time-ago" data-time="${post.dateCreated}"></span> ·
+                                        <span class="material-icons text-xs">public</span>${communityInfo}
+                                    </p>
+                                </div>
+                            </div>
+                            <button class="action-btn">
+                                <span class="material-icons">more_vert</span>
+                            </button>
+                        </div>
+
+                        <p class="text-gray-700 mb-4 leading-relaxed">${post.content || ''}</p>
+
+                        <div class="flex justify-between items-center py-3 border-t border-gray-100 text-gray-500">
+                            <button class="action-btn comment-btn touch-feedback" data-post="${post.postID}">
+                                <span class="material-icons text-lg">chat_bubble_outline</span>
+                                <span>${commentCount} comments</span>
+                            </button>
+                        </div>
+
+                        <div class="comment-section mt-4" id="comments-${post.postID}">
+                            <div id="comments${post.postID}" class="comment-container space-y-3">
+                                ${commentsHtml}
+                            </div>
+
+                            <div class="flex gap-3 mt-4 pt-4">
+                                <div class="avatar avatar-small">AA</div>
+                                <div class="flex-1">
+                                    <form hx-post="/mobile/post-comment" hx-trigger="click" hx-on::after-request="this.reset();" class="flex gap-2">
+                                        <input name="comment" type="text" placeholder="Write a comment..." class="comment-input flex-1" required>
+                                        <input name="postId" type="hidden" value="${post.postID}">
+                                        <button class="brand-btn touch-feedback" style="padding: 8px 12px; min-height: 40px;">
+                                            <span class="material-icons text-lg">send</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }
+
+            // Append post functionality
+            const postsContainer = document.getElementById('listed-Posts');
+            function appendPost(post) {
+                if (!postsContainer) return;
+                postsContainer.querySelector('#emptyPost')?.remove?.();
+                postsContainer.insertAdjacentHTML('afterbegin', createPostHtml(post));
+
+                if (window.htmx && postsContainer.firstElementChild) {
+                    try { htmx.process(postsContainer.firstElementChild); } catch (e) { /* ignore */ }
+                }
+                renderAllTimeAgo(postsContainer.firstElementChild);
+                setupTouchFeedback(postsContainer.firstElementChild);
+            }
+
+            // Comment toggle functionality
+            postsContainer?.addEventListener('click', e => {
+                const btn = e.target.closest('.comment-btn');
+                if (!btn) return;
+                const postId = btn.dataset.post;
+                const commentSection = document.getElementById(`comments-${postId}`);
+                if (commentSection) commentSection.classList.toggle('expanded');
+            });
+
+            // Image preview functionality
+            const uploadInput = document.getElementById('upload-input');
+            const previewContainer = document.getElementById('image-preview');
+            const previewImg = document.getElementById('preview-img');
+
+            uploadInput?.addEventListener('change', function () {
+                const file = this.files?.[0];
+                if (!file) {
+                    previewContainer?.classList.add('hidden');
+                    if (previewImg) previewImg.src = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = e => {
+                    if (previewImg) previewImg.src = e.target.result;
+                    previewContainer?.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Touch feedback setup
+            function setupTouchFeedback(root = document) {
+                const touchElements = $$('.touch-feedback', root);
+                touchElements.forEach(element => {
+                    element.addEventListener('touchstart', () => {
+                        element.style.transform = 'scale(0.98)';
+                    });
+
+                    element.addEventListener('touchend', () => {
+                        setTimeout(() => {
+                            element.style.transform = '';
+                        }, 150);
+                    });
+                });
+            }
+
+            // Add mobile-specific connection status
+            function updateMobileConnectionStatus() {
+                const statusElement = document.getElementById('mobile-connection-status');
+                if (statusElement) {
+                    const isOnline = navigator.onLine;
+                    const hasVideoManager = window.videoCallManager?.isServiceReady();
+
+                    if (isOnline && hasVideoManager) {
+                        statusElement.innerHTML = '<span class="material-icons text-green-500">wifi</span> Ready';
+                        statusElement.className = 'connection-status flex items-center gap-1 text-xs text-violet-950 opacity-75';
+                    } else if (isOnline) {
+                        statusElement.innerHTML = '<span class="material-icons text-yellow-500 animate-spin">refresh</span> Loading';
+                        statusElement.className = 'connection-status flex items-center gap-1 text-xs text-yellow-600 opacity-75';
+                    } else {
+                        statusElement.innerHTML = '<span class="material-icons text-red-500">wifi_off</span> Offline';
+                        statusElement.className = 'connection-status flex items-center gap-1 text-xs text-red-600 opacity-75';
+                    }
+                }
+            }
+
+            // Monitor connection status for mobile
+            window.addEventListener('online', updateMobileConnectionStatus);
+            window.addEventListener('offline', updateMobileConnectionStatus);
+
+            // Check status periodically and when video manager is ready
+            setInterval(updateMobileConnectionStatus, 5000);
+
+            // Listen for video manager ready event
+            document.addEventListener('videoManagerReady', updateMobileConnectionStatus);
+
+            updateMobileConnectionStatus();
+
+            // Modal gesture handling
+            if (supportModal) {
+                const modalContent = supportModal.querySelector('.support-modal-content');
+                let startY = 0;
+                let currentY = 0;
+                let isDragging = false;
+
+                const handleStart = (e) => {
+                    startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                    isDragging = true;
+                    modalContent.style.transition = 'none';
+                };
+
+                const handleMove = (e) => {
+                    if (!isDragging) return;
+                    currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                    const deltaY = Math.max(0, currentY - startY);
+                    if (deltaY > 0) {
+                        modalContent.style.transform = `translateY(${deltaY}px)`;
+                    }
+                };
+
+                const handleEnd = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    modalContent.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                    const deltaY = currentY - startY;
+                    if (deltaY > 100) {
+                        toggleSupportModal(false);
+                    } else {
+                        modalContent.style.transform = 'translateY(0)';
+                    }
+                };
+
+                modalContent.addEventListener('touchstart', handleStart, { passive: true });
+                modalContent.addEventListener('touchmove', handleMove, { passive: true });
+                modalContent.addEventListener('touchend', handleEnd);
+            }
+
+            // Initialize
+            renderAllTimeAgo();
+            setupTouchFeedback();
+
+            // Listen for new posts
+            document.addEventListener('appendPostEvent', (event) => {
+                const post = event.detail;
+                appendPost(post);
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

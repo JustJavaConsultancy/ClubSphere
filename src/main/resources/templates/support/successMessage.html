@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        /* Simple animations */
+        @keyframes fade-in {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
+        .animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
+        .animate-slide-up.delay-100 { animation-delay: 0.1s; }
+        .animate-slide-up.delay-200 { animation-delay: 0.2s; }
+    </style>
+
+</head>
+<body>
+<div class="support-success" id="support-success">
+    <div class="flex flex-col items-center justify-center p-8 animate-fade-in">
+
+        <!-- Animated Checkmark -->
+        <div class="relative w-20 h-20 flex items-center justify-center mb-6">
+            <div class="absolute w-full h-full rounded-full border-4 border-green-300 animate-ping"></div>
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center shadow-lg">
+                <svg class="w-10 h-10 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: green;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <h3 class="text-2xl font-bold text-gray-800 mb-2 animate-slide-up">Request Submitted!</h3>
+        <p class="text-gray-600 text-center mb-6 animate-slide-up delay-100">
+            Thank you for reaching out to our support team.
+            Your ticket has been created successfully.
+        </p>
+
+        <!-- View Tickets Button -->
+        <a th:href="@{/support/my-tickets}"
+           class="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition transform hover:scale-105 animate-slide-up delay-200"
+           style="text-decoration:none; display:inline-block;">
+            View Tickets
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

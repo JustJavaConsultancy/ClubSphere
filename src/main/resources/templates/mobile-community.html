@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Community - Connect</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        /* Mobile-optimized styles with violet theme */
+        .mobile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-card:active {
+            transform: scale(0.98);
+        }
+
+        .mobile-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1) !important;
+            border-radius: 16px !important;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .mobile-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .mobile-input select,
+        select.mobile-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .mobile-textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-textarea:focus {
+            outline: none;
+            border-color: #2A2494;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .mobile-button {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .mobile-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(42, 36, 148, 0.4);
+        }
+
+        .mobile-button:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mobile-button-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: #374151;
+        }
+
+        .mobile-button-secondary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(42, 36, 148, 0.2);
+        }
+
+        .mobile-button-success {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        .mobile-button-success:hover {
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+        }
+
+        .mobile-button-danger {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .mobile-button-danger:hover {
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+        }
+
+        .mobile-section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            flex: 1;
+        }
+
+        .mobile-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .mobile-group-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-group-card:active {
+            transform: scale(0.98);
+        }
+
+        .mobile-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .mobile-group-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .mobile-group-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .mobile-group-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-members-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .mobile-action-button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            color: #475569;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-action-button:active {
+            background: rgba(42, 36, 148, 0.1);
+            transform: scale(0.95);
+        }
+
+        .mobile-request-button {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(42, 36, 148, 0.3);
+        }
+
+        .mobile-request-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.4);
+        }
+
+        .mobile-request-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mobile-request-button.pending {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .mobile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-modal.show {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .mobile-modal-content {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .mobile-modal-header {
+            padding: 24px 24px 16px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .mobile-modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+        }
+
+        .mobile-modal-body {
+            padding: 24px;
+        }
+
+        .mobile-form-group {
+            margin-bottom: 20px;
+        }
+
+        .mobile-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .mobile-alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+
+        .mobile-alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fca5a5;
+        }
+
+        .mobile-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-empty-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+            color: #2A2494;
+        }
+
+        .mobile-fab {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.4);
+            z-index: 40;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-fab:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-dropdown {
+            position: relative;
+        }
+
+        .mobile-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            min-width: 160px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .mobile-dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobile-dropdown-item {
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-dropdown-item:active {
+            background: rgba(42, 36, 148, 0.1);
+        }
+
+        .mobile-dropdown-item.danger {
+            color: #dc2626;
+        }
+
+        .mobile-dropdown-item.primary {
+            color: #2A2494;
+        }
+
+        /* Loading states */
+        .mobile-loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 200ms ease-in;
+        }
+
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+
+        .htmx-request .mobile-button {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Member selection styles */
+        .mobile-member-search {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .mobile-member-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .mobile-member-options.show {
+            display: block;
+        }
+
+        .mobile-member-option {
+            padding: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-member-option:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-member-option:active {
+            background: rgba(42, 36, 148, 0.1);
+        }
+
+        .mobile-member-option.selected {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #2A2494;
+        }
+
+        .mobile-selected-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .mobile-member-tag {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #2A2494;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mobile-member-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            background: rgba(42, 36, 148, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Header gradient */
+        .mobile-header-gradient {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            padding: 24px;
+            border-radius: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(42, 36, 148, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mobile-header-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .mobile-header-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mobile-header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+
+        .community-context {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .community-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        /* Request card styles */
+        .mobile-request-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .mobile-request-user {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .mobile-request-group {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .mobile-request-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .mobile-request-actions button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 48px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-request-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .mobile-request-actions button:active {
+            transform: scale(0.98);
+        }
+
+        .mobile-request-actions button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mobile-approve-btn {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+        }
+
+        .mobile-approve-btn:hover {
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        .mobile-reject-btn {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+        }
+
+        .mobile-reject-btn:hover {
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Read-only styles for non-admin users */
+        .read-only-field {
+            background: rgba(249, 250, 251, 0.8);
+            border: 2px solid rgba(0, 0, 0, 0.05);
+            color: #374151;
+            cursor: default;
+        }
+
+        .read-only-field:focus {
+            border-color: rgba(0, 0, 0, 0.05);
+            box-shadow: none;
+        }
+
+        .admin-only {
+            display: none;
+        }
+
+        .admin-only.show {
+            display: block;
+        }
+
+        .non-admin-message {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .mobile-card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .mobile-modal-content {
+                border-radius: 20px 20px 0 0;
+            }
+
+            .mobile-modal-header,
+            .mobile-modal-body {
+                padding: 20px;
+            }
+
+            .mobile-header-title {
+                font-size: 22px;
+            }
+
+            .mobile-section-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Messages Container -->
+    <div id="messages-container">
+        <div th:if="${successMessage}" class="mobile-alert mobile-alert-success">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span th:text="${successMessage}"></span>
+        </div>
+
+        <div th:if="${errorMessage}" class="mobile-alert mobile-alert-error">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="mobile-header-gradient">
+        <!-- Community Context -->
+        <div th:if="${community != null && community.communityName != null}" class="community-context">
+            <div class="community-icon">
+                <span th:text="${#strings.substring(community.communityName, 0, 2)}">CO</span>
+            </div>
+            <div>
+                <div style="font-size: 12px; opacity: 0.8;" th:text="${isAdmin ? 'Managing' : 'Viewing'}">Managing</div>
+                <div style="font-weight: 600;" th:text="${community.communityName}">Community Name</div>
+            </div>
+        </div>
+
+        <h1 class="mobile-header-title" th:text="${isAdmin ? 'Community Management' : 'Community Overview'}">Community Management</h1>
+        <p class="mobile-header-subtitle" th:text="${isAdmin ? 'Manage your community settings, groups, and members all in one place.' : 'View your community information and participate in groups.'}">Manage your community settings, groups, and members all in one place.</p>
+    </div>
+
+    <!-- Non-admin message -->
+    <div th:if="${!isAdmin}" class="non-admin-message">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+        <span>You are viewing this community as a member. Only administrators can modify settings and create groups.</span>
+    </div>
+
+    <!-- Community Settings -->
+    <div class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Community Information</h2>
+        </div>
+
+        <!-- Admin: Editable Community Name -->
+        <div th:if="${isAdmin}">
+            <form hx-post="/mobile/my-community/update-name"
+                  hx-target="#messages-container"
+                  hx-swap="innerHTML"
+                  hx-indicator="#name-loading"
+                  class="mb-6">
+                <input type="hidden" name="communityId" th:value="${communityId != null ? communityId : ''}">
+                <div class="mobile-form-group">
+                    <label for="communityName" class="mobile-form-label">Community Name</label>
+                    <input type="text"
+                           id="communityName"
+                           name="communityName"
+                           th:value="${community != null && community.communityName != null ? community.communityName : ''}"
+                           class="mobile-input"
+                           placeholder="Enter community name"
+                           required>
+                </div>
+                <button type="submit" class="mobile-button">
+                    <span class="htmx-indicator" id="name-loading">
+                        <span class="mobile-loading"></span>
+                    </span>
+                    Update Name
+                </button>
+            </form>
+
+            <!-- Update Community Description -->
+            <form hx-post="/mobile/my-community/update-description"
+                  hx-target="#messages-container"
+                  hx-swap="innerHTML"
+                  hx-indicator="#desc-loading">
+                <input type="hidden" name="communityId" th:value="${communityId != null ? communityId : ''}">
+                <div class="mobile-form-group">
+                    <label for="communityDescription" class="mobile-form-label">Community Description</label>
+                    <textarea id="communityDescription"
+                              name="communityDescription"
+                              class="mobile-textarea"
+                              placeholder="Describe your community..."
+                              required th:text="${community != null && community.communityDescription != null ? community.communityDescription : ''}"></textarea>
+                </div>
+                <button type="submit" class="mobile-button">
+                    <span class="htmx-indicator" id="desc-loading">
+                        <span class="mobile-loading"></span>
+                    </span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Update Description
+                </button>
+            </form>
+        </div>
+
+        <!-- Non-Admin: Read-only Community Information -->
+        <div th:if="${!isAdmin}">
+            <div class="mobile-form-group">
+                <label class="mobile-form-label">Community Name</label>
+                <input type="text"
+                       th:value="${community != null && community.communityName != null ? community.communityName : 'Unknown Community'}"
+                       class="mobile-input read-only-field"
+                       readonly>
+            </div>
+            <div class="mobile-form-group">
+                <label class="mobile-form-label">Community Description</label>
+                <textarea class="mobile-textarea read-only-field"
+                          readonly th:text="${community != null && community.communityDescription != null ? community.communityDescription : 'No description available'}"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Requests Section (Admin Only) -->
+    <div th:if="${isAdmin}" class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Group Requests</h2>
+        </div>
+
+        <div id="group-requests-container">
+            <div th:if="${#lists.isEmpty(groupRequests)}" class="mobile-empty-state">
+                <div class="mobile-empty-icon">
+                    <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #374151;">No pending requests</h3>
+                <p style="color: #6b7280;">All group requests have been processed.</p>
+            </div>
+
+            <div th:each="request : ${groupRequests}" class="mobile-request-card" th:id="'request-card-' + ${request.id}">
+                <div class="mobile-request-header">
+                    <div>
+                        <div class="mobile-request-user" th:text="${request.fullName}">John Doe</div>
+                        <div class="mobile-request-group" th:text="'Wants to join: ' + ${request.groupName}">Wants to join: Frontend Developers</div>
+                    </div>
+                </div>
+                <div class="mobile-request-actions">
+                    <button class="mobile-approve-btn"
+                            th:attr="data-request-id=${request.id}"
+                            hx-post="/mobile/my-community/group-requests/{id}/approve"
+                            th:hx-post="@{/mobile/my-community/group-requests/{id}/approve(id=${request.id})}"
+                            hx-target="#group-requests-container"
+                            hx-swap="innerHTML"
+                            hx-indicator="#approve-loading">
+                        <span class="htmx-indicator" id="approve-loading">
+                            <span class="mobile-loading"></span>
+                        </span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Approve
+                    </button>
+                    <button class="mobile-reject-btn"
+                            th:attr="data-request-id=${request.id}"
+                            hx-post="/mobile/my-community/group-requests/{id}/reject"
+                            th:hx-post="@{/mobile/my-community/group-requests/{id}/reject(id=${request.id})}"
+                            hx-target="#group-requests-container"
+                            hx-swap="innerHTML"
+                            hx-indicator="#reject-loading">
+                        <span class="htmx-indicator" id="reject-loading">
+                            <span class="mobile-loading"></span>
+                        </span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Groups Section -->
+    <div class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title" th:text="${isAdmin ? 'Community Groups' : 'My Groups'}">Community Groups</h2>
+            <!-- Add Group button (Admin Only) -->
+            <button th:if="${isAdmin}" onclick="openAddGroupModal()" class="mobile-action-button" style="background: linear-gradient(135deg, #2A2494, #3730a3); color: white;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Groups List -->
+        <div id="groups-container">
+            <div th:if="${#lists.isEmpty(groups)}" class="mobile-empty-state">
+                <div class="mobile-empty-icon">
+                    <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    <span th:if="${isAdmin}">No groups yet</span>
+                    <span th:if="${!isAdmin}">No groups joined</span>
+                </h3>
+                <p style="margin-bottom: 20px;">
+                    <span th:if="${isAdmin && community != null && community.communityName != null}" th:text="'Create the first group for ' + ${community.communityName} + '!'">Create the first group for this community!</span>
+                    <span th:if="${isAdmin && (community == null || community.communityName == null)}">Create your first group to get started!</span>
+                    <span th:if="${!isAdmin}">You haven't joined any groups in this community yet.</span>
+                </p>
+            </div>
+
+            <div th:each="group : ${groups}" class="mobile-group-card" th:id="'group-card-' + ${group.id}">
+                <div class="mobile-group-header">
+                    <div style="flex: 1;">
+                        <h3 class="mobile-group-title" th:text="${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}">Frontend Developers</h3>
+                        <p class="mobile-group-description" th:text="${group != null && group.groupDescription != null ? group.groupDescription : 'No description'}">A group for frontend developers</p>
+                    </div>
+                    <!-- Admin controls -->
+                    <div th:if="${isAdmin}" class="mobile-dropdown">
+                        <button class="mobile-action-button" th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'}" onclick="toggleMobileDropdown(this.getAttribute('data-group-id'))">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                            </svg>
+                        </button>
+                        <div th:id="'mobile-dropdown-' + ${group != null && group.id != null ? group.id : 'unknown'}" class="mobile-dropdown-menu">
+                            <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'}" onclick="editGroup(this.getAttribute('data-group-id'))" class="mobile-dropdown-item primary">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Edit Group
+                            </div>
+                            <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}" onclick="deleteGroup(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))" class="mobile-dropdown-item danger">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete Group
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-group-meta">
+                    <div class="mobile-members-badge">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                        <span th:text="${group != null && group.memberCount != null ? group.memberCount + ' members' : '0 members'}">45 members</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suggested Groups Section (Non-Admin Only) -->
+    <div th:if="${!isAdmin && !#lists.isEmpty(suggestedGroups)}" class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Suggested Groups</h2>
+        </div>
+
+        <div id="suggested-groups-container">
+            <div th:each="group : ${suggestedGroups}" class="mobile-group-card">
+                <div class="mobile-group-header">
+                    <div style="flex: 1;">
+                        <h3 class="mobile-group-title" th:text="${group.groupName}">Backend Developers</h3>
+                        <p class="mobile-group-description" th:text="${group.groupDescription}">A group for backend developers</p>
+                    </div>
+                    <button class="mobile-request-button"
+                            th:attr="data-group-id=${group.id}"
+                            th:classappend="${group.requestStatus == 'PENDING' ? 'pending' : ''}"
+                            th:disabled="${group.requestStatus == 'PENDING'}"
+                            hx-post="/mobile/my-community/groups/{id}/request"
+                            th:hx-post="@{/mobile/my-community/groups/{id}/request(id=${group.id})}"
+                            hx-target="#suggested-groups-container"
+                            hx-swap="innerHTML"
+                            hx-indicator="#join-loading">
+                        <span class="htmx-indicator" id="join-loading">
+                            <span class="mobile-loading"></span>
+                        </span>
+                        <span th:if="${group.requestStatus == 'PENDING'}">Pending</span>
+                        <span th:if="${group.requestStatus != 'PENDING'}">Join</span>
+                    </button>
+                </div>
+                <div class="mobile-group-meta">
+                    <div class="mobile-members-badge">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                        <span th:text="${group.memberCount + ' members'}">12 members</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Members (Admin only) -->
+    <div th:if="${isAdmin}" class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Invite Members</h2>
+        </div>
+        <form hx-post="/mobile/my-community/invite"
+              hx-target="#messages-container"
+              hx-swap="innerHTML"
+              hx-indicator="#invite-loading">
+            <div class="mobile-form-group">
+                <label for="userSelect" class="mobile-form-label">Select User to Invite</label>
+                <select id="userSelect"
+                        name="userId"
+                        class="mobile-input"
+                        required>
+                    <option value="">Choose a user to invite...</option>
+                    <option th:each="user : ${availableUsersToInvite}"
+                            th:value="${user.userId}"
+                            th:text="${user.firstName != null && user.lastName != null ? user.firstName + ' ' + user.lastName + ' (' + user.email + ')' : user.email}">
+                        John Doe (john@example.com)
+                    </option>
+                </select>
+            </div>
+            <button type="submit" class="mobile-button">
+                <span class="htmx-indicator" id="invite-loading">
+                    <span class="mobile-loading"></span>
+                </span>
+                Send Invite
+            </button>
+        </form>
+    </div>
+
+    <!-- Add Group Modal (Admin Only) -->
+    <div th:if="${isAdmin}" id="addGroupModal" class="mobile-modal">
+        <div class="mobile-modal-content">
+            <div class="mobile-modal-header">
+                <h3 class="mobile-modal-title">Create New Group</h3>
+            </div>
+            <div class="mobile-modal-body">
+                <form hx-post="/mobile/my-community/groups/add"
+                      hx-target="#groups-container"
+                      hx-swap="innerHTML"
+                      hx-indicator="#add-group-loading">
+                    <input type="hidden" name="communityId" th:value="${communityId != null ? communityId : ''}">
+
+                    <div class="mobile-form-group">
+                        <label for="groupName" class="mobile-form-label">Group Name</label>
+                        <input type="text"
+                               id="groupName"
+                               name="groupName"
+                               class="mobile-input"
+                               placeholder="Enter group name"
+                               required>
+                    </div>
+
+                    <div class="mobile-form-group">
+                        <label for="groupDescription" class="mobile-form-label">Description</label>
+                        <textarea id="groupDescription"
+                                  name="groupDescription"
+                                  class="mobile-textarea"
+                                  placeholder="Describe your group..."
+                                  required></textarea>
+                    </div>
+
+                    <div class="mobile-form-group">
+                        <label class="mobile-form-label">Select Community Members</label>
+                        <div class="mobile-member-search">
+                            <input type="text"
+                                   id="memberSearch"
+                                   class="mobile-input"
+                                   placeholder="Search and select community members..."
+                                   autocomplete="off">
+                            <div id="memberOptions" class="mobile-member-options">
+                                <div th:each="member : ${availableMembers}"
+                                     class="mobile-member-option"
+                                     th:attr="data-member=${member.userId}"
+                                     th:text="${member.firstName != null && member.lastName != null ? member.firstName + ' ' + member.lastName : (member.firstName != null ? member.firstName : member.email)}">John Smith</div>
+                            </div>
+                        </div>
+                        <div id="selectedMembers" class="mobile-selected-members"></div>
+                        <input type="hidden" id="selectedMembersInput" name="selectedMembers">
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 32px;">
+                        <button type="button" onclick="closeAddGroupModal()" class="mobile-button mobile-button-secondary" style="flex: 1;">
+                            Cancel
+                        </button>
+                        <button type="submit" class="mobile-button" style="flex: 2;">
+                            <span class="htmx-indicator" id="add-group-loading">
+                                <span class="mobile-loading"></span>
+                            </span>
+                            Create Group
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal (Admin Only) -->
+    <div th:if="${isAdmin}" id="editGroupModal" class="mobile-modal">
+        <div class="mobile-modal-content">
+            <div class="mobile-modal-header">
+                <h3 class="mobile-modal-title">Edit Group</h3>
+            </div>
+            <div class="mobile-modal-body">
+                <form id="editGroupForm"
+                      hx-indicator="#edit-group-loading">
+                    <input type="hidden" name="communityId" th:value="${communityId != null ? communityId : ''}">
+
+                    <div class="mobile-form-group">
+                        <label for="editGroupName" class="mobile-form-label">Group Name</label>
+                        <input type="text"
+                               id="editGroupName"
+                               name="groupName"
+                               class="mobile-input"
+                               required>
+                    </div>
+
+                    <div class="mobile-form-group">
+                        <label for="editGroupDescription" class="mobile-form-label">Description</label>
+                        <textarea id="editGroupDescription"
+                                  name="groupDescription"
+                                  class="mobile-textarea"
+                                  required></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 32px;">
+                        <button type="button" onclick="closeEditGroupModal()" class="mobile-button mobile-button-secondary" style="flex: 1;">
+                            Cancel
+                        </button>
+                        <button type="submit" class="mobile-button" style="flex: 2;">
+                            <span class="htmx-indicator" id="edit-group-loading">
+                                <span class="mobile-loading"></span>
+                            </span>
+                            Update Group
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal (Admin Only) -->
+    <div th:if="${isAdmin}" id="deleteConfirmModal" class="mobile-modal">
+        <div class="mobile-modal-content" style="max-width: 400px;">
+            <div class="mobile-modal-body" style="text-align: center; padding: 32px 24px;">
+                <div style="width: 64px; height: 64px; background: #fee2e2; border-radius: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
+                    <svg style="width: 32px; height: 32px; color: #dc2626;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Delete Group</h3>
+                <p style="color: #6b7280; margin-bottom: 24px; line-height: 1.5;">
+                    Are you sure you want to delete "<span id="deleteGroupName"></span>"? This action cannot be undone.
+                </p>
+                <form id="deleteGroupForm"
+                      hx-indicator="#delete-group-loading">
+                    <div style="display: flex; gap: 12px;">
+                        <button type="button" onclick="closeDeleteModal()" class="mobile-button mobile-button-secondary" style="flex: 1;">
+                            Cancel
+                        </button>
+                        <button type="submit" style="flex: 1; background: #dc2626; border: none; color: white; padding: 16px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                            <span class="htmx-indicator" id="delete-group-loading">
+                                <span class="mobile-loading"></span>
+                            </span>
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let selectedMembersArray = [];
+        let currentEditingGroupId = null;
+        let currentDeletingGroupId = null;
+
+        // Check if user is admin
+        const isAdmin = /*[[${isAdmin}]]*/ false;
+
+        // HTMX Event Handlers
+        function handleAddGroupResponse(event) {
+            if (event.detail.xhr.status === 200) {
+                closeAddGroupModal();
+                showMessage('Group created successfully!', 'success');
+                // Reload the groups container and suggested groups
+                htmx.ajax('GET', '/mobile/my-community/groups', {
+                    target: '#groups-container',
+                    swap: 'innerHTML'
+                });
+                if (!isAdmin) {
+                    htmx.ajax('GET', '/mobile/my-community/suggested-groups', {
+                        target: '#suggested-groups-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            } else {
+                showMessage('Error creating group', 'error');
+            }
+        }
+
+        function handleEditGroupResponse(event) {
+            if (event.detail.xhr.status === 200) {
+                closeEditGroupModal();
+                showMessage('Group updated successfully!', 'success');
+                // Reload the groups container
+                htmx.ajax('GET', '/mobile/my-community/groups', {
+                    target: '#groups-container',
+                    swap: 'innerHTML'
+                });
+            } else {
+                showMessage('Error updating group', 'error');
+            }
+        }
+
+        function handleDeleteGroupResponse(event) {
+            if (event.detail.xhr.status === 200) {
+                closeDeleteModal();
+                showMessage('Group deleted successfully!', 'success');
+                // Reload the groups container and suggested groups
+                htmx.ajax('GET', '/mobile/my-community/groups', {
+                    target: '#groups-container',
+                    swap: 'innerHTML'
+                });
+                if (!isAdmin) {
+                    htmx.ajax('GET', '/mobile/my-community/suggested-groups', {
+                        target: '#suggested-groups-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            } else {
+                showMessage('Error deleting group', 'error');
+            }
+        }
+
+        // HTMX Response Handlers
+        function handleJoinResponse(event) {
+            if (event.detail.xhr.status === 200) {
+                showMessage('Request to join group sent successfully!', 'success');
+                // The suggested groups container will be updated automatically by HTMX
+            } else {
+                showMessage('Error sending join request', 'error');
+            }
+        }
+
+        function handleApproveResponse(event) {
+            if (event.detail.xhr.status === 200) {
+                showMessage('Group request approved successfully!', 'success');
+                // Reload related sections
+                htmx.ajax('GET', '/mobile/my-community/groups', {
+                    target: '#groups-container',
+                    swap: 'innerHTML'
+                });
+                htmx.ajax('GET', '/mobile/my-community/suggested-groups', {
+                    target: '#suggested-groups-container',
+                    swap: 'innerHTML'
+                });
+            } else {
+                showMessage('Error approving request', 'error');
+            }
+        }
+
+        function handleRejectResponse(event) {
+            if (event.detail.xhr.status === 200) {
+                showMessage('Group request rejected successfully!', 'success');
+                // Reload suggested groups to update available groups
+                htmx.ajax('GET', '/mobile/my-community/suggested-groups', {
+                    target: '#suggested-groups-container',
+                    swap: 'innerHTML'
+                });
+            } else {
+                showMessage('Error rejecting request', 'error');
+            }
+        }
+
+        // Utility function to show messages
+        function showMessage(message, type) {
+            const messagesContainer = document.getElementById('messages-container');
+            const alertClass = type === 'success' ? 'mobile-alert-success' : 'mobile-alert-error';
+            const icon = type === 'success'
+                ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+                : '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>';
+
+            messagesContainer.innerHTML = `
+                <div class="mobile-alert ${alertClass}">
+                    ${icon}
+                    <span>${message}</span>
+                </div>
+            `;
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                const alert = messagesContainer.querySelector('.mobile-alert');
+                if (alert) {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.5s';
+                    setTimeout(() => alert.remove(), 500);
+                }
+            }, 5000);
+        }
+
+        // Mobile dropdown functionality (Admin only)
+        function toggleMobileDropdown(groupId) {
+            if (!isAdmin) return;
+
+            if (groupId === 'unknown' || !groupId) {
+                console.warn('Cannot toggle dropdown for unknown group ID');
+                return;
+            }
+
+            const dropdown = document.getElementById('mobile-dropdown-' + groupId);
+            if (!dropdown) {
+                console.warn('Dropdown not found for group ID:', groupId);
+                return;
+            }
+
+            const allDropdowns = document.querySelectorAll('.mobile-dropdown-menu');
+
+            // Close all other dropdowns
+            allDropdowns.forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('show');
+                }
+            });
+
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.mobile-dropdown')) {
+                document.querySelectorAll('.mobile-dropdown-menu').forEach(d => {
+                    d.classList.remove('show');
+                });
+            }
+        });
+
+        // Member selection functionality (Admin only)
+        function initializeMemberSearch() {
+            if (!isAdmin) return;
+
+            const searchInput = document.getElementById('memberSearch');
+            const optionsContainer = document.getElementById('memberOptions');
+
+            if (!searchInput || !optionsContainer) return;
+
+            searchInput.addEventListener('focus', function() {
+                optionsContainer.classList.add('show');
+                updateOptionsVisibility();
+            });
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const options = optionsContainer.querySelectorAll('.mobile-member-option');
+
+                options.forEach(option => {
+                    const memberName = option.textContent.toLowerCase();
+                    const isSelected = option.classList.contains('selected');
+
+                    if (memberName.includes(searchTerm) && !isSelected) {
+                        option.style.display = 'block';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            });
+
+            optionsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('mobile-member-option')) {
+                    const memberId = e.target.getAttribute('data-member');
+                    const memberName = e.target.textContent;
+
+                    if (!selectedMembersArray.includes(memberId)) {
+                        selectedMembersArray.push(memberId);
+                        updateSelectedMembers();
+                        e.target.classList.add('selected');
+                        e.target.style.display = 'none';
+                    }
+
+                    searchInput.value = '';
+                    optionsContainer.classList.remove('show');
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.mobile-member-search')) {
+                    optionsContainer.classList.remove('show');
+                }
+            });
+        }
+
+        function updateOptionsVisibility() {
+            const options = document.querySelectorAll('.mobile-member-option');
+            options.forEach(option => {
+                if (option.classList.contains('selected')) {
+                    option.style.display = 'none';
+                } else {
+                    option.style.display = 'block';
+                }
+            });
+        }
+
+        function updateSelectedMembers() {
+            const selectedContainer = document.getElementById('selectedMembers');
+            const hiddenInput = document.getElementById('selectedMembersInput');
+
+            if (!selectedContainer || !hiddenInput) return;
+
+            selectedContainer.innerHTML = '';
+
+            selectedMembersArray.forEach(memberId => {
+                const option = document.querySelector(`[data-member="${memberId}"]`);
+                const memberName = option ? option.textContent.trim() : memberId;
+
+                const tag = document.createElement('div');
+                tag.className = 'mobile-member-tag';
+                tag.innerHTML = `
+                    <span>${memberName}</span>
+                    <span class="remove" onclick="removeMember('${memberId}')">&times;</span>
+                `;
+                selectedContainer.appendChild(tag);
+            });
+
+            hiddenInput.value = selectedMembersArray.join(',');
+        }
+
+        function removeMember(memberId) {
+            selectedMembersArray = selectedMembersArray.filter(m => m !== memberId);
+            updateSelectedMembers();
+
+            const option = document.querySelector(`[data-member="${memberId}"]`);
+            if (option) {
+                option.classList.remove('selected');
+            }
+        }
+
+        // Modal functions (Admin only)
+        function openAddGroupModal() {
+            if (!isAdmin) {
+                console.log('User is not admin, cannot open add group modal');
+                return;
+            }
+
+            console.log('Opening add group modal...');
+            const modal = document.getElementById('addGroupModal');
+            if (!modal) {
+                console.error('Add group modal not found');
+                return;
+            }
+
+            // Reset form first
+            const groupNameInput = document.getElementById('groupName');
+            const groupDescInput = document.getElementById('groupDescription');
+            if (groupNameInput) groupNameInput.value = '';
+            if (groupDescInput) groupDescInput.value = '';
+
+            // Reset selected members
+            selectedMembersArray = [];
+            updateSelectedMembers();
+
+            // Reset member options
+            document.querySelectorAll('.mobile-member-option').forEach(option => {
+                option.classList.remove('selected');
+                option.style.display = 'block';
+            });
+
+            // Show modal with proper transition
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+
+            // Initialize member search after modal is shown
+            setTimeout(() => {
+                initializeMemberSearch();
+            }, 100);
+
+            console.log('Add group modal opened');
+        }
+
+        function closeAddGroupModal() {
+            if (!isAdmin) return;
+
+            const modal = document.getElementById('addGroupModal');
+            if (!modal) return;
+
+            modal.classList.remove('show');
+
+            // Wait for transition to complete before hiding
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+
+            // Reset form
+            const groupNameInput = document.getElementById('groupName');
+            const groupDescInput = document.getElementById('groupDescription');
+            if (groupNameInput) groupNameInput.value = '';
+            if (groupDescInput) groupDescInput.value = '';
+
+            selectedMembersArray = [];
+            updateSelectedMembers();
+
+            document.querySelectorAll('.mobile-member-option').forEach(option => {
+                option.classList.remove('selected');
+                option.style.display = 'block';
+            });
+        }
+
+        function editGroup(groupId) {
+            if (!isAdmin) return;
+
+            if (groupId === 'unknown' || !groupId || groupId.toString().startsWith('no-id-')) {
+                alert('Cannot edit this group - group was created without a proper ID. Please contact administrator.');
+                return;
+            }
+
+            currentEditingGroupId = groupId;
+
+            fetch('/mobile/my-community/groups/' + groupId)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(group => {
+                    if (group.error) {
+                        throw new Error(group.error);
+                    }
+
+                    document.getElementById('editGroupName').value = group.groupName || '';
+                    document.getElementById('editGroupDescription').value = group.groupDescription || '';
+
+                    const form = document.getElementById('editGroupForm');
+                    form.setAttribute('hx-post', `/mobile/my-community/groups/${groupId}/edit`);
+                    form.setAttribute('hx-target', '#groups-container');
+                    form.setAttribute('hx-swap', 'innerHTML');
+
+                    htmx.process(form);
+
+                    const modal = document.getElementById('editGroupModal');
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('show');
+                    }, 10);
+                })
+                .catch(error => {
+                    console.error('Error fetching group details:', error);
+                    showMessage('Error loading group details: ' + error.message, 'error');
+                });
+
+            const dropdown = document.getElementById('mobile-dropdown-' + groupId);
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        function closeEditGroupModal() {
+            if (!isAdmin) return;
+
+            const modal = document.getElementById('editGroupModal');
+            if (!modal) return;
+
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+
+            currentEditingGroupId = null;
+        }
+
+        function deleteGroup(groupId, groupName) {
+            if (!isAdmin) return;
+
+            if (groupId === 'unknown' || !groupId || groupId.toString().startsWith('no-id-')) {
+                alert('Cannot delete this group - group was created without a proper ID. Please contact administrator.');
+                return;
+            }
+
+            currentDeletingGroupId = groupId;
+            document.getElementById('deleteGroupName').textContent = groupName || 'Unknown Group';
+
+            const form = document.getElementById('deleteGroupForm');
+            form.setAttribute('hx-post', `/mobile/my-community/groups/${groupId}/delete`);
+            form.setAttribute('hx-target', '#groups-container');
+            form.setAttribute('hx-swap', 'innerHTML');
+
+            htmx.process(form);
+
+            const modal = document.getElementById('deleteConfirmModal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+
+            const dropdown = document.getElementById('mobile-dropdown-' + groupId);
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        function closeDeleteModal() {
+            if (!isAdmin) return;
+
+            const modal = document.getElementById('deleteConfirmModal');
+            if (!modal) return;
+
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+
+            currentDeletingGroupId = null;
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('mobile-modal')) {
+                event.target.classList.remove('show');
+
+                setTimeout(() => {
+                    event.target.style.display = 'none';
+                }, 300);
+
+                // Reset forms when closing modals
+                if (event.target.id === 'addGroupModal') {
+                    selectedMembersArray = [];
+                    updateSelectedMembers();
+                    document.querySelectorAll('.mobile-member-option').forEach(option => {
+                        option.classList.remove('selected');
+                        option.style.display = 'block';
+                    });
+                }
+            }
+        });
+
+        // Initialize page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, isAdmin:', isAdmin);
+
+            // Test if modal exists
+            const modal = document.getElementById('addGroupModal');
+            console.log('Add group modal found:', !!modal);
+
+            // Test if plus button exists
+            const plusButtons = document.querySelectorAll('[onclick="openAddGroupModal()"]');
+            console.log('Plus buttons found:', plusButtons.length);
+
+            // Add click event listener to plus button as backup
+            plusButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Plus button clicked via event listener');
+                    openAddGroupModal();
+                });
+            });
+        });
+
+        // HTMX event listeners for handling responses
+        document.addEventListener('htmx:afterRequest', function(event) {
+            // Handle form responses
+            if (event.detail.xhr.status === 200 && event.detail.elt.tagName === 'FORM') {
+                const form = event.detail.elt;
+
+                // Handle add group form
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/groups/add')) {
+                    handleAddGroupResponse(event);
+                }
+
+                // Handle edit group form
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/edit')) {
+                    handleEditGroupResponse(event);
+                }
+
+                // Handle delete group form
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/delete')) {
+                    handleDeleteGroupResponse(event);
+                }
+
+                // Handle invite form
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) {
+                    form.reset();
+                }
+
+                // Handle join request
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/request')) {
+                    handleJoinResponse(event);
+                }
+
+                // Handle approve/reject
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/approve')) {
+                    handleApproveResponse(event);
+                }
+
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/reject')) {
+                    handleRejectResponse(event);
+                }
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

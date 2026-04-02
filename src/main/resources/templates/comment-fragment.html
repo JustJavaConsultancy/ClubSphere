@@ -1,0 +1,12 @@
+<div th:fragment="containers" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div th:id="${'comments' + sel}" class="comment-container space-y-4">
+        <div th:each="comment : ${refreshComment}" class="flex comment">
+            <div th:text="${#strings.substring(comment.senderFullName,0,2)}"
+                 class="avatar">AA</div>
+            <div class="flex-1">
+                <h4 th:text="${comment.senderFullName}" class="font-medium text-gray-800">Michael Chen</h4>
+                <p th:text="${comment.comment}" class="text-sm text-gray-600">This looks amazing!</p>
+            </div>
+        </div>
+    </div>
+</div>

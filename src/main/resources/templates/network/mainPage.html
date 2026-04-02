@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Professional Network</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+        .connect-btn.connected {
+          background-color: #28a745; /* green */
+          color: white;
+          cursor: not-allowed;
+        }
+        .connect-btn.loading {
+          opacity: 0.7;
+        }
+        .search-results {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border-radius: 0 0 8px 8px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          max-height: 300px;
+          overflow-y: auto;
+          z-index: 1000;
+          display: none;
+        }
+        .search-result-item {
+          display: flex;
+          align-items: center;
+          padding: 12px 16px;
+          border-bottom: 1px solid #f1f1f1;
+        }
+        .avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: #4f46e5;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          margin-right: 12px;
+          flex-shrink: 0;
+        }
+        .user-info { flex-grow: 1; }
+        .user-name { font-weight: 600; color: #1f2937; }
+        .user-email { font-size: 0.875rem; color: #6b7280; }
+        .loading-indicator, .no-results {
+          padding: 16px;
+          text-align: center;
+          color: #6b7280;
+        }
+        .connect-btn {
+          padding: 6px 12px;
+          background-color: #4f46e5;
+          color: white;
+          border: none;
+          border-radius: 16px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          white-space: nowrap;
+          margin-left: 10px;
+        }
+        .connect-btn:hover { background-color: #4338ca; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" >
+    <!-- Search section in main content -->
+    <div class="modern-card bg-white p-6 rounded-xl shadow-sm mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Find People to Connect With</h2>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input
+                    id="main-search"
+                    placeholder="Search by name, skills, or industry..."
+                    class="pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full search-input"
+            />
+            <!-- Search results container -->
+            <div id="search-results" class="search-results"></div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-4">
+            <span class="text-xs font-medium text-gray-500">Suggestions:</span>
+            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline">Designers</button>
+            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline">Developers</button>
+            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline">Marketing</button>
+            <button class="text-xs text-blue-600 hover:text-blue-800 hover:underline">New York</button>
+        </div>
+    </div>
+
+    <!-- Welcome section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Invitations card -->
+        <div class="lg:col-span-1">
+            <div class="modern-card bg-white p-6 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Invitations</h2>
+                    <a class="text-sm font-medium text-indigo-600 hover:underline" href="#">See all</a>
+                </div>
+                <div class="space-y-4" id="invitations-container"
+                     hx-get="/network/invitations-fragment"
+                     hx-trigger="load, networkUpdated from:body">
+                    <!-- Content will be loaded via HTMX -->
+                </div>
+            </div>
+
+            <!-- Suggested connections card -->
+            <div class="modern-card bg-white p-6 rounded-xl shadow-sm mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Suggested for You</h2>
+                    <a class="text-sm font-medium text-indigo-600 hover:underline" href="#">See all</a>
+                </div>
+                <div class="space-y-4">
+                    <!--          Start-->
+                    <div th:each="user : ${allUser}" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <div th:text="${#strings.substring(user.firstName,0,1) + #strings.substring(user.lastName,0,1)}"
+                                     class="avatar" style="margin-right:0">
+                                    AA
+                                </div>
+                            </div>
+                            <div>
+                                <p th:text="${user.firstName + ' ' + user.lastName}" class="font-medium text-gray-900">Lisa Wang</p>
+                                <p class="text-xs text-gray-500">Member</p>
+                            </div>
+                        </div>
+                        <form hx-post="/network/invite"
+                              hx-trigger="submit"
+                              hx-swap="none"
+                              hx-on--after-request="handleInviteResponse(event)">
+                            <input type="hidden" name="userId" th:value="${user.userId}" />
+                            <button type="submit" class="connect-btn">Connect</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Network section -->
+        <div class="lg:col-span-2">
+            <div class="modern-card bg-white p-6 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        My Network
+                        <span id="network-count"
+                              th:text="${'(' + networkUsers + ')'}"
+                              class="text-indigo-600">(345)</span>
+                    </h2>
+                    <!-- Filter and view options -->
+                    <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <select class="text-sm border border-gray-200 rounded-lg py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option>All Connections</option>
+                                <option>Recently Added</option>
+                                <option>By Industry</option>
+                                <option>By Location</option>
+                            </select>
+                        </div>
+                        <div class="flex border border-gray-200 rounded-lg overflow-hidden">
+                            <button class="p-2 bg-white hover:bg-gray-50 border-r border-gray-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                            </button>
+                            <button class="p-2 bg-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 4h16v2H4V4zm0 6h16m-16 4h16m-16 4h16v2H4v-2z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network container with HTMX -->
+                <div id="network-container"
+                     hx-get="/network/network-fragment"
+                     hx-trigger="load, networkUpdated from:body">
+                    <!-- Content will be loaded via HTMX -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('main-search');
+        const searchResults = document.getElementById('search-results');
+        let debounceTimer;
+
+        function generateAvatar(firstName, lastName) {
+          return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+        }
+
+        async function fetchUsers(searchTerm = '') {
+          try {
+            searchResults.innerHTML = '<div class="loading-indicator">Searching...</div>';
+            searchResults.style.display = 'block';
+
+            // Always fetch all users first
+            const response = await fetch('/api-v/publicNetworkUsers');
+            const users = await response.json();
+
+            // --- Client-side filtering (case-insensitive) ---
+            const filteredUsers = users.filter(user => {
+              const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+              const email = user.email.toLowerCase();
+              const term = searchTerm.toLowerCase();
+              return (
+                fullName.includes(term) ||
+                email.includes(term)
+              );
+            });
+
+            searchResults.innerHTML = '';
+            if (filteredUsers.length === 0) {
+              searchResults.innerHTML = '<div class="no-results">No users found</div>';
+              return;
+            }
+
+            filteredUsers.forEach(user => {
+              const avatarText = generateAvatar(user.firstName, user.lastName);
+              const resultItem = document.createElement('div');
+              resultItem.className = 'search-result-item';
+              resultItem.innerHTML = `
+                <div class="avatar">${avatarText}</div>
+                <div class="user-info">
+                  <div class="user-name">${user.firstName} ${user.lastName}</div>
+                  <div class="user-email">${user.email}</div>
+                </div>
+                <form hx-post="/network/invite"
+                      hx-trigger="submit"
+                      hx-swap="none"
+                      hx-on--after-request="handleInviteResponse(event)">
+                  <input type="hidden" name="userId" value="${user.userId}" />
+                  <button type="submit" class="connect-btn">Connect</button>
+                </form>
+              `;
+              searchResults.appendChild(resultItem);
+              htmx.process(resultItem); // activate HTMX on new elements
+            });
+
+          } catch (error) {
+            console.error('Error fetching users:', error);
+            searchResults.innerHTML = '<div class="no-results">Error loading results</div>';
+          }
+        }
+
+        // Handle invite response
+        function handleInviteResponse(event) {
+          console.log('Invite response received:', event);
+
+          // Trigger network update event to refresh containers
+          document.body.dispatchEvent(new CustomEvent('networkUpdated'));
+        }
+
+        // Debounced input listener
+        searchInput.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            const term = searchInput.value.trim();
+            if (term.length > 1) {
+              fetchUsers(term);
+            } else {
+              searchResults.style.display = 'none';
+            }
+          }, 300);
+        });
+
+        // --- HTMX button lifecycle handling ---
+        document.addEventListener("htmx:beforeRequest", function(event) {
+          const form = event.target;
+          if (form.matches("form[hx-post='/network/invite']")) {
+            const button = form.querySelector(".connect-btn");
+            if (button) {
+              button.disabled = true;
+              button.textContent = "Connecting...";
+              button.classList.add("loading");
+            }
+          }
+        });
+
+        document.addEventListener("htmx:afterRequest", function(event) {
+          const form = event.target;
+          if (form.matches("form[hx-post='/network/invite']")) {
+            const button = form.querySelector(".connect-btn");
+            if (button) {
+              if (event.detail.xhr.status === 200) {
+                button.textContent = "Sent";
+                button.classList.remove("loading");
+                button.classList.add("connected");
+                button.disabled = true;
+
+                // Trigger network update to refresh all containers
+                setTimeout(() => {
+                  document.body.dispatchEvent(new CustomEvent('networkUpdated'));
+                }, 500);
+              } else {
+                button.disabled = false;
+                button.textContent = "Connect";
+                button.classList.remove("loading");
+              }
+            }
+          }
+
+          // Handle approval/rejection responses
+          if (form.matches("form[hx-post*='/approve/']") || form.matches("form[hx-post*='/reject/']")) {
+            if (event.detail.xhr.status === 200) {
+              // Trigger network update to refresh all containers
+              setTimeout(() => {
+                document.body.dispatchEvent(new CustomEvent('networkUpdated'));
+              }, 100);
+            }
+          }
+        });
+
+        document.addEventListener("htmx:responseError", function(event) {
+          const form = event.target;
+          if (form.matches("form[hx-post='/network/invite']")) {
+            const button = form.querySelector(".connect-btn");
+            if (button) {
+              button.disabled = false;
+              button.textContent = "Connect";
+              button.classList.remove("loading", "connected");
+            }
+          }
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function(event) {
+          if (!searchResults.contains(event.target) && event.target !== searchInput) {
+            searchResults.style.display = 'none';
+          }
+        });
+
+        // Listen for network updates and refresh containers
+        document.addEventListener('networkUpdated', function() {
+          console.log('Network updated event received, refreshing containers...');
+
+          // Refresh invitations container
+          htmx.ajax('GET', '/network/invitations-fragment', {
+            target: '#invitations-container',
+            swap: 'innerHTML'
+          });
+
+          // Refresh network container
+          htmx.ajax('GET', '/network/network-fragment', {
+            target: '#network-container',
+            swap: 'innerHTML'
+          });
+
+          // Update network count
+          htmx.ajax('GET', '/network/containers-fragment', {
+            target: '#network-count',
+            swap: 'innerHTML',
+            select: '#network-count'
+          });
+        });
+    </script>
+</div>
+</body>
+</html>

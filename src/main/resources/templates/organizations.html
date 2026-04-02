@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizations - Zam Connect</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gray-100: #f9fafb;
+            --gray-200: #f3f4f6;
+            --gray-300: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+        }
+
+        .organizations-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .organizations-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .add-community-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .add-community-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .tab-container {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-200);
+        }
+
+        .tab-nav {
+            display: flex;
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            background: white;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        }
+
+        .tab-content {
+            padding: 1.5rem;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .communities-container {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .communities-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .communities-container::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: 3px;
+        }
+
+        .communities-container::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+        .communities-container::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+
+        .community-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .community-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .community-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .community-card.suggested {
+            cursor: default;
+        }
+
+        .community-card.suggested:hover {
+            transform: none;
+        }
+
+        .community-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .community-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .community-description {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .community-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .community-stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--gray-500);
+            font-size: 0.8125rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            gap: 0.375rem;
+        }
+
+        .enter-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .enter-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .request-btn {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .request-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+        }
+
+        .request-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .request-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--warning), #f97316);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .request-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .request-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--warning), #f97316);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+            font-weight: bold;
+        }
+
+        .request-info h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin: 0 0 0.25rem 0;
+        }
+
+        .request-info p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .approve-btn {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            flex: 1;
+        }
+
+        .reject-btn {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            flex: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem auto;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .load-more-container {
+            padding: 1rem 0;
+            border-top: 1px solid var(--gray-200);
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .load-more-btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .load-more-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .add-community-btn {
+                align-self: flex-end;
+            }
+
+            .community-card {
+                padding: 1.25rem;
+            }
+
+            .community-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.25rem;
+            }
+
+            .community-title {
+                font-size: 1.125rem;
+            }
+
+            .community-stats {
+                gap: 0.75rem;
+            }
+
+            .tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.8125rem;
+            }
+
+            .request-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Success Message -->
+    <div th:if="${successMessage}" class="success-message">
+        <i class="fas fa-check-circle"></i>
+        <span th:text="${successMessage}">Community created successfully!</span>
+    </div>
+
+    <!-- Organizations Header -->
+    <header class="organizations-header">
+        <div class="header-content">
+            <div>
+                <h1 class="text-2xl font-bold mb-2">Your Organizations</h1>
+                <p class="opacity-90 text-sm">Manage your communities and discover new ones.</p>
+            </div>
+            <a th:if="${session.isAdmin}"
+               th:href="@{/add-community}"
+               class="add-community-btn">
+                <i class="fas fa-plus"></i>
+                <span>Add Community</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Tab Container -->
+    <div class="tab-container">
+        <nav class="tab-nav">
+            <button class="tab-button active" data-tab="my-communities">
+                My Communities
+            </button>
+            <button th:if="${!session.isAdmin}" class="tab-button" data-tab="suggested">
+                Suggested
+            </button>
+            <button th:if="${!session.isAdmin}" class="tab-button" data-tab="invitations">
+                Invitations
+            </button>
+            <button th:if="${session.isAdmin}" class="tab-button" data-tab="requests">
+                Requests
+            </button>
+        </nav>
+
+        <div class="tab-content">
+            <!-- My Communities Tab -->
+            <div id="my-communities" class="tab-panel active">
+                <!-- Empty State for My Communities -->
+                <div th:if="${#lists.isEmpty(userCommunities)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-building text-3xl" style="color: var(--primary);"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Organizations Yet</h3>
+                    <p class="text-gray-600 mb-6">You haven't joined any organizations yet. Check out suggested communities below or contact your administrator.</p>
+                </div>
+
+                <!-- Communities Container with Virtual Scrolling -->
+                <div id="my-communities-container" class="communities-container">
+                    <!-- My Community Cards -->
+                    <div th:each="community, iterStat : ${userCommunities}"
+                         class="community-card fade-in"
+                         th:onclick="'selectCommunity(' + ${community.id} + ')'"
+                         th:attr="data-community-id=${community.id}, data-index=${iterStat.index}"
+                         th:style="${iterStat.index >= 10} ? 'display: none;' : ''">
+
+                        <div class="community-icon">
+                            <span th:text="${#strings.substring(community.communityName != null ? community.communityName : 'C', 0, 2)}">CO</span>
+                        </div>
+
+                        <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Community'}">
+                            Community Name
+                        </h3>
+
+                        <p class="community-description" th:text="${community.communityDescription != null ? community.communityDescription : 'No description available'}">
+                            This is a description of the community and what it's about.
+                        </p>
+
+                        <div class="community-meta">
+                            <div class="community-stats">
+                                <span class="stat-item" th:if="${community.isPrivate}">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Private</span>
+                                </span>
+                                <span class="stat-item" th:if="${!community.isPrivate}">
+                                    <i class="fas fa-globe"></i>
+                                    <span>Public</span>
+                                </span>
+                            </div>
+                            <button class="btn enter-btn" th:onclick="'selectCommunity(' + ${community.id} + ')'">
+                                <span>Enter</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More Button -->
+                <div th:if="${#lists.size(userCommunities) > 10}" class="load-more-container">
+                    <button id="load-more-communities" class="load-more-btn">
+                        <span>Load More Communities</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Suggested Communities Tab (for non-admin users) -->
+            <div th:if="${!session.isAdmin}" id="suggested" class="tab-panel">
+                <!-- Empty State for Suggested Communities -->
+                <div th:if="${#lists.isEmpty(suggestedCommunities)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-compass text-3xl" style="color: var(--primary);"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Suggestions</h3>
+                    <p class="text-gray-600 mb-6">All available public communities are already in your list.</p>
+                </div>
+
+                <!-- Suggested Community Cards -->
+                <div th:each="community : ${suggestedCommunities}"
+                     class="community-card suggested fade-in"
+                     th:attr="data-community-id=${community.id}">
+
+                    <div class="community-icon">
+                        <span th:text="${#strings.substring(community.communityName != null ? community.communityName : 'C', 0, 2)}">CO</span>
+                    </div>
+
+                    <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Community'}">
+                        Community Name
+                    </h3>
+
+                    <p class="community-description" th:text="${community.communityDescription != null ? community.communityDescription : 'No description available'}">
+                        This is a description of the community and what it's about.
+                    </p>
+
+                    <div class="community-meta">
+                        <div class="community-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-globe"></i>
+                                <span>Public Community</span>
+                            </span>
+                        </div>
+
+                        <!-- Request Button States -->
+                        <button th:if="${community.requestStatus == null or community.requestStatus == 'NONE'}"
+                                class="btn request-btn"
+                                th:onclick="'requestToJoin(' + ${community.id} + ')'"
+                                th:attr="data-community-id=${community.id}">
+                            <span>Request</span>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+
+                        <div th:if="${community.requestStatus == 'PENDING'}" class="flex gap-2">
+                            <button class="btn request-btn" disabled>
+                                <span>Request Sent</span>
+                                <i class="fas fa-clock"></i>
+                            </button>
+                            <button class="btn cancel-btn"
+                                    th:onclick="'cancelRequest(' + ${community.id} + ')'"
+                                    th:attr="data-community-id=${community.id}">
+                                <span>Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invitations Tab (for non-admin users) -->
+            <div th:if="${!session.isAdmin}" id="invitations" class="tab-panel">
+                <!-- Empty State for Invitations -->
+                <div th:if="${#lists.isEmpty(communityInvitations)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-envelope text-3xl" style="color: var(--primary);"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Invitations</h3>
+                    <p class="text-gray-600 mb-6">You don't have any pending community invitations.</p>
+                </div>
+
+                <!-- Invitation Cards -->
+                <div th:each="invitation : ${communityInvitations}"
+                     class="request-card fade-in"
+                     th:attr="data-invitation-id=${invitation.id}">
+
+                    <div class="request-header">
+                        <div class="request-avatar">
+                            <span th:text="${#strings.substring(invitation.communityName != null ? invitation.communityName : 'C', 0, 1)}">C</span>
+                        </div>
+                        <div class="request-info">
+                            <h4 th:text="${invitation.communityName}">Community Name</h4>
+                            <p>You've been invited to join this private community</p>
+                        </div>
+                    </div>
+
+                    <div class="request-actions">
+                        <button class="btn approve-btn"
+                                th:onclick="'acceptInvitation(' + ${invitation.id} + ')'"
+                                th:attr="data-invitation-id=${invitation.id}">
+                            <i class="fas fa-check"></i>
+                            <span>Accept</span>
+                        </button>
+                        <button class="btn reject-btn"
+                                th:onclick="'declineInvitation(' + ${invitation.id} + ')'"
+                                th:attr="data-invitation-id=${invitation.id}">
+                            <i class="fas fa-times"></i>
+                            <span>Decline</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requests Tab (for admin users) -->
+            <div th:if="${session.isAdmin}" id="requests" class="tab-panel">
+                <!-- Empty State for Requests -->
+                <div th:if="${#lists.isEmpty(communityRequests)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-inbox text-3xl" style="color: var(--primary);"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Pending Requests</h3>
+                    <p class="text-gray-600 mb-6">There are no pending community join requests at the moment.</p>
+                </div>
+
+                <!-- Request Cards -->
+                <div th:each="request : ${communityRequests}"
+                     class="request-card fade-in"
+                     th:attr="data-request-id=${request.id}">
+
+                    <div class="request-header">
+                        <div class="request-avatar">
+                            <span th:text="${#strings.substring(request.fullName != null ? request.fullName : 'U', 0, 1)}">U</span>
+                        </div>
+                        <div class="request-info">
+                            <h4 th:text="${request.fullName}">User Name</h4>
+                            <p>Wants to join <strong th:text="${request.communityName}">Community Name</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="request-actions">
+                        <button class="btn approve-btn"
+                                th:onclick="'approveRequest(' + ${request.id} + ')'"
+                                th:attr="data-request-id=${request.id}">
+                            <i class="fas fa-check"></i>
+                            <span>Approve</span>
+                        </button>
+                        <button class="btn reject-btn"
+                                th:onclick="'rejectRequest(' + ${request.id} + ')'"
+                                th:attr="data-request-id=${request.id}">
+                            <i class="fas fa-times"></i>
+                            <span>Reject</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const targetTab = button.getAttribute('data-tab');
+
+                    // Remove active class from all buttons and panels
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabPanels.forEach(panel => panel.classList.remove('active'));
+
+                    // Add active class to clicked button and corresponding panel
+                    button.classList.add('active');
+                    const targetPanel = document.getElementById(targetTab);
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        // Pagination functionality for communities
+        function initializePagination() {
+            const loadMoreBtn = document.getElementById('load-more-communities');
+            if (loadMoreBtn) {
+                let currentlyVisible = 10;
+                const allCommunities = document.querySelectorAll('#my-communities-container .community-card');
+
+                loadMoreBtn.addEventListener('click', () => {
+                    const nextBatch = Math.min(currentlyVisible + 10, allCommunities.length);
+
+                    // Show next batch of communities
+                    for (let i = currentlyVisible; i < nextBatch; i++) {
+                        if (allCommunities[i]) {
+                            allCommunities[i].style.display = 'block';
+                            // Add fade-in animation
+                            allCommunities[i].style.opacity = '0';
+                            allCommunities[i].style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                allCommunities[i].style.transition = 'all 0.3s ease';
+                                allCommunities[i].style.opacity = '1';
+                                allCommunities[i].style.transform = 'translateY(0)';
+                            }, (i - currentlyVisible) * 50); // Stagger the animations
+                        }
+                    }
+
+                    currentlyVisible = nextBatch;
+
+                    // Hide load more button if all communities are visible
+                    if (currentlyVisible >= allCommunities.length) {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // Community selection
+        function selectCommunity(communityId) {
+            const card = document.querySelector(`[data-community-id="${communityId}"]`);
+            if (card) {
+                card.style.opacity = '0.7';
+                card.style.pointerEvents = 'none';
+            }
+            window.location.href = `/community/${communityId}`;
+        }
+
+        // Request to join mycommunity
+        function requestToJoin(communityId) {
+            const button = document.querySelector(`[data-community-id="${communityId}"] .request-btn`);
+            if (button) {
+                // Show loading state
+                button.innerHTML = '<div class="loading-spinner"></div><span>Sending...</span>';
+                button.disabled = true;
+
+                // Send request
+                fetch('/request-to-join', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `communityId=${communityId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update button to show request sent state
+                        const meta = button.closest('.community-meta');
+                        meta.innerHTML = `
+                            <div class="community-stats">
+                                <span class="stat-item">
+                                    <i class="fas fa-globe"></i>
+                                    <span>Public Community</span>
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn request-btn" disabled>
+                                    <span>Request Sent</span>
+                                    <i class="fas fa-clock"></i>
+                                </button>
+                                <button class="btn cancel-btn" onclick="cancelRequest(${communityId})" data-community-id="${communityId}">
+                                    <span>Cancel</span>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        // Reset button on error
+                        button.innerHTML = '<span>Request</span><i class="fas fa-paper-plane"></i>';
+                        button.disabled = false;
+                        alert('Failed to send request. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = '<span>Request</span><i class="fas fa-paper-plane"></i>';
+                    button.disabled = false;
+                    alert('Failed to send request. Please try again.');
+                });
+            }
+        }
+
+        // Cancel request
+        function cancelRequest(communityId) {
+            const button = document.querySelector(`[data-community-id="${communityId}"] .cancel-btn`);
+            if (button) {
+                button.innerHTML = '<div class="loading-spinner"></div><span>Canceling...</span>';
+                button.disabled = true;
+
+                fetch('/cancel-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `communityId=${communityId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reset to original request button
+                        const meta = button.closest('.community-meta');
+                        meta.innerHTML = `
+                            <div class="community-stats">
+                                <span class="stat-item">
+                                    <i class="fas fa-globe"></i>
+                                    <span>Public Community</span>
+                                </span>
+                            </div>
+                            <button class="btn request-btn" onclick="requestToJoin(${communityId})" data-community-id="${communityId}">
+                                <span>Request</span>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        `;
+                    } else {
+                        button.innerHTML = '<span>Cancel</span>';
+                        button.disabled = false;
+                        alert('Failed to cancel request. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = '<span>Cancel</span>';
+                    button.disabled = false;
+                    alert('Failed to cancel request. Please try again.');
+                });
+            }
+        }
+
+        // Approve request
+        function approveRequest(requestId) {
+            const button = document.querySelector(`[data-request-id="${requestId}"] .approve-btn`);
+            if (button) {
+                button.innerHTML = '<div class="loading-spinner"></div><span>Approving...</span>';
+                button.disabled = true;
+
+                fetch('/approve-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `requestId=${requestId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the request card
+                        const requestCard = button.closest('.request-card');
+                        requestCard.style.opacity = '0';
+                        requestCard.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            requestCard.remove();
+                            // Check if no more requests
+                            const remainingRequests = document.querySelectorAll('.request-card');
+                            if (remainingRequests.length === 0) {
+                                // Reload the page to refresh all data and show updated mycommunity lists
+                                location.reload();
+                            }
+                        }, 300);
+                    } else {
+                        button.innerHTML = '<i class="fas fa-check"></i><span>Approve</span>';
+                        button.disabled = false;
+                        alert('Failed to approve request. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = '<i class="fas fa-check"></i><span>Approve</span>';
+                    button.disabled = false;
+                    alert('Failed to approve request. Please try again.');
+                });
+            }
+        }
+
+        // Reject request
+        function rejectRequest(requestId) {
+            const button = document.querySelector(`[data-request-id="${requestId}"] .reject-btn`);
+            if (button) {
+                button.innerHTML = '<div class="loading-spinner"></div><span>Rejecting...</span>';
+                button.disabled = true;
+
+                fetch('/reject-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `requestId=${requestId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the request card
+                        const requestCard = button.closest('.request-card');
+                        requestCard.style.opacity = '0';
+                        requestCard.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            requestCard.remove();
+                            // Check if no more requests
+                            const remainingRequests = document.querySelectorAll('.request-card');
+                            if (remainingRequests.length === 0) {
+                                location.reload(); // Reload to show empty state
+                            }
+                        }, 300);
+                    } else {
+                        button.innerHTML = '<i class="fas fa-times"></i><span>Reject</span>';
+                        button.disabled = false;
+                        alert('Failed to reject request. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = '<i class="fas fa-times"></i><span>Reject</span>';
+                    button.disabled = false;
+                    alert('Failed to reject request. Please try again.');
+                });
+            }
+        }
+
+        // Accept invitation
+        function acceptInvitation(invitationId) {
+            const button = document.querySelector(`[data-invitation-id="${invitationId}"] .approve-btn`);
+            if (button) {
+                button.innerHTML = '<div class="loading-spinner"></div><span>Accepting...</span>';
+                button.disabled = true;
+
+                fetch('/accept-invitation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `invitationId=${invitationId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the invitation card and reload to refresh all mycommunity lists
+                        const invitationCard = button.closest('.request-card');
+                        invitationCard.style.opacity = '0';
+                        invitationCard.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            // Always reload after accepting invitation to refresh all data
+                            location.reload();
+                        }, 300);
+                    } else {
+                        button.innerHTML = '<i class="fas fa-check"></i><span>Accept</span>';
+                        button.disabled = false;
+                        alert('Failed to accept invitation. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = '<i class="fas fa-check"></i><span>Accept</span>';
+                    button.disabled = false;
+                    alert('Failed to accept invitation. Please try again.');
+                });
+            }
+        }
+
+        // Decline invitation
+        function declineInvitation(invitationId) {
+            const button = document.querySelector(`[data-invitation-id="${invitationId}"] .reject-btn`);
+            if (button) {
+                button.innerHTML = '<div class="loading-spinner"></div><span>Declining...</span>';
+                button.disabled = true;
+
+                fetch('/decline-invitation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `invitationId=${invitationId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the invitation card
+                        const invitationCard = button.closest('.request-card');
+                        invitationCard.style.opacity = '0';
+                        invitationCard.style.transform = 'translateY(-10px)';
+                        setTimeout(() => {
+                            invitationCard.remove();
+                            // Check if no more invitations
+                            const remainingInvitations = document.querySelectorAll('#invitations .request-card');
+                            if (remainingInvitations.length === 0) {
+                                location.reload(); // Reload to show empty state
+                            }
+                        }, 300);
+                    } else {
+                        button.innerHTML = '<i class="fas fa-times"></i><span>Decline</span>';
+                        button.disabled = false;
+                        alert('Failed to decline invitation. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    button.innerHTML = '<i class="fas fa-times"></i><span>Decline</span>';
+                    button.disabled = false;
+                    alert('Failed to decline invitation. Please try again.');
+                });
+            }
+        }
+
+        // Auto-hide success message
+        function hideSuccessMessage() {
+            const successMessage = document.querySelector('.success-message');
+            if (successMessage) {
+                setTimeout(() => {
+                    successMessage.style.opacity = '0';
+                    successMessage.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        successMessage.remove();
+                    }, 300);
+                }, 3000);
+            }
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializePagination();
+            hideSuccessMessage();
+
+            // Add error handling for large datasets
+            try {
+                // Ensure all event listeners are properly bound
+                const communityCards = document.querySelectorAll('.community-card');
+                console.log(`Loaded ${communityCards.length} community cards`);
+
+                // Add performance monitoring
+                if (communityCards.length > 50) {
+                    console.warn('Large number of communities detected. Consider implementing server-side pagination.');
+                }
+            } catch (error) {
+                console.error('Error initializing communities:', error);
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

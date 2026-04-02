@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Modules</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Mobile-optimized module styles */
+        .module-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2A2494, #3730a3);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .module-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .module-icon .material-icons {
+            color: white;
+            font-size: 24px;
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .module-badge {
+            background: rgba(42, 36, 148, 0.1);
+            color: #2A2494;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid rgba(42, 36, 148, 0.2);
+        }
+
+        .brand-btn {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        .brand-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(42, 36, 148, 0.4);
+        }
+
+        .details-btn {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #374151;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        .details-btn:active {
+            background: rgba(243, 244, 246, 0.9);
+            transform: scale(0.95);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 52px !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 16px !important;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 20px;
+        }
+
+        /* Modal styles optimized for mobile */
+        .mobile-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-container.show {
+            transform: translateY(0);
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin: 12px auto 0 auto;
+        }
+
+        .modal-header {
+            padding: 20px 24px 16px 24px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            max-height: calc(85vh - 200px);
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #f3f4f6;
+            background: #fafafa;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .form-input-icon {
+            position: relative;
+        }
+
+        .form-input-icon .material-icons {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 20px;
+        }
+
+        .form-input-icon .form-input {
+            padding-left: 52px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+        }
+
+        .empty-state-icon .material-icons {
+            color: #2A2494;
+            font-size: 36px;
+        }
+
+        /* Grid responsive adjustments */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 640px) {
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .modules-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* Touch feedback */
+        .touch-feedback {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touch-feedback::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(42, 36, 148, 0.2) 0%, transparent 70%);
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            border-radius: inherit;
+        }
+
+        .touch-feedback:active::after {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Header Section -->
+    <header class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span class="material-icons text-white text-xl">widgets</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Modules</h1>
+                    <p class="text-sm text-gray-600">Discover learning modules</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <span class="material-icons search-icon">search</span>
+            <input
+                    id="moduleSearch"
+                    type="text"
+                    class="search-input"
+                    placeholder="Search modules..."
+                    autocomplete="off"
+            >
+        </div>
+    </header>
+
+    <!-- Modules Grid -->
+    <section id="modulesGrid" class="modules-grid">
+        <!-- Module Cards -->
+        <article th:if="${modules != null and !#lists.isEmpty(modules)}"
+                 th:each="module : ${modules}"
+                 class="module-card touch-feedback fade-in">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="module-icon">
+                    <span class="material-icons">auto_awesome_motion</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="font-bold text-gray-900 text-lg leading-tight" th:text="${module.name}">Module Name</h3>
+                        <span class="price-tag ml-2" th:text="${'$' + #numbers.formatDecimal(module.price, 1, 2)}">$0.00</span>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed mb-3" th:text="${module.description}">Module description</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="module-badge">
+                            <span class="material-icons" style="font-size:14px">schedule</span>
+                            Flexible dates
+                        </span>
+                        <span class="module-badge">
+                            <span class="material-icons" style="font-size:14px">verified</span>
+                            Trusted
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="brand-btn flex-1 px-4 py-3 rounded-xl flex items-center justify-center gap-2 book-btn touch-feedback"
+                        th:attr="data-id=${module.id}, data-name=${module.name}, data-price=${module.price}"
+                        onclick="openBooking(this.dataset.id, this.dataset.name, this.dataset.price)">
+                    <span class="material-icons text-lg">event_available</span>
+                    <span class="font-semibold">Book</span>
+                </button>
+                <button class="details-btn px-4 py-3 rounded-xl touch-feedback">
+                    <span class="material-icons text-lg">info</span>
+                </button>
+            </div>
+        </article>
+    </section>
+
+    <!-- Empty State -->
+    <section th:if="${modules == null or #lists.isEmpty(modules)}" class="empty-state">
+        <div class="empty-state-icon">
+            <span class="material-icons">view_quilt</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">No modules available</h3>
+        <p class="text-gray-600 leading-relaxed">We couldn't load any modules at the moment. Please check back later or try refreshing the page.</p>
+    </section>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="mobile-modal hidden">
+        <div class="modal-container">
+            <div class="modal-handle"></div>
+
+            <header class="modal-header">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-gray-900">Book Module</h3>
+                    <button id="closeBooking" class="p-2 rounded-full hover:bg-gray-100 touch-feedback">
+                        <span class="material-icons text-gray-600">close</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="modal-content">
+                <form class="space-y-6">
+                    <div class="form-group">
+                        <label class="form-label">Module</label>
+                        <div id="bookingModuleName" class="text-gray-900 font-semibold text-lg"></div>
+                        <input type="hidden" name="moduleId">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="description">Comment</label>
+                        <div class="form-input-icon">
+                            <span class="material-icons">description</span>
+                            <textarea
+                                    class="form-input"
+                                    id="description"
+                                    name="description"
+                                    placeholder="Provide a short description of the training session..."
+                                    rows="4"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="bookingDate">Pick a date</label>
+                        <div class="form-input-icon">
+                            <span class="material-icons">calendar_today</span>
+                            <input type="date" id="bookingDate" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="startTime">Time</label>
+                        <div class="form-input-icon">
+                            <span class="material-icons">schedule</span>
+                            <input class="form-input" id="startTime" name="startTime" type="time">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="duration">Duration (minutes)</label>
+                        <div class="form-input-icon">
+                            <span class="material-icons">hourglass_top</span>
+                            <input class="form-input" id="duration" min="15" name="duration" step="15" type="number" placeholder="60">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <footer class="modal-footer">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-sm text-gray-600">Total</span>
+                    <span id="bookingPrice" class="text-xl font-bold text-gray-900"></span>
+                </div>
+                <div class="space-y-3">
+                    <button id="confirmBooking" class="brand-btn w-full px-6 py-4 rounded-xl flex items-center justify-center gap-3 touch-feedback">
+                        <span class="material-icons">shopping_cart_checkout</span>
+                        <span class="font-semibold text-lg">Proceed to Book</span>
+                    </button>
+                    <div id="bookingFeedback" class="text-center text-sm text-gray-500"></div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const search = document.getElementById('moduleSearch');
+            const bookingModal = document.getElementById('bookingModal');
+            const modalContainer = bookingModal?.querySelector('.modal-container');
+            const closeBooking = document.getElementById('closeBooking');
+            const bookingModuleName = document.getElementById('bookingModuleName');
+            const bookingPrice = document.getElementById('bookingPrice');
+            const bookingDate = document.getElementById('bookingDate');
+            const startTime = document.getElementById('startTime');
+            const duration = document.getElementById('duration');
+            const description = document.getElementById('description');
+            const confirmBooking = document.getElementById('confirmBooking');
+            const bookingFeedback = document.getElementById('bookingFeedback');
+
+            let selectedModuleId = null;
+            let selectedModuleName = '';
+            let selectedModulePrice = 0;
+
+            function money(n){
+                try { return new Intl.NumberFormat(undefined, {style:'currency', currency:'USD'}).format(n || 0); } catch(e){ return `$${Number(n||0).toFixed(2)}` }
+            }
+
+            function openBooking(moduleId, moduleName, modulePrice){
+                selectedModuleId = moduleId;
+                selectedModuleName = moduleName;
+                selectedModulePrice = modulePrice;
+                bookingModuleName.textContent = moduleName || '';
+                bookingPrice.textContent = money(modulePrice);
+                bookingDate.value = '';
+                if (startTime) startTime.value = '';
+                if (duration) duration.value = '';
+                if (description) description.value = '';
+                bookingFeedback.textContent = '';
+                bookingFeedback.className = 'text-center text-sm text-gray-500';
+
+                // Show modal with mobile animation
+                bookingModal.classList.remove('hidden');
+                bookingModal.style.display = 'flex';
+
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    if (modalContainer) {
+                        modalContainer.classList.add('show');
+                    }
+                });
+
+                // Prevent body scroll
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeBookingModal(){
+                if (modalContainer) {
+                    modalContainer.classList.remove('show');
+                }
+
+                setTimeout(() => {
+                    bookingModal.classList.add('hidden');
+                    bookingModal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+
+            async function confirm(){
+                if (!selectedModuleId){ return; }
+                const date = bookingDate.value;
+                if (!date){
+                    bookingFeedback.textContent = 'Pick a date';
+                    bookingFeedback.className = 'text-center text-sm text-red-600';
+                    return;
+                }
+
+                bookingFeedback.textContent = 'Processing...';
+                bookingFeedback.className = 'text-center text-sm text-blue-600';
+
+                // Disable button and show loading
+                if (confirmBooking) {
+                    confirmBooking.disabled = true;
+                    confirmBooking.innerHTML = `
+                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Processing...</span>
+                    `;
+                }
+
+                try{
+                    const payload = {
+                        moduleId: selectedModuleId,
+                        description: description?.value || `Booking for ${selectedModuleName || 'module'}`,
+                        startDate: date,
+                        startTime: startTime?.value || '09:00',
+                        endDate: date,
+                        endTime: startTime?.value || '10:00',
+                        duration: duration?.value || 60,
+                        users: []
+                    };
+                    const res = await fetch('/api-v/session/create', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) throw new Error('Failed to book module');
+
+                    bookingFeedback.textContent = 'Booked successfully!';
+                    bookingFeedback.className = 'text-center text-sm text-green-600';
+                    setTimeout(closeBookingModal, 1200);
+                }catch(e){
+                    bookingFeedback.textContent = e.message || 'Error booking';
+                    bookingFeedback.className = 'text-center text-sm text-red-600';
+                } finally {
+                    // Reset button
+                    if (confirmBooking) {
+                        confirmBooking.disabled = false;
+                        confirmBooking.innerHTML = `
+                            <span class="material-icons">shopping_cart_checkout</span>
+                            <span class="font-semibold text-lg">Proceed to Book</span>
+                        `;
+                    }
+                }
+            }
+
+            // Search functionality
+            if (search){
+                search.addEventListener('input', () => {
+                    const q = search.value.toLowerCase();
+                    const cards = document.querySelectorAll('.module-card');
+                    let visibleCount = 0;
+
+                    cards.forEach(card => {
+                        const name = card.querySelector('h3').textContent.toLowerCase();
+                        const description = card.querySelector('p').textContent.toLowerCase();
+                        if (name.includes(q) || description.includes(q)) {
+                            card.style.display = 'block';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Show/hide search empty state
+                    toggleSearchEmptyState(visibleCount === 0 && q.trim());
+                });
+
+                // Clear search on escape
+                search.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        e.target.value = '';
+                        const cards = document.querySelectorAll('.module-card');
+                        cards.forEach(card => card.style.display = 'block');
+                        toggleSearchEmptyState(false);
+                    }
+                });
+            }
+
+            function toggleSearchEmptyState(show) {
+                const modulesGrid = document.getElementById('modulesGrid');
+                let emptyState = document.querySelector('.search-empty-state');
+
+                if (show && !emptyState) {
+                    emptyState = document.createElement('div');
+                    emptyState.className = 'search-empty-state empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <span class="material-icons">search_off</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">No modules found</h3>
+                        <p class="text-gray-600">Try adjusting your search terms or browse all available modules.</p>
+                    `;
+                    modulesGrid.appendChild(emptyState);
+                } else if (!show && emptyState) {
+                    emptyState.remove();
+                }
+            }
+
+            // Mobile modal gestures
+            if (modalContainer) {
+                let startY = 0;
+                let currentY = 0;
+                let isDragging = false;
+
+                const handleStart = (e) => {
+                    startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                    isDragging = true;
+                    modalContainer.style.transition = 'none';
+                };
+
+                const handleMove = (e) => {
+                    if (!isDragging) return;
+
+                    currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                    const deltaY = Math.max(0, currentY - startY);
+
+                    if (deltaY > 0) {
+                        modalContainer.style.transform = `translateY(${deltaY}px)`;
+                    }
+                };
+
+                const handleEnd = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+
+                    modalContainer.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+                    const deltaY = currentY - startY;
+                    if (deltaY > 100) {
+                        closeBookingModal();
+                    } else {
+                        modalContainer.style.transform = 'translateY(0)';
+                    }
+                };
+
+                // Touch events
+                modalContainer.addEventListener('touchstart', handleStart, { passive: true });
+                modalContainer.addEventListener('touchmove', handleMove, { passive: true });
+                modalContainer.addEventListener('touchend', handleEnd);
+
+                // Mouse events for desktop testing
+                modalContainer.addEventListener('mousedown', handleStart);
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('mouseup', handleEnd);
+            }
+
+            // Touch feedback for cards
+            const touchElements = document.querySelectorAll('.touch-feedback');
+            touchElements.forEach(element => {
+                element.addEventListener('touchstart', () => {
+                    element.style.transform = 'scale(0.98)';
+                });
+
+                element.addEventListener('touchend', () => {
+                    setTimeout(() => {
+                        element.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // Modal close events
+            if (closeBooking) closeBooking.addEventListener('click', closeBookingModal);
+            if (bookingModal) {
+                bookingModal.addEventListener('click', (e) => {
+                    if (e.target === bookingModal) {
+                        closeBookingModal();
+                    }
+                });
+            }
+            if (confirmBooking) confirmBooking.addEventListener('click', confirm);
+
+            // Animate cards on load
+            document.addEventListener('DOMContentLoaded', () => {
+                const cards = document.querySelectorAll('.module-card');
+                cards.forEach((card, index) => {
+                    card.style.animationDelay = `${index * 0.1}s`;
+                });
+            });
+
+            // Make openBooking function globally available for Thymeleaf onclick
+            window.openBooking = openBooking;
+        })();
+    </script>
+</main>
+</body>
+</html>

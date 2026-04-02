@@ -1,0 +1,161 @@
+spring:
+  application:
+    name: MyCommunity
+  datasource:
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/community}
+    username: ${JDBC_DATABASE_USERNAME:postgres}
+    password: ${JDBC_DATABASE_PASSWORD:1234}
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        id:
+          new_generator_mappings: true
+        types:
+          print:
+            banner: false
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  ai:
+    openai:
+      api-key: ${openaiAPI_KEY}
+      model: gpt-4o-mini
+      chat:
+        options:
+          model: gpt-4o-mini
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${ISSUER_URI:https://ngcloak-production.up.railway.app/realms/community}
+
+          keycloak-project-client:
+            issuer-uri: ${ISSUER_URI_PROJECT_CLIENT:https://ngcloak-production.up.railway.app/realms/projectClient}
+
+          keycloak-project-admin:
+            issuer-uri: ${ISSUER_URI_PROJECT_ADMIN:https://ngcloak-production.up.railway.app/realms/projectAdmin}
+
+        registration:
+          keycloak:
+            provider: keycloak
+            client_id: ${KEYCLOAK_CLIENT_ID:community}
+            client_secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+
+          keycloak-mobile:
+            provider: keycloak
+            client-id: ${KEYCLOAK_CLIENT_ID:community}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+
+          keycloak-project-client:
+            provider: keycloak-project-client
+            client-id: ${KEYCLOAK_CLIENT_ID_PROJECT_CLIENT:projectClient}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET_PROJECT_CLIENT:fVoYPZLVsLETbSp77CgCEj2fq5psIc15}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+
+          keycloak-project-admin:
+            provider: keycloak-project-admin
+            client-id: ${KEYCLOAK_CLIENT_ID_PROJECT_ADMIN:projectAdmin}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET_PROJECT_ADMIN:kKiSaFloKSAxFBO5AZY3B0nk8oy6TCmJ}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI:https://ngcloak-production.up.railway.app/realms/community}
+
+  main:
+    allow-bean-definition-overriding: true
+error:
+  handling:
+    http-status-in-json-response: true
+    exception-logging: NO_LOGGING
+    full-stacktrace-http-statuses: 5xx
+    log-levels:
+      5xx: ERROR
+    codes:
+      ProcessModelIdUnique: PROCESS_MODEL_ID_UNIQUE
+      ProcessProcessNameUnique: PROCESS_PROCESS_NAME_UNIQUE
+      ValidFileType: VALID_FILE_TYPE
+server:
+  tomcat:
+    max-part-count: '100'
+  port: 9011
+
+flowable:
+  http:
+    enabled: true
+  history-level: audit
+  mail:
+    server:
+      host: smtp.gmail.com
+      port: 587
+      username: oguntolavictor181@gmail.com
+      password: ${MAIL_APP_PASSWORD:}   # App password, not account password
+      use-tls: true
+
+springdoc:
+  pathsToMatch: /api-v/**
+
+cloudinary:
+  api_secret: ${CLOUDINARY_API_SECRET:u7EhKc2DLGowYYnKaic2IddnGJI}
+  api_key: ${CLOUDINARY_API_KEY:287599211485524}
+  cloud_name: ${CLOUDINARY_CLOUD_NAME:dsyqibqxg}
+
+keycloak:
+  base-url: ${KEYCLOAK_BASE_URI:https://ngcloak-production.up.railway.app}
+  client-id: ${KEYCLOAK_CLIENT_ID:mycommunity}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
+  realm-name: ${KEYCLOAK_REALM_NAME:mycommunity}
+sendgrid:
+  api-key: ${SENDGRID_API_KEY:}
+  from-email: ${SENDGRID_FROM_EMAIL:boluwatifeomotoshofresh.2006@gmail.com}
+  template-id: ${SENDGRID_TEMPLATE_ID:d-3140ee113567468992851ac9825a4039}
+  template-id-2: ${SENDGRID_TEMPLATE_ID_2:d-bd21e78bfac647eba92a0d94dec00489}
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  default-from: ${RESEND_FROM:}
+  template-id-invoice: ${RESEND_TEMPLATE_ID_INVOICE:9050744f-f3f6-4d9a-a153-1e27fa5b9fd0}
+  template-id-reminder-invoice: ${RESEND_TEMP_ID_REMINDER:31665a7f-1481-449d-8d37-cf3925421cdf}
+# Paystack Configuration
+paystack:
+  secret:
+    key: ${PAYSTACK_SECRET_KEY:sk_test_acf964d88e2549da8c0a981ce531ce3a6e9a08f1}
+  public:
+    key: ${PAYSTACK_PUBLIC_KEY:pk_test_9f2df75ef7284aafb795d3df1cefdae56046e8f4}
+
+account:
+  bank: ${RECIPIENT_BANK:Opay}
+  account-number: ${RECIPIENT_ACCOUNT_NUM:1200392125}
+  account-name: ${ACCOUNT_NAME:Just Java}
+
+app:
+  base:
+    url: ${APP_BASE_URL:http://localhost:9011}
+  ai-url: ${AI_URL:http://localhost:9012}
+
+logging:
+  level:
+    org:
+      flowable:
+        engine:
+          impl:
+            scripting: DEBUG
+    com:
+      sendgrid: DEBUG

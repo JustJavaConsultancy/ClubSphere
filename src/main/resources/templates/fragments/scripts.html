@@ -1,0 +1,666 @@
+<div th:fragment="scripts" xmlns:th="http://www.thymeleaf.org">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.14/dist/_hyperscript.min.js"></script>
+    <script>
+        // Mobile menu functionality (hamburger style)
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const openMobileMenuBtn = document.getElementById('open-mobile-menu');
+        const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
+
+        if (openMobileMenuBtn && mobileMenu && mobileOverlay) {
+            openMobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.add('open');
+                mobileOverlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+
+        if (closeMobileMenuBtn) {
+            closeMobileMenuBtn.addEventListener('click', closeMobileMenu);
+        }
+
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', closeMobileMenu);
+        }
+
+        function closeMobileMenu() {
+            if (mobileMenu && mobileOverlay) {
+                mobileMenu.classList.remove('open');
+                mobileOverlay.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Mobile bottom navigation functionality
+        const mobileMoreBtn = document.getElementById('mobile-more-btn');
+        const mobileMoreMenu = document.getElementById('mobile-more-menu');
+        const mobileMoreOverlay = document.getElementById('mobile-more-overlay');
+        const closeMoreMenuBtn = document.getElementById('close-more-menu');
+
+        function openMoreMenu(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (mobileMoreOverlay && mobileMoreMenu) {
+                mobileMoreOverlay.classList.remove('hidden');
+                mobileMoreMenu.classList.add('show');
+                document.body.style.overflow = 'hidden';
+
+                // Add stagger animation to menu items
+                const menuItems = document.querySelectorAll('.menu-item');
+                menuItems.forEach((item, index) => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        item.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    }, index * 100 + 200);
+                });
+            }
+        }
+
+        function closeMoreMenu(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            if (mobileMoreOverlay && mobileMoreMenu) {
+                mobileMoreOverlay.classList.add('hidden');
+                mobileMoreMenu.classList.remove('show');
+                document.body.style.overflow = 'auto';
+
+                // Reset menu items
+                const menuItems = document.querySelectorAll('.menu-item');
+                menuItems.forEach(item => {
+                    item.style.opacity = '';
+                    item.style.transform = '';
+                    item.style.transition = '';
+                });
+            }
+        }
+
+        // Add event listeners for mobile more menu
+        if (mobileMoreBtn) {
+            mobileMoreBtn.addEventListener('click', openMoreMenu);
+        }
+
+        if (closeMoreMenuBtn) {
+            closeMoreMenuBtn.addEventListener('click', closeMoreMenu);
+        }
+
+        if (mobileMoreOverlay) {
+            mobileMoreOverlay.addEventListener('click', closeMoreMenu);
+        }
+
+        // Add interactive animations to cards and buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effect to cards
+            const cards = document.querySelectorAll('.card-hover');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transition = 'all 0.3s ease';
+                });
+            });
+
+            // Add click effect to buttons
+            const buttons = document.querySelectorAll('.btn-transition');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                });
+            });
+
+            // Animate elements on scroll
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all animated elements
+            document.querySelectorAll('.animate-fade-in').forEach(el => {
+                el.style.opacity = 0;
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+
+            // === SUPPORT CHAT FUNCTIONALITY ===
+            if (!window.location.pathname.includes('/chat')) {
+                const supportBtn = document.getElementById('support-chat-btn');
+                const chatBox = document.getElementById('chat-box');
+                const closeChatBtn = document.getElementById('close-chat-btn');
+                const chatInput = document.getElementById('chat-input');
+                const sendBtn = document.getElementById('send-message-btn');
+                const chatMessages = document.getElementById('chat-messages');
+                const chatHeader = document.getElementById('chat-header');
+
+                let chatState = {
+                    isDragging: false,
+                    hasMoved: false,
+                    dragStartTime: 0,
+                    currentX: 0,
+                    currentY: 0,
+                    initialX: 0,
+                    initialY: 0,
+                    xOffset: 0,
+                    yOffset: 0
+                };
+
+                const botResponses = [
+                    "Thank you for reaching out! How can I help you with TaskMaster today?",
+                    "I'd be happy to assist you with that. Can you provide more details?",
+                    "That's a great question! Let me help you find the right solution.",
+                    "I understand your concern. Our support team will look into this for you.",
+                    "Is there anything specific about the process workflow you'd like to know?",
+                    "I'm here to help! Feel free to ask any questions about TaskMaster features."
+                ];
+
+                let messageCount = 0;
+
+                function showChatBox() {
+                    if (chatBox && supportBtn) {
+                        chatBox.classList.remove('hidden');
+                        chatBox.classList.add('flex');
+                        supportBtn.style.display = 'none';
+                        chatBox.style.left = '50%';
+                        chatBox.style.top = '50%';
+                        chatBox.style.transform = 'translate(-50%, -50%)';
+                        chatState.xOffset = 0;
+                        chatState.yOffset = 0;
+
+                        chatBox.style.opacity = '0';
+                        chatBox.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                        setTimeout(() => {
+                            chatBox.style.opacity = '1';
+                            chatBox.style.transform = 'translate(-50%, -50%) scale(1)';
+                            chatBox.style.transition = 'all 0.3s ease-out';
+                            setTimeout(() => {
+                                chatBox.style.transition = '';
+                                if (chatInput) chatInput.focus();
+                            }, 300);
+                        }, 10);
+                    }
+                }
+
+                function closeChatBox() {
+                    if (chatBox && supportBtn) {
+                        chatBox.style.opacity = '0';
+                        chatBox.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                        setTimeout(() => {
+                            chatBox.classList.add('hidden');
+                            chatBox.classList.remove('flex');
+                            supportBtn.style.display = 'flex';
+                            chatBox.style.transform = '';
+                            chatBox.style.opacity = '';
+                            chatBox.style.transition = '';
+                        }, 300);
+                    }
+                }
+
+                function handleDragStart(e) {
+                    if (!chatHeader || !chatHeader.contains(e.target) || (closeChatBtn && closeChatBtn.contains(e.target))) return;
+                    e.preventDefault();
+                    const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+
+                    chatState.isDragging = true;
+                    chatState.hasMoved = false;
+                    chatState.dragStartTime = Date.now();
+                    chatState.initialX = clientX - chatState.xOffset;
+                    chatState.initialY = clientY - chatState.yOffset;
+
+                    if (chatBox) {
+                        chatBox.style.transition = 'none';
+                        chatBox.style.cursor = 'grabbing';
+                    }
+                    document.body.style.userSelect = 'none';
+                }
+
+                function handleDragMove(e) {
+                    if (!chatState.isDragging || !chatBox) return;
+                    e.preventDefault();
+
+                    const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+
+                    chatState.currentX = clientX - chatState.initialX;
+                    chatState.currentY = clientY - chatState.initialY;
+                    chatState.xOffset = chatState.currentX;
+                    chatState.yOffset = chatState.currentY;
+
+                    if (Math.abs(chatState.currentX) > 5 || Math.abs(chatState.currentY) > 5) {
+                        chatState.hasMoved = true;
+                    }
+
+                    const rect = chatBox.getBoundingClientRect();
+                    const newLeft = (window.innerWidth / 2) + chatState.currentX;
+                    const newTop = (window.innerHeight / 2) + chatState.currentY;
+
+                    const minLeft = rect.width / 2;
+                    const maxLeft = window.innerWidth - (rect.width / 2);
+                    const minTop = rect.height / 2;
+                    const maxTop = window.innerHeight - (rect.height / 2);
+
+                    const boundedLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+                    const boundedTop = Math.max(minTop, Math.min(maxTop, newTop));
+
+                    chatBox.style.left = boundedLeft + 'px';
+                    chatBox.style.top = boundedTop + 'px';
+                    chatBox.style.transform = 'translate(-50%, -50%)';
+                }
+
+                function handleDragEnd(e) {
+                    if (!chatState.isDragging) return;
+                    chatState.isDragging = false;
+                    if (chatBox) {
+                        chatBox.style.cursor = '';
+                    }
+                    document.body.style.userSelect = '';
+                    setTimeout(() => {
+                        chatState.hasMoved = false;
+                    }, 50);
+                }
+
+                function handleDocumentClick(e) {
+                    if (
+                        !chatBox || chatBox.classList.contains('hidden') ||
+                        chatBox.contains(e.target) ||
+                        (supportBtn && supportBtn.contains(e.target)) ||
+                        chatState.isDragging ||
+                        chatState.hasMoved
+                    ) return;
+
+                    closeChatBox();
+                }
+
+                if (supportBtn) {
+                    supportBtn.addEventListener('click', function () {
+                        if (!chatState.hasMoved) {
+                            showChatBox();
+                        }
+                    });
+                }
+
+                if (closeChatBtn) {
+                    closeChatBtn.addEventListener('click', closeChatBox);
+                }
+
+                if (chatHeader) {
+                    chatHeader.addEventListener('mousedown', handleDragStart);
+                    chatHeader.addEventListener('touchstart', handleDragStart, { passive: false });
+                }
+
+                document.addEventListener('mousemove', handleDragMove);
+                document.addEventListener('mouseup', handleDragEnd);
+                document.addEventListener('touchmove', handleDragMove, { passive: false });
+                document.addEventListener('touchend', handleDragEnd);
+                document.addEventListener('click', handleDocumentClick, true);
+
+                if (chatBox) {
+                    chatBox.addEventListener('click', e => e.stopPropagation());
+                }
+
+                function getCurrentTime() {
+                    const now = new Date();
+                    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+
+                function sendMessage() {
+                    if (!chatInput || !sendBtn || !chatMessages) return;
+
+                    const message = chatInput.value.trim();
+                    if (!message) return;
+
+                    sendBtn.disabled = true;
+
+                    const userMessageDiv = document.createElement('div');
+                    userMessageDiv.className = 'flex items-start space-x-2 justify-end';
+                    userMessageDiv.innerHTML = `
+                        <div class="message-bubble-bot bg-blue-600 text-white p-3 rounded-lg rounded-tr-none max-w-xs">
+                          <p class="text-sm">${message}</p>
+                          <span class="text-xs text-blue-200 mt-1 block">${getCurrentTime()}</span>
+                        </div>
+                        <div class="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="material-icons text-white text-sm">person</span>
+                        </div>
+                    `;
+                    chatMessages.appendChild(userMessageDiv);
+                    chatInput.value = '';
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    const typingDiv = document.createElement('div');
+                    typingDiv.className = 'flex items-start space-x-3 animate-fade-in';
+                    typingDiv.id = 'typing-indicator';
+                    typingDiv.innerHTML = `
+                      <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="material-icons text-white text-sm">support_agent</span>
+                      </div>
+                      <div class="message-bubble-bot p-3 rounded-lg rounded-tl-none">
+                        <div class="flex space-x-1">
+                          <div class="w-2 h-2 bg-blue-500 rounded-full typing-dot"></div>
+                          <div class="w-2 h-2 bg-blue-500 rounded-full typing-dot"></div>
+                          <div class="w-2 h-2 bg-blue-500 rounded-full typing-dot"></div>
+                        </div>
+                      </div>
+                    `;
+                    chatMessages.appendChild(typingDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    fetch('/api/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({ message })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('typing-indicator')?.remove();
+
+                        const botMessageDiv = document.createElement('div');
+                        botMessageDiv.className = 'flex items-start space-x-3 animate-fade-in';
+                        botMessageDiv.innerHTML = `
+                          <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons text-white text-sm">support_agent</span>
+                          </div>
+                          <div class="message-bubble-bot p-3 rounded-lg rounded-tl-none max-w-xs">
+                            <p class="text-sm text-gray-700">${data.response}</p>
+                            <span class="text-xs text-gray-500 mt-1 block">${getCurrentTime()}</span>
+                          </div>
+                        `;
+                        chatMessages.appendChild(botMessageDiv);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        sendBtn.disabled = false;
+                        messageCount++;
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        alert('There was a problem sending your message.');
+                        sendBtn.disabled = false;
+                    });
+                }
+
+                if (sendBtn) {
+                    sendBtn.addEventListener('click', sendMessage);
+                    sendBtn.disabled = true;
+                }
+
+                if (chatInput) {
+                    chatInput.addEventListener('keypress', e => {
+                        if (e.key === 'Enter' && sendBtn && !sendBtn.disabled) sendMessage();
+                    });
+                    chatInput.addEventListener('input', () => {
+                        if (sendBtn) {
+                            sendBtn.disabled = chatInput.value.trim() === '';
+                        }
+                    });
+                }
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && chatBox && !chatBox.classList.contains('hidden')) {
+                        closeChatBox();
+                    }
+                });
+
+                // Make support button draggable and snap
+                (function makeSupportButtonDraggableAndSnap() {
+                    const button = document.getElementById('support-chat-btn');
+                    if (!button) return;
+
+                    let isDragging = false;
+                    let startX = 0, startY = 0, offsetX = 0, offsetY = 0;
+                    const SNAP_MARGIN = 20;
+
+                    function onMouseDown(e) {
+                        isDragging = true;
+                        chatState.hasMoved = false;
+                        const rect = button.getBoundingClientRect();
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        offsetX = startX - rect.left;
+                        offsetY = startY - rect.top;
+                        button.style.transition = 'none';
+                        document.body.style.userSelect = 'none';
+                    }
+
+                    function onMouseMove(e) {
+                        if (!isDragging) return;
+                        const newLeft = e.clientX - offsetX;
+                        const newTop = e.clientY - offsetY;
+                        button.style.left = newLeft + 'px';
+                        button.style.top = newTop + 'px';
+                        button.style.right = 'auto';
+                        chatState.hasMoved = true;
+                    }
+
+                    function onMouseUp(e) {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        document.body.style.userSelect = '';
+                        button.style.transition = 'all 0.2s ease';
+                        const rect = button.getBoundingClientRect();
+                        const snapToLeft = rect.left < window.innerWidth / 2;
+                        const snappedY = Math.max(0, Math.min(window.innerHeight - rect.height, rect.top));
+                        button.style.top = snappedY + 'px';
+                        button.style.left = snapToLeft ? SNAP_MARGIN + 'px' : 'auto';
+                        button.style.right = snapToLeft ? 'auto' : SNAP_MARGIN + 'px';
+                    }
+
+                    button.addEventListener('mousedown', onMouseDown);
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+
+                    button.addEventListener('touchstart', function (e) {
+                        if (e.touches.length !== 1) return;
+                        onMouseDown({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+                    }, { passive: false });
+
+                    document.addEventListener('touchmove', function (e) {
+                        if (!isDragging || e.touches.length !== 1) return;
+                        onMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+                    }, { passive: false });
+
+                    document.addEventListener('touchend', onMouseUp);
+                })();
+            }
+
+            // Close more menu on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (mobileMoreOverlay && !mobileMoreOverlay.classList.contains('hidden')) {
+                        closeMoreMenu();
+                    }
+                    if (mobileOverlay && !mobileOverlay.classList.contains('hidden')) {
+                        closeMobileMenu();
+                    }
+                }
+            });
+
+            // Add swipe down to close functionality for more menu
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+
+            if (mobileMoreMenu) {
+                mobileMoreMenu.addEventListener('touchstart', function(e) {
+                    startY = e.touches[0].clientY;
+                    isDragging = true;
+                });
+
+                mobileMoreMenu.addEventListener('touchmove', function(e) {
+                    if (!isDragging) return;
+                    currentY = e.touches[0].clientY;
+                    const diff = currentY - startY;
+
+                    if (diff > 0) {
+                        this.style.transform = `translateY(${Math.min(diff * 0.5, 100)}px)`;
+                    }
+                });
+
+                mobileMoreMenu.addEventListener('touchend', function() {
+                    const diff = currentY - startY;
+                    if (diff > 100) {
+                        closeMoreMenu();
+                    } else {
+                        this.style.transform = '';
+                    }
+                    isDragging = false;
+                });
+            }
+        });
+
+        // STOMP WebSocket functionality
+        (function initStomp() {
+            if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+                console.warn('SockJS or Stomp not available — skipping websocket setup.');
+                return;
+            }
+            try {
+                const stompClient = Stomp.over(new SockJS('/ws'));
+                stompClient.connect({}, frame => {
+                    console.log('Connected to STOMP:', frame);
+                    const isAdmin = document.getElementById('isAdmin')?.value === 'true';
+                    if (isAdmin) {
+                        stompClient.subscribe('/topic/posts/private/', msg => {
+                            try {
+                                const activelyViewingPosts = isOnPostsPage() && document.visibilityState === 'visible';
+                                if (activelyViewingPosts){
+                                    const event = new CustomEvent('appendPostEvent', { detail: JSON.parse(msg.body) });
+                                    document.dispatchEvent(event);
+                                } else {
+                                    unread += 1;
+                                    localStorage.setItem(COUNTER_KEY, String(unread));
+                                    renderCounter();
+                                }
+                            } catch (e) { console.error(e); }
+                        });
+                    }
+                    const userIdElement = document.getElementById('public-userId');
+                    if (userIdElement) {
+                        stompClient.subscribe(`/topic/posts/${userIdElement.dataset.userId}`, msg => {
+                            try {
+                                const activelyViewingPosts = isOnPostsPage() && document.visibilityState === 'visible';
+                                if (activelyViewingPosts){
+                                    const event = new CustomEvent('appendPostEvent', { detail: JSON.parse(msg.body) });
+                                    document.dispatchEvent(event);
+                                } else {
+                                    unread += 1;
+                                    localStorage.setItem(COUNTER_KEY, String(unread));
+                                    renderCounter();
+                                }
+                            } catch (e) { console.error(e); }
+                        });
+                    }
+                    stompClient.subscribe('/topic/posts/', msg => {
+                        try {
+                            const activelyViewingPosts = isOnPostsPage() && document.visibilityState === 'visible';
+                            if (activelyViewingPosts){
+                                const event = new CustomEvent('appendPostEvent', { detail: JSON.parse(msg.body) });
+                                document.dispatchEvent(event);
+                            } else {
+                                unread += 1;
+                                localStorage.setItem(COUNTER_KEY, String(unread));
+                                renderCounter();
+                            }
+                        } catch (e) { console.error(e); }
+                    });
+                    stompClient.subscribe('/topic/comment/', msg => {
+                        try {
+                            const comment = JSON.parse(msg.body);
+                            const container = document.getElementById(`comments${comment.postId}`);
+                            if (container) {
+                                container.insertAdjacentHTML('beforeend', `
+                            <div class="flex comment">
+                              <div class="avatar">${(comment.senderFullName || '').substring(0,2).toUpperCase()}</div>
+                              <div class="flex-1">
+                                <h4 class="font-medium text-gray-800">${comment.senderFullName}</h4>
+                                <p class="text-sm text-gray-600">${comment.comment}</p>
+                              </div>
+                            </div>
+                          `);
+                            }
+                            const btnSpan = document.querySelector(`.comment-btn[data-post="${comment.postId}"] span`);
+                            if (btnSpan) {
+                                const cur = parseInt(btnSpan.textContent, 10) || 0;
+                                btnSpan.textContent = `${cur + 1} comments`;
+                            }
+                        } catch (e) { console.error('comment handling error', e); }
+                    });
+                }, err => console.error('WebSocket connection error:', err));
+            } catch (e) {
+                console.error('STOMP init error', e);
+            }
+        })();
+
+        // Post counter functionality
+        const COUNTER_KEY = 'unreadPostsCount';
+        const POSTS_PATH  = '/';
+        let unread = Number.parseInt(localStorage.getItem(COUNTER_KEY) || '0', 10);
+        const badge = document.getElementById('postCounter');
+
+        function renderCounter() {
+            if (!badge) return;
+            if (unread > 0) {
+                badge.textContent = unread;
+                badge.style.display = 'flex';
+            } else {
+                badge.textContent = '';
+                badge.style.display = 'none';
+            }
+        }
+
+        function clearUnread() {
+            if (unread !== 0) {
+                unread = 0;
+                localStorage.setItem(COUNTER_KEY, '0');
+                renderCounter();
+            }
+        }
+
+        function isOnPostsPage() {
+            return window.location.pathname === POSTS_PATH;
+        }
+
+        window.addEventListener('pageshow', () => {
+            if (isOnPostsPage() && document.visibilityState === 'visible') {
+                clearUnread();
+            } else {
+                renderCounter();
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && isOnPostsPage()) {
+                clearUnread();
+            } else {
+                renderCounter()
+            }
+        });
+
+        window.addEventListener('storage', e => {
+            if (e.key === COUNTER_KEY) {
+                unread = Number.parseInt(e.newValue || '0', 10);
+                renderCounter();
+            }
+        });
+    </script>
+</div>

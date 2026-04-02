@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <style>
+        .avatar {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #2A2494, #3730a3);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          margin-right: 16px;
+          flex-shrink: 0;
+          font-size: 18px;
+          box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+        .network-avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #2A2494, #3730a3);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          margin: 0 auto 12px auto;
+          font-size: 20px;
+          box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+        .invitation-item {
+          display: flex;
+          align-items: center;
+          padding: 16px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+          margin-bottom: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: all 0.3s ease;
+        }
+        .invitation-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .invitation-actions {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+        .btn-accept {
+          flex: 1;
+          padding: 10px 16px;
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 14px;
+          min-height: 44px;
+          transition: all 0.2s ease;
+        }
+        .btn-accept:active {
+          transform: scale(0.95);
+        }
+        .btn-decline {
+          flex: 1;
+          padding: 10px 16px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          color: #6b7280;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 14px;
+          min-height: 44px;
+          transition: all 0.2s ease;
+        }
+        .btn-decline:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.9);
+        }
+        .network-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+          gap: 16px;
+          margin-top: 16px;
+        }
+        .network-card {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+          padding: 20px;
+          text-align: center;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: all 0.3s ease;
+        }
+        .network-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .message-btn {
+          width: 100%;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          color: #475569;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 500;
+          margin-top: 12px;
+          min-height: 40px;
+          transition: all 0.2s ease;
+        }
+        .message-btn:hover {
+          background: rgba(42, 36, 148, 0.1);
+        }
+        .message-btn:active {
+          transform: scale(0.95);
+        }
+        .empty-state {
+          text-align: center;
+          padding: 40px 20px;
+          color: #6b7280;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .empty-state-icon {
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 20px auto;
+          opacity: 0.5;
+          color: #2A2494;
+        }
+        .user-info {
+          flex-grow: 1;
+          min-width: 0;
+        }
+        .user-name {
+          font-weight: 600;
+          color: #111827;
+          font-size: 16px;
+          margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Invitations Container -->
+<div id="invitations-container">
+    <div th:fragment="invitations-list">
+        <div th:if="${#lists.isEmpty(invitations)}" class="empty-state">
+            <div class="empty-state-icon mx-auto mb-4 text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">No pending invitations</h3>
+            <p class="text-sm text-gray-500">When someone sends you an invitation, it will appear here.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(invitations)}" class="space-y-3">
+            <div th:each="invitation : ${invitations}" class="invitation-item">
+                <div class="flex items-start flex-1">
+                    <div class="avatar" th:text="${#strings.substring(invitation.fullName,0,2)}">
+                        AA
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" th:text="${invitation.fullName}">Michael Chen</div>
+                        <p class="text-sm text-gray-500">Member</p>
+                        <div class="invitation-actions">
+                            <button class="btn-accept"
+                                    th:attr="hx-post='/mobile/network/approve/' + ${invitation.groupId}"
+                                    hx-target="#invitations-container"
+                                    hx-swap="outerHTML"
+                                    hx-trigger="click"
+                                    hx-on::afterRequest="
+                                        htmx.ajax('GET', '/mobile/network/invitations-fragment', {target:'#invitations-container', swap:'outerHTML'});
+                                        htmx.ajax('GET', '/mobile/network/network-fragment', {target:'#network-container', swap:'outerHTML'});
+                                    ">
+                                Accept
+                            </button>
+                            <button class="btn-decline">
+                                Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Network Container -->
+<div id="network-container">
+    <div th:fragment="network-list">
+        <div th:if="${#lists.isEmpty(myNetwork)}" class="empty-state">
+            <div class="empty-state-icon mx-auto mb-6 text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-3">Your network is empty</h3>
+            <p class="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                Start building your professional network by connecting with colleagues and people you'd like to know.
+            </p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(myNetwork)}" class="network-grid">
+            <div th:each="connection : ${myNetwork}" class="network-card">
+                <div class="network-avatar">
+                    <span th:text="${#strings.substring(connection.firstName,0,1) + #strings.substring(connection.lastName,0,1)}">AA</span>
+                </div>
+                <h4 class="font-semibold text-gray-800 text-sm mb-1"
+                    th:text="${connection.firstName + ' ' + connection.lastName}">Sophia Bennett</h4>
+                <p class="text-xs text-gray-500 mb-3">Member</p>
+                <button class="message-btn">
+                    Message
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Combined Containers Fragment -->
+<div th:fragment="containers">
+    <div id="invitations-container">
+        <div th:replace="~{mobile/mobile-network-fragments :: invitations-list}"></div>
+    </div>
+    <div id="network-container">
+        <div th:replace="~{mobile/mobile-network-fragments :: network-list}"></div>
+    </div>
+</div>
+
+</body>
+</html>

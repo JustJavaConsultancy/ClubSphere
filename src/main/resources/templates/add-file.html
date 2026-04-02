@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <title>Add File - Gallery - Connect</title>
+</head>
+<body>
+<main layout:fragment="content">
+  <div class="space-y-6">
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span th:text="${success}"></span>
+      </div>
+    </div>
+
+    <div th:if="${error}" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span th:text="${error}"></span>
+      </div>
+    </div>
+
+    <!-- Page Header -->
+    <header class="flex items-center justify-between">
+      <div>
+        <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+          <a th:href="@{/gallery}" class="hover:text-blue-600">Gallery</a>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          <span class="text-gray-900">Add File</span>
+        </nav>
+        <h1 class="text-2xl font-bold text-gray-900 gradient-text">Upload New File</h1>
+        <p class="text-gray-600 mt-1">Add files to your gallery</p>
+      </div>
+    </header>
+
+    <!-- Upload Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <form th:action="@{/gallery/upload}" method="post" enctype="multipart/form-data" id="uploadForm">
+        <div class="space-y-6">
+          <!-- File Upload Area -->
+          <div class="space-y-2">
+            <label for="file" class="block text-sm font-medium text-gray-700">Select File</label>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors" id="dropZone">
+              <div class="space-y-1 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <div class="flex text-sm text-gray-600">
+                  <label for="file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                    <span>Upload a file</span>
+                    <input id="file" name="file" type="file" class="sr-only" required multiple>
+                  </label>
+                  <p class="pl-1">or drag and drop</p>
+                </div>
+                <p class="text-xs text-gray-500">PNG, JPG, PDF, DOC, MP4, MP3 up to 50MB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Files Display -->
+          <div id="selectedFiles" class="hidden space-y-3">
+            <h3 class="text-sm font-medium text-gray-700">Selected Files:</h3>
+            <div id="filesList" class="space-y-2"></div>
+          </div>
+
+          <!-- File Description -->
+          <div class="space-y-2">
+            <label for="description" class="block text-sm font-medium text-gray-700">Description (Optional)</label>
+            <textarea
+                    id="description"
+                    name="description"
+                    rows="3"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Add a description for your files..."></textarea>
+          </div>
+
+          <!-- Upload Progress -->
+          <div id="uploadProgress" class="hidden">
+            <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+              <span>Uploading...</span>
+              <span id="progressText">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+            <a th:href="@{/gallery}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Gallery
+            </a>
+            <button
+                    type="submit"
+                    id="uploadBtn"
+                    class="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors btn-transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Upload Files
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        const dropZone = document.getElementById('dropZone');
+        const selectedFiles = document.getElementById('selectedFiles');
+        const filesList = document.getElementById('filesList');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        // File type validation
+        const allowedTypes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'video/mp4', 'video/avi', 'video/mov', 'video/wmv',
+            'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a'
+        ];
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileType(file) {
+            if (file.type.startsWith('image/')) return 'image';
+            if (file.type.startsWith('video/')) return 'video';
+            if (file.type.startsWith('audio/')) return 'audio';
+            if (file.type === 'application/pdf' || file.type.includes('document') || file.type.includes('word')) return 'document';
+            return 'other';
+        }
+
+        function displaySelectedFiles(files) {
+            filesList.innerHTML = '';
+            if (files.length > 0) {
+                selectedFiles.classList.remove('hidden');
+                Array.from(files).forEach((file, index) => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+
+                    const fileType = getFileType(file);
+                    const validationErrors = validateFileClient(file);
+                    const isValid = validationErrors.length === 0;
+
+                    fileDiv.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center ${
+                                isValid ?
+                                (fileType === 'image' ? 'bg-green-100 text-green-600' :
+                                 fileType === 'document' ? 'bg-blue-100 text-blue-600' :
+                                 fileType === 'video' ? 'bg-purple-100 text-purple-600' :
+                                 fileType === 'audio' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600')
+                                : 'bg-red-100 text-red-600'
+                            }">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">${file.name}</p>
+                                <p class="text-xs text-gray-500">${formatFileSize(file.size)}</p>
+                                ${!isValid ? '<p class="text-xs text-red-500">' + validationErrors.join(', ') + '</p>' : ''}
+                            </div>
+                        </div>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
+                    filesList.appendChild(fileDiv);
+                });
+            } else {
+                selectedFiles.classList.add('hidden');
+            }
+        }
+
+        window.removeFile = function(index) {
+            const dt = new DataTransfer();
+            const files = fileInput.files;
+
+            for (let i = 0; i < files.length; i++) {
+                if (i !== index) {
+                    dt.items.add(files[i]);
+                }
+            }
+
+            fileInput.files = dt.files;
+            displaySelectedFiles(fileInput.files);
+        };
+
+        // File input change handler
+        fileInput.addEventListener('change', function() {
+            displaySelectedFiles(this.files);
+        });
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('border-blue-400', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-blue-400', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-blue-400', 'bg-blue-50');
+
+            const files = e.dataTransfer.files;
+            fileInput.files = files;
+            displaySelectedFiles(files);
+        });
+
+        // Form submission with progress
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (fileInput.files.length === 0) {
+                showUploadError('Please select at least one file to upload.');
+                return;
+            }
+
+            // Validate files before upload
+            let hasValidFiles = false;
+            let validationErrors = [];
+
+            for (let file of fileInput.files) {
+                const errors = validateFileClient(file);
+                if (errors.length === 0) {
+                    hasValidFiles = true;
+                } else {
+                    validationErrors.push(`${file.name}: ${errors.join(', ')}`);
+                }
+            }
+
+            if (!hasValidFiles) {
+                showUploadError('No valid files selected:\n' + validationErrors.join('\n'));
+                return;
+            }
+
+            if (validationErrors.length > 0) {
+                const proceed = confirm(`Some files have validation errors and will be skipped:\n${validationErrors.join('\n')}\n\nDo you want to proceed with the valid files?`);
+                if (!proceed) {
+                    return;
+                }
+            }
+
+            const formData = new FormData(this);
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            uploadProgress.classList.remove('hidden');
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressText.textContent = Math.round(percentComplete) + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                if (xhr.status === 200 || xhr.status === 302) {
+                    // Success - redirect to gallery
+                    window.location.href = '/gallery';
+                } else {
+                    showUploadError('Upload failed with status: ' + xhr.status + '. Please try again.');
+                    resetUploadForm();
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                showUploadError('Network error during upload. Please check your connection and try again.');
+                resetUploadForm();
+            });
+
+            xhr.addEventListener('timeout', function() {
+                showUploadError('Upload timed out. Please try again with smaller files.');
+                resetUploadForm();
+            });
+
+            xhr.timeout = 300000; // 5 minutes timeout
+            xhr.open('POST', '/gallery/upload');
+            xhr.send(formData);
+        });
+
+        function validateFileClient(file) {
+            const errors = [];
+
+            // Check file size (50MB limit)
+            if (file.size > 50 * 1024 * 1024) {
+                errors.push(`File size (${formatFileSize(file.size)}) exceeds the 50MB limit`);
+            }
+
+            // Check file type
+            const allowedTypes = [
+                // Images
+                'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+                // Documents
+                'application/pdf', 'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'text/plain', 'text/csv',
+                // Videos
+                'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/quicktime',
+                // Audio
+                'audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a'
+            ];
+
+            let isValidType = allowedTypes.includes(file.type);
+
+            // Additional check for common file extensions
+            if (!isValidType && file.name) {
+                const extension = file.name.toLowerCase();
+                if (extension.endsWith('.mp3') && (file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.type === '')) {
+                    isValidType = true;
+                } else if (extension.endsWith('.mp4') && (file.type === 'video/mp4' || file.type === '')) {
+                    isValidType = true;
+                } else if (extension.endsWith('.pdf') && (file.type === 'application/pdf' || file.type === '')) {
+                    isValidType = true;
+                }
+            }
+
+            if (!isValidType) {
+                errors.push(`File type '${file.type || 'unknown'}' is not supported. Allowed: images, documents (PDF, Word, Excel), videos (MP4, AVI, MOV), audio (MP3, WAV, OGG)`);
+            }
+
+
+            return errors;
+        }
+
+        function isValidFileClient(file) {
+            return validateFileClient(file).length === 0;
+        }
+
+        function showUploadError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg';
+            errorDiv.textContent = message;
+
+            // Remove any existing error messages
+            const existingError = uploadForm.querySelector('.bg-red-100');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            uploadForm.appendChild(errorDiv);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function resetUploadForm() {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload Files';
+            uploadProgress.classList.add('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+        }
+    });
+  </script>
+</main>
+</body>
+</html>

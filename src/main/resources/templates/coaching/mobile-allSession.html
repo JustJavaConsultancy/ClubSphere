@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Sessions</title>
+    <style>
+        .mobile-sessions {
+            padding: 16px;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0 0 16px 0;
+        }
+
+        .create-btn {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+            transition: all 0.2s ease;
+            border: none;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .create-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(42, 36, 148, 0.4);
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            background-color: #f8fafc;
+            margin-bottom: 12px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            background-color: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 20px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-select {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+        }
+
+        .sessions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .session-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .session-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .session-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+            flex: 1;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .status-upcoming {
+            background-color: #ede9fe;
+            color: #2A2494;
+        }
+
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .session-description {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .session-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .meta-icon {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        .session-stats {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .action-btn.primary {
+            background-color: #2A2494;
+            color: white;
+        }
+
+        .action-btn.primary:active {
+            background-color: #3730a3;
+            transform: scale(0.95);
+        }
+
+        .action-btn.secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .action-btn.secondary:active {
+            background-color: #e2e8f0;
+            transform: scale(0.95);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px auto;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #2A2494;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .empty-description {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0 0 24px 0;
+        }
+
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="mobile-sessions">
+    <header class="header-section">
+        <h1 class="page-title">Training Sessions</h1>
+        <p class="page-subtitle">View and manage all your training sessions</p>
+        <a th:href="@{/mobile/create-session}" class="create-btn">
+            <span class="material-icons">add</span>
+            Create New Session
+        </a>
+    </header>
+
+    <section class="filter-section">
+        <div style="position: relative;">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" placeholder="Search sessions..." class="search-input">
+        </div>
+        <div class="filter-row">
+            <select class="filter-select">
+                <option>All Modules</option>
+                <option th:each="module : ${modules}" th:value="${module.id}" th:text="${module.name}"></option>
+            </select>
+            <select class="filter-select">
+                <option>All Status</option>
+                <option>Upcoming</option>
+                <option>Completed</option>
+                <option>Canceled</option>
+            </select>
+        </div>
+    </section>
+
+    <div th:if="${#lists.isEmpty(sessions)}" class="empty-state">
+        <div class="empty-icon">
+            <span class="material-icons">event</span>
+        </div>
+        <h3 class="empty-title">No training sessions yet</h3>
+        <p class="empty-description">You don't have any training sessions scheduled. Create your first session to get started.</p>
+        <a th:href="@{/mobile/create-session}" class="create-btn" style="max-width: 200px; margin: 0 auto;">
+            <span class="material-icons">add</span>
+            Create Session
+        </a>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(sessions)}" class="sessions-list">
+        <article th:each="single : ${sessions}" class="session-card">
+            <header class="session-header">
+                <h3 th:text="${single.moduleName}" class="session-title">Time Management Workshop</h3>
+                <span th:if="${single.getStatus() == 'Completed'}" class="status-badge status-completed" th:text="${single.getStatus()}">Completed</span>
+                <span th:if="${single.getStatus() == 'Upcoming'}" class="status-badge status-upcoming" th:text="${single.getStatus()}">Upcoming</span>
+            </header>
+
+            <p th:text="${single.description}" class="session-description">Maximize productivity with proven time management techniques and tools.</p>
+
+            <div class="session-meta">
+                <div class="meta-row">
+                    <span class="material-icons meta-icon">event</span>
+                    <span th:text="${T(java.time.LocalDate).parse(single.startDate).format(T(java.time.format.DateTimeFormatter).ofPattern('MMM dd, yyyy'))}">Dec 15, 2024</span>
+                </div>
+                <div class="meta-row">
+                    <span class="material-icons meta-icon">schedule</span>
+                    <span th:text="${single.startTime}">3:30 PM</span>
+                </div>
+            </div>
+
+            <div class="session-stats">
+                <div class="stat-item">
+                    <span class="material-icons">group</span>
+                    <span th:text="${single.numberOfParticipants + ' participants'}">6 participants</span>
+                </div>
+                <div class="stat-item">
+                    <span class="material-icons">timer</span>
+                    <span th:text="${single.duration + ' min'}">60 min</span>
+                </div>
+            </div>
+
+            <div class="session-actions">
+                <button class="action-btn secondary">View Details</button>
+                <button class="action-btn primary">Edit</button>
+            </div>
+        </article>
+    </div>
+</main>
+</body>
+</html>

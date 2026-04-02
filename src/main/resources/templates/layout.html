@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+            rel="stylesheet"
+            as="style"
+            onload="this.rel='stylesheet'"
+            href="https://fonts.googleapis.com/css2?display=swap&amp;family=Be+Vietnam+Pro%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <title>Zam Connect - Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+            rel="stylesheet"
+            as="style"
+            onload="this.rel='stylesheet'"
+            href="https://fonts.googleapis.com/css2?display=swap&family=Be+Vietnam+Pro:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.10.2"></script>
+
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                primary: {
+                  500: "#3b82f6",
+                  600: "#2563eb",
+                  700: "#1d4ed8",
+                },
+                secondary: {
+                  500: "#a855f7",
+                  600: "#9333ea",
+                },
+              },
+            },
+          },
+        };
+    </script>
+    <style>
+        /* Custom styles for mobile sidebar overlay */
+        .sidebar-overlay {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-overlay.active {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+            }
+
+            .sidebar-mobile {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .sidebar-mobile.active {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-inter">
+<!-- Navbar -->
+<nav
+        class="bg-white/90 backdrop-blur-md border-b border-gray-200 fixed top-0 inset-x-0 z-50"
+>
+    <div
+            class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center"
+    >
+        <!-- Mobile menu button and brand -->
+        <div class="flex items-center gap-2">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <!-- Brand -->
+            <div class="flex items-center gap-2">
+                <i class="fas fa-users text-blue-600 text-2xl"></i>
+                <span class="font-bold text-lg tracking-tight">Zam Connect</span>
+            </div>
+        </div>
+
+        <!-- Right section -->
+        <div class="flex items-center gap-6">
+            <div class="relative">
+                <i class="fas fa-bell text-gray-600 text-lg cursor-pointer"></i>
+                <span
+                        class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"
+                >3</span
+                >
+            </div>
+            <div
+                    class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded-lg transition"
+            >
+                <div class="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center">
+                    <span th:text="${#strings.substring(session.loggedInUser,0,1)}
+                + ${#strings.substring(session.loggedInUser, session.loggedInUser.indexOf(' ') + 1, session.loggedInUser.indexOf(' ') + 2)}"
+                          class="text-blue-600 font-semibold text-sm">
+            JD
+                    </span>
+                </div>
+
+                <span th:text="${session.loggedInUser}" class="font-medium text-sm hidden sm:inline">
+        John Doe
+    </span>
+
+                <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="flex pt-[64px]">
+    <!-- Sidebar - Desktop -->
+    <aside class="hidden md:flex w-64 h-[calc(100vh-64px)] bg-white border-r border-gray-200 flex-shrink-0 sticky top-[64px] overflow-y-auto">
+        <div class="p-4 w-full">
+            <nav class="space-y-1">
+                <!-- Home/Dashboard Links -->
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-home w-5"></i>
+                    Home
+                    <div>
+                        <span id="postCounter" class="badge-counter"></span>
+                    </div>
+                </a>
+
+                <a th:if="${session.isSupportAdmin}" th:href="@{/support/dashboard}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/dashboard'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-home w-5"></i>
+                    Home
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/admin/dashboard}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/admin/dashboard'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    Dashboard
+                </a>
+
+                <!-- Community & Network -->
+                <a th:if="${session.isAdmin}" th:href="@{/my-community}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-handshake w-5"></i>
+                    My Community
+                </a>
+
+                <a th:href="@{/organizations}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/organizations'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-building w-5"></i>
+                    Organizations
+                </a>
+
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/network}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/network'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-user-friends w-5"></i>
+                    My Network
+                </a>
+
+                <!-- Messages -->
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/messages}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/messages'}? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-comments w-5"></i>
+                    Messages
+                </a>
+
+                <!-- Groups -->
+                <a  th:href="@{/my-groups}"
+                    class="flex items-center gap-3 p-2.5 rounded-lg"
+                    th:classappend="${currentPath == '/my-groups'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-layer-group w-5"></i>
+                    My Groups
+                </a>
+
+                <!-- Products & Services -->
+                <a th:if="${session.isAdmin}" th:href="@{/products}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/products' or currentPath == '/products/add' or #strings.startsWith(currentPath, '/products/edit')} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-store w-5"></i>
+                    Sell Product/Service
+                </a>
+
+                <!-- Invoice Management -->
+                <a th:if="${session.isAdmin}" th:href="@{/invoice}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/invoice'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-file-invoice w-5"></i>
+                    Invoice
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/invoice/invoice-review}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/invoice/invoice-review'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-file-invoice-dollar w-5"></i>
+                    Invoice Review
+                </a>
+
+                <!-- Training & Meetings -->
+                <a th:if="${session.isAdmin}" th:href="@{/sessions}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-graduation-cap w-5"></i>
+                    Training & Coaching
+                </a>
+                <a th:if="${session.isAdmin}" th:href="@{/meetings}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/meetings' or currentPath == '/create-meeting'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-calendar-alt w-5"></i>
+                    Schedule & Meeting
+                </a>
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/certificate}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/certificate' or currentPath == '/certificate'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-award w-5"></i>
+                    My Certificates
+                </a>
+                <!-- Content Management -->
+                <a th:if="${session.isAdmin}" th:href="@{/modules}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/modules'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-th-large w-5"></i>
+                    Modules
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/gallery}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/gallery' or currentPath == '/gallery/add'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-images w-5"></i>
+                    Gallery
+                </a>
+
+                <!-- Support Admin Links -->
+                <a th:if="${session.isSupportAdmin}" th:href="@{/support/my-tickets}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    Tickets
+                </a>
+
+                <a th:if="${session.isSupportAdmin}" th:href="@{/support/agent/claim-ticket}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    Claim Tickets
+                </a>
+
+                <!-- User Management -->
+                <a th:if="${session.isAdmin}" th:href="@{/users}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/users'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-users-cog w-5"></i>
+                    User Management
+                </a>
+
+                <!-- Additional Features -->
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/events}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/events'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-calendar-alt w-5"></i>
+                    Events
+                </a>
+
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/ai-support}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/ai-support'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-robot w-5"></i>
+                    AI Support
+                </a>
+
+                <a th:href="@{/settings}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/settings'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-cog w-5"></i>
+                    Settings
+                </a>
+            </nav>
+
+            <!-- My Communities Section -->
+            <div class="mt-8">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">
+                    My Communities
+                </h3>
+                <div class="space-y-1">
+                    <a href="#" class="flex items-center gap-3 p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        <div class="h-6 w-6 rounded-full bg-blue-200"></div>
+                        <span class="truncate text-sm">Design Professionals</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        <div class="h-6 w-6 rounded-full bg-purple-200"></div>
+                        <span class="truncate text-sm">Marketing Leaders</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        <div class="h-6 w-6 rounded-full bg-green-200"></div>
+                        <span class="truncate text-sm">Product Managers</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Sidebar - Mobile -->
+    <aside class="sidebar-mobile md:hidden fixed top-[64px] left-0 bottom-0 w-64 bg-white border-r border-gray-200 z-40 overflow-y-auto">
+        <div class="p-4 w-full">
+            <nav class="space-y-1">
+                <!-- Home/Dashboard Links -->
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-home w-5"></i>
+                    Home
+                    <div>
+                        <span id="postCounter" class="badge-counter"></span>
+                    </div>
+                </a>
+
+                <a th:if="${session.isSupportAdmin}" th:href="@{/support/dashboard}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/dashboard'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-home w-5"></i>
+                    Home
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/admin/dashboard}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/admin/dashboard'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    Dashboard
+                </a>
+
+                <!-- Community & Network -->
+                <a th:if="${session.isAdmin}" th:href="@{/my-community}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-handshake w-5"></i>
+                    My Community
+                </a>
+
+                <a th:href="@{/organizations}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/organizations'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-building w-5"></i>
+                    Organizations
+                </a>
+
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/network}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/network'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-user-friends w-5"></i>
+                    My Network
+                </a>
+
+                <!-- Messages -->
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/messages}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/messages'}? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-comments w-5"></i>
+                    Messages
+                </a>
+
+                <!-- Groups -->
+                <a th:href="@{/my-groups}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/my-groups'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-layer-group w-5"></i>
+                    My Groups
+                </a>
+
+                <!-- Products & Services -->
+                <a th:if="${session.isAdmin}" th:href="@{/products}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/products' or currentPath == '/products/add' or #strings.startsWith(currentPath, '/products/edit')} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-store w-5"></i>
+                    Sell Product/Service
+                </a>
+
+                <!-- Invoice Management -->
+                <a th:if="${session.isAdmin}" th:href="@{/invoice}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/invoice'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-file-invoice w-5"></i>
+                    Invoice
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/invoice/invoice-review}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/invoice/invoice-review'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-file-invoice-dollar w-5"></i>
+                    Invoice Review
+                </a>
+
+                <!-- Training & Meetings -->
+                <a th:if="${session.isAdmin}" th:href="@{/sessions}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-graduation-cap w-5"></i>
+                    Training & Coaching
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/meetings}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/meetings' or currentPath == '/create-meeting'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-calendar-alt w-5"></i>
+                    Schedule & Meeting
+                </a>
+
+                <!-- Content Management -->
+                <a th:if="${session.isAdmin}" th:href="@{/modules}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/modules'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-th-large w-5"></i>
+                    Modules
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/gallery}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/gallery' or currentPath == '/gallery/add'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-images w-5"></i>
+                    Gallery
+                </a>
+
+                <!-- Support Admin Links -->
+                <a th:if="${session.isSupportAdmin}" th:href="@{/support/my-tickets}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    Tickets
+                </a>
+
+                <a th:if="${session.isSupportAdmin}" th:href="@{/support/agent/claim-ticket}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    Claim Tickets
+                </a>
+
+                <!-- User Management -->
+                <a th:if="${session.isAdmin}" th:href="@{/users}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/users'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-users-cog w-5"></i>
+                    User Management
+                </a>
+
+                <!-- Additional Features -->
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/events}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/events'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-calendar-alt w-5"></i>
+                    Events
+                </a>
+
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/ai-support}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/ai-support'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-robot w-5"></i>
+                    AI Support
+                </a>
+
+                <a th:href="@{/settings}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/settings'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-cog w-5"></i>
+                    Settings
+                </a>
+            </nav>
+
+            <!-- My Communities Section -->
+            <div class="mt-8">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">
+                    My Communities
+                </h3>
+                <div class="space-y-1">
+                    <a href="#" class="flex items-center gap-3 p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        <div class="h-6 w-6 rounded-full bg-blue-200"></div>
+                        <span class="truncate text-sm">Design Professionals</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        <div class="h-6 w-6 rounded-full bg-purple-200"></div>
+                        <span class="truncate text-sm">Marketing Leaders</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                        <div class="h-6 w-6 rounded-full bg-green-200"></div>
+                        <span class="truncate text-sm">Product Managers</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-4 md:p-6 overflow-y-auto w-full">
+        <!-- Main content -->
+        <main>
+            <div layout:fragment="content"></div>
+        </main>
+    </main>
+</div>
+
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+<script src="https://unpkg.com/hyperscript.org@0.9.14/dist/_hyperscript.min.js"></script>
+<script>
+    // Mobile sidebar toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const sidebarMobile = document.querySelector('.sidebar-mobile');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar() {
+            sidebarMobile.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        mobileMenuButton.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Close sidebar when a link is clicked (on mobile)
+        const sidebarLinks = document.querySelectorAll('.sidebar-mobile a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        // Close sidebar on window resize if it becomes desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                sidebarMobile.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+    });
+</script>
+</body>
+</html>

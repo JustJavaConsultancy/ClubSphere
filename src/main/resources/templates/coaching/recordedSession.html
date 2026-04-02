@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${singleSession.moduleName} + ' - Recorded Session'">Session Details</title>
+    <style>
+        /* Overlay Play Button Styling */
+        .video-container {
+            position: relative;
+            background-color: black;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.5);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .play-overlay:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .play-overlay i {
+            color: white;
+            font-size: 36px;
+            margin-left: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="flex-1 p-6 overflow-y-auto">
+
+        <!-- Header -->
+        <section class="mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold" th:text="${singleSession.sessionType == 'recorded' ? 'Recorded Session' : 'Live Session'}">Recorded Session</h1>
+                    <p class="text-gray-600 mt-1">
+                        Watch your recorded community sessions anytime
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Video Player Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Video Player -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow overflow-hidden">
+                    <!-- Video Container -->
+                    <div class="aspect-video video-container">
+                        <video
+                                id="sessionVideo"
+                                class="w-full h-full rounded-none"
+                                controls
+                                preload="metadata"
+                                th:src="${singleSession.videoLink}">
+                            Your browser does not support the video tag.
+                        </video>
+
+                        <!-- Center Play Button -->
+                        <div id="playOverlay" class="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+
+                    <!-- Video Info -->
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900" th:text="${singleSession.moduleName}">Advanced Product Design Workshop</h2>
+                                <p class="text-gray-600 mt-1">
+                                    Recorded on <span th:text="${singleSession.startDate}">November 15, 2023</span> •
+                                    <span th:text="${singleSession.duration}">45</span> minutes
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 text-yellow-500">
+                                <i class="fas fa-star"></i>
+                                <span class="font-medium">4.8</span>
+                                <span class="text-gray-400">(127)</span>
+                            </div>
+                        </div>
+
+                        <!-- Instructor Info -->
+                        <div class="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                            <img
+                                    src="https://ui-avatars.com/api/?name=Instructor&background=3b82f6&color=fff"
+                                    alt="Instructor"
+                                    class="w-12 h-12 rounded-full">
+                            <div>
+                                <h4 class="font-semibold">Instructor</h4>
+                                <p class="text-gray-600 text-sm">Session Facilitator</p>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-2">About this session</h3>
+                            <p class="text-gray-700 leading-relaxed"
+                               th:text="${singleSession.description != null} ? ${singleSession.description} : 'No description available for this session.'">
+                                Join Sarah Johnson in this comprehensive workshop covering advanced product design principles,
+                                user experience best practices, and modern design tools. Learn how to create intuitive interfaces
+                                that users love while maintaining scalability and performance.
+                            </p>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                                  th:text="${singleSession.moduleName}">Product Design</span>
+                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">Recorded</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
+                                  th:text="${singleSession.duration + ' minutes'}">45 minutes</span>
+                            <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm"
+                                  th:text="${singleSession.status}">Upcoming</span>
+                        </div>
+
+                        <!-- Mark as Complete Button -->
+                        <form th:action="@{/set-aS-completed}" method="post" class="mt-6 pt-4 border-t border-gray-200">
+                            <input type="hidden" name="sessionId" th:value="${singleSession.id}"/>
+                            <button
+                                    id="markCompleteBtn"
+                                    type="submit"
+                                    class="w-full py-3 px-4 bg-gray-300 text-gray-700 font-medium rounded-lg cursor-not-allowed transition"
+                                    disabled>
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Mark as Complete
+                            </button>
+                            <p class="text-sm text-gray-500 mt-2 text-center">
+                                Watch the entire video to enable this button
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Session Details -->
+                <div class="bg-white rounded-2xl shadow p-5">
+                    <h3 class="font-semibold mb-4">Session Details</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Duration</span>
+                            <span class="font-medium" th:text="${singleSession.duration + ' minutes'}">45:23</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Date</span>
+                            <span class="font-medium" th:text="${singleSession.startDate}">Nov 15, 2023</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Time</span>
+                            <span class="font-medium" th:text="${singleSession.startTime}">13:14</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Participants</span>
+                            <span class="font-medium" th:text="${singleSession.numberOfParticipants}">1</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status</span>
+                            <span class="font-medium" th:text="${singleSession.status}">Upcoming</span>
+                        </div>
+                        <div class="flex justify-between" th:if="${singleSession.hasCertificate}">
+                            <span class="text-gray-600">Certificate</span>
+                            <span class="font-medium text-green-600">Available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources -->
+                <div class="bg-white rounded-2xl shadow p-5">
+                    <h3 class="font-semibold mb-4">Resources</h3>
+                    <div class="space-y-3">
+                        <div class="text-center py-4 text-gray-500">
+                            <i class="fas fa-folder-open text-3xl mb-2"></i>
+                            <p>No resources available yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('sessionVideo');
+            const playOverlay = document.getElementById('playOverlay');
+            const markCompleteBtn = document.getElementById('markCompleteBtn');
+
+            // Show play button overlay initially
+            playOverlay.addEventListener('click', function() {
+                video.play();
+            });
+
+            // Hide overlay when playing
+            video.addEventListener('play', function() {
+                playOverlay.classList.add('hidden');
+            });
+
+            // Show overlay again when paused
+            video.addEventListener('pause', function() {
+                playOverlay.classList.remove('hidden');
+            });
+
+            // Update completion button
+            video.addEventListener('timeupdate', function() {
+                const progress = (video.currentTime / video.duration) * 100;
+                if (progress >= 95 || (video.duration - video.currentTime) < 10) {
+                    markCompleteBtn.disabled = false;
+                    markCompleteBtn.classList.remove('bg-gray-300', 'text-gray-700', 'cursor-not-allowed');
+                    markCompleteBtn.classList.add('bg-green-500', 'text-white', 'hover:bg-green-600', 'cursor-pointer');
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

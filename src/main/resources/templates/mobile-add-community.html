@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Community - Connect</title>
+    <style>
+        .add-community-header {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(42, 36, 148, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-community-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(42, 36, 148, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+        }
+
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px #2A2494;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+        }
+
+        .toggle-info {
+            flex: 1;
+            margin-right: 16px;
+        }
+
+        .toggle-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .toggle-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
+
+            .form-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            .toggle-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .toggle-info {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <div class="add-community-header">
+        <div class="header-content">
+            <button class="back-btn" onclick="window.location.href='/mobile/organizations'">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div>
+                <h1 class="text-xl font-bold mb-1">Create Community</h1>
+                <p class="opacity-90 text-sm">Set up a new community for your organization</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        <div id="error-message" class="error-message" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <form id="community-form" th:action="@{/mobile/add-community}" method="post">
+            <!-- Community Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <div class="section-icon">
+                        <span class="material-icons text-sm">business</span>
+                    </div>
+                    Community Details
+                </h2>
+
+                <div class="form-group">
+                    <label for="communityName" class="form-label">Community Name *</label>
+                    <input type="text"
+                           id="communityName"
+                           name="communityName"
+                           class="form-input"
+                           placeholder="Enter community name"
+                           th:value="${communityName}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="communityDescription" class="form-label">Community Description *</label>
+                    <textarea id="communityDescription"
+                              name="communityDescription"
+                              class="form-input form-textarea"
+                              placeholder="Describe what this community is about"
+                              th:text="${communityDescription}"
+                              required></textarea>
+                </div>
+            </div>
+
+            <!-- Privacy Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <div class="section-icon">
+                        <span class="material-icons text-sm">lock</span>
+                    </div>
+                    Privacy Settings
+                </h2>
+
+                <div class="toggle-group">
+                    <div class="toggle-info">
+                        <div class="toggle-title">Private Community</div>
+                        <div class="toggle-description">
+                            Private communities are invitation-only and won't appear in suggested communities for other users.
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="isPrivate" name="isPrivate" th:checked="${isPrivate}">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">
+                <span class="material-icons text-sm">add</span>
+                <span>Create Community</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('community-form').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submit-btn');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Hide previous messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="material-icons text-sm">hourglass_empty</span><span>Creating...</span>';
+
+            // Validate form
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#dc2626';
+                } else {
+                    field.style.borderColor = '#e5e7eb';
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                errorMessage.textContent = 'Please fill in all required fields.';
+                errorMessage.style.display = 'block';
+
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="material-icons text-sm">add</span><span>Create Community</span>';
+
+                // Scroll to error
+                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        // Real-time validation
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.hasAttribute('required') && !this.value.trim()) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '#e5e7eb';
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.style.borderColor === 'rgb(220, 38, 38)' && this.value.trim()) {
+                    this.style.borderColor = '#e5e7eb';
+                }
+            });
+        });
+
+        // Toggle switch animation
+        document.getElementById('isPrivate').addEventListener('change', function() {
+            const description = this.closest('.toggle-group').querySelector('.toggle-description');
+            if (this.checked) {
+                description.textContent = 'This community will be private and invitation-only. Only invited users can join.';
+            } else {
+                description.textContent = 'This community will be public and appear in suggested communities for other users.';
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

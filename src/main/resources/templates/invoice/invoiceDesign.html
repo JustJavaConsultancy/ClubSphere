@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Designer - Professional Template Builder</title>
+    <!-- Include Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563EB;
+            --primary-hover: #1D4ED8;
+            --secondary-color: #6B7280;
+            --secondary-hover: #4B5563;
+            --success-color: #10B981;
+            --success-hover: #059669;
+            --warning-color: #F59E0B;
+            --warning-hover: #D97706;
+            --danger-color: #EF4444;
+            --danger-hover: #DC2626;
+            --card-bg: #FFFFFF;
+            --sidebar-bg: #F8FAFC;
+            --border-color: #E5E7EB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --radius-sm: 6px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .designer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            clear: both;
+        }
+
+        /* Header Row */
+        .header-row {
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .header-content {
+            float: left;
+            width: 50%;
+        }
+
+        .header-content h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .header-content h1 .material-icons {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.75rem;
+        }
+
+        .header-content p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            clear: both;
+        }
+
+        .header-actions {
+            float: right;
+            width: 50%;
+            text-align: right;
+        }
+
+        .header-actions .btn {
+            display: inline-block;
+            margin-left: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-actions .btn:first-child {
+            margin-left: 0;
+        }
+
+        /* Main Content Grid */
+        .main-content-grid {
+            margin-bottom: 30px;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        .main-content-grid:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* Design Controls Section */
+        .design-controls-section,
+        .preview-section {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            height: auto;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .design-controls-section {
+            float: left;
+            width: 48.5%;
+            margin-right: 3%;
+        }
+
+        .preview-section {
+            float: left;
+            width: 48.5%;
+        }
+
+        /* Section Header */
+        .section-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .section-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            float: left;
+        }
+
+        .section-header h3 .material-icons {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .section-header .status-badge,
+        .section-header .preview-actions {
+            float: right;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            height: calc(100% - 65px);
+            overflow-y: auto;
+        }
+
+        /* Preview Content */
+        .preview-content {
+            padding: 1.5rem;
+            height: calc(100% - 65px);
+            overflow-y: auto;
+            background: linear-gradient(45deg, #fafafa 25%, transparent 25%),
+                        linear-gradient(-45deg, #fafafa 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #fafafa 75%),
+                        linear-gradient(-45deg, transparent 75%, #fafafa 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            text-align: center;
+        }
+
+        /* Form Rows */
+        .form-rows {
+            clear: both;
+        }
+
+        .form-row {
+            background: var(--sidebar-bg);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-row-header {
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .form-row-header h4 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .form-row-header h4 .material-icons {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .form-row-content {
+            overflow: hidden;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1rem;
+            clear: both;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            background-color: #FFFFFF;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9375rem;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn .material-icons {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background-color: var(--success-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+
+        .btn-warning:hover {
+            background-color: var(--warning-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        /* Color Picker Row */
+        .color-picker-row {
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .color-picker {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            display: inline-block;
+            margin: 0 0.5rem 0.5rem;
+        }
+
+        .color-picker:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-md);
+        }
+
+        .color-picker.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), var(--shadow-md);
+        }
+
+        /* Template Grid Row */
+        .template-grid-row {
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .template-card {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            background: white;
+            text-align: center;
+            float: left;
+            width: 48%;
+            margin: 1%;
+        }
+
+        .template-card:nth-child(odd) {
+            margin-left: 0;
+        }
+
+        .template-card:nth-child(even) {
+            margin-right: 0;
+        }
+
+        .template-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .template-card.active {
+            border-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .template-preview {
+            height: 60px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        /* Toggle Row */
+        .toggle-row {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-row span {
+            float: left;
+        }
+
+        .toggle-switch {
+            float: right;
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #D1D5DB;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Logo Upload Row */
+        .logo-upload-row {
+            clear: both;
+        }
+
+        .logo-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: white;
+            margin-bottom: 1rem;
+        }
+
+        .logo-upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .logo-upload-area.dragover {
+            border-color: var(--success-color);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .logo-upload-area div {
+            text-align: center;
+        }
+
+        .logo-upload-area .material-icons {
+            display: block;
+            margin: 0 auto 0.5rem;
+        }
+
+        .logo-preview {
+            text-align: center;
+            display: none;
+        }
+
+        .logo-preview.active {
+            display: block;
+        }
+
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            display: inline-block;
+        }
+
+        .logo-actions {
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .logo-actions .btn {
+            display: inline-block;
+            margin: 0 0.25rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Invoice Preview */
+        .invoice-preview {
+            background: white;
+            border: 1px solid #E5E7EB;
+            width: 100%;
+            max-width: 800px;
+            min-height: 500px;
+            animation: fadeIn 0.3s ease-out;
+            display: inline-block;
+            text-align: left;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Preview Actions */
+        .preview-actions {
+            display: inline-block;
+        }
+
+        .preview-actions .btn {
+            margin-left: 0.5rem;
+        }
+
+        /* Actions Row */
+        .actions-row {
+            margin-top: 2rem;
+            overflow: hidden;
+        }
+
+        .actions-row .btn {
+            float: left;
+            width: 48%;
+            margin: 1%;
+            box-sizing: border-box;
+        }
+
+        .actions-row .btn:nth-child(odd) {
+            margin-left: 0;
+        }
+
+        .actions-row .btn:nth-child(even) {
+            margin-right: 0;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            color: white;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification .material-icons {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.75rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .section-content::-webkit-scrollbar,
+        .preview-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .section-content::-webkit-scrollbar-track,
+        .preview-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .section-content::-webkit-scrollbar-thumb,
+        .preview-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .section-content::-webkit-scrollbar-thumb:hover,
+        .preview-content::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1024px) {
+            .design-controls-section,
+            .preview-section {
+                float: none;
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .header-row {
+                padding: 1rem;
+            }
+
+            .header-content,
+            .header-actions {
+                float: none;
+                width: 100%;
+                text-align: left;
+            }
+
+            .header-actions {
+                margin-top: 1rem;
+            }
+
+            .header-actions .btn {
+                display: block;
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .header-actions .btn:first-child {
+                margin-top: 0;
+            }
+
+            .template-card {
+                float: none;
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .actions-row .btn {
+                float: none;
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section-header h3,
+            .section-header .preview-actions,
+            .section-header .status-badge {
+                float: none;
+                display: block;
+                width: 100%;
+                text-align: left;
+                margin-bottom: 0.5rem;
+            }
+
+            .section-header .preview-actions {
+                text-align: center;
+            }
+
+            .preview-actions .btn {
+                display: inline-block;
+                margin: 0.25rem;
+            }
+
+            .color-picker {
+                margin: 0.25rem;
+            }
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 0.75rem;
+            background: var(--success-color);
+            color: white;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge .material-icons {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        /* Help Text */
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Form Control Row */
+        .form-control-row {
+            overflow: hidden;
+        }
+
+        .form-control-row .form-group {
+            float: left;
+            width: 48%;
+            margin-right: 4%;
+        }
+
+        .form-control-row .form-group:nth-child(even) {
+            margin-right: 0;
+        }
+
+        /* Clear fix */
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header Row -->
+    <div class="header-row clearfix">
+        <div class="header-content">
+            <h1>
+                <span class="material-icons" style="color: var(--primary-color);">design_services</span>
+                Invoice Designer
+            </h1>
+            <p>Create professional invoice templates with real-time preview</p>
+        </div>
+        <div class="header-actions">
+            <a th:href="@{/invoice/create}" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span>
+                Back to Invoice
+            </a>
+            <button onclick="saveDesign()" class="btn btn-success">
+                <span class="material-icons">save</span>
+                Save Design
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-content-grid">
+        <!-- Left Column - Design Controls -->
+        <div class="design-controls-section">
+            <div class="section-header clearfix">
+                <h3>
+                    <span class="material-icons">settings</span>
+                    Design Controls
+                </h3>
+                <span class="status-badge">
+                    <span class="material-icons">check_circle</span>
+                    Active
+                </span>
+            </div>
+            <div class="section-content">
+                <div class="form-rows">
+                    <!-- Template Name Row -->
+                    <div class="form-row">
+                        <div class="form-row-header">
+                            <h4>
+                                <span class="material-icons">title</span>
+                                Template Name
+                            </h4>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="templateName" class="form-input"
+                                   placeholder="My Professional Template"
+                                   value="My Custom Template" oninput="updatePreview()">
+                            <div class="help-text">Name your template for easy identification</div>
+                        </div>
+                    </div>
+
+                    <!-- Logo Upload Row -->
+                    <div class="form-row">
+                        <div class="form-row-header">
+                            <h4>
+                                <span class="material-icons">image</span>
+                                Company Logo
+                            </h4>
+                        </div>
+                        <div class="logo-upload-row">
+                            <div class="logo-upload-area" id="logoUploadArea" onclick="document.getElementById('logoFile').click()">
+                                <div>
+                                    <span class="material-icons" style="color: var(--text-secondary); font-size: 2.5rem;">add_photo_alternate</span>
+                                    <p style="color: var(--text-secondary); margin: 0.5rem 0;">Click to upload logo</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0;">PNG, JPG up to 2MB</p>
+                                </div>
+                            </div>
+                            <input type="file" id="logoFile" class="file-input" accept="image/png, image/jpeg, image/jpg" onchange="handleLogoUpload(event)">
+
+                            <div id="logoPreview" class="logo-preview">
+                                <img id="logoImage" src="" alt="Company Logo">
+                                <div class="logo-actions">
+                                    <button onclick="changeLogo()" class="btn btn-warning btn-sm">
+                                        <span class="material-icons">edit</span>
+                                        Change
+                                    </button>
+                                    <button onclick="removeLogo()" class="btn btn-danger btn-sm">
+                                        <span class="material-icons">delete</span>
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color Scheme Row -->
+                    <div class="form-row">
+                        <div class="form-row-header">
+                            <h4>
+                                <span class="material-icons">palette</span>
+                                Color Scheme
+                            </h4>
+                        </div>
+                        <div class="color-picker-row">
+                            <div class="color-picker" style="background-color: #2563EB;" onclick="setColor('blue')" data-color="blue" title="Blue"></div>
+                            <div class="color-picker" style="background-color: #10B981;" onclick="setColor('green')" data-color="green" title="Green"></div>
+                            <div class="color-picker" style="background-color: #8B5CF6;" onclick="setColor('purple')" data-color="purple" title="Purple"></div>
+                            <div class="color-picker" style="background-color: #EF4444;" onclick="setColor('red')" data-color="red" title="Red"></div>
+                            <div class="color-picker" style="background-color: #1F2937;" onclick="setColor('dark')" data-color="dark" title="Dark"></div>
+                        </div>
+                    </div>
+
+                    <!-- Template Style Row -->
+                    <div class="form-row">
+                        <div class="form-row-header">
+                            <h4>
+                                <span class="material-icons">style</span>
+                                Template Style
+                            </h4>
+                        </div>
+                        <div class="template-grid-row clearfix">
+                            <div class="template-card active" onclick="setTemplate('modern')">
+                                <div class="template-preview" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);"></div>
+                                <p class="template-name">Modern</p>
+                            </div>
+                            <div class="template-card" onclick="setTemplate('classic')">
+                                <div class="template-preview" style="background: linear-gradient(135deg, #374151 0%, #1F2937 100%);"></div>
+                                <p class="template-name">Classic</p>
+                            </div>
+                            <div class="template-card" onclick="setTemplate('minimal')">
+                                <div class="template-preview" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);"></div>
+                                <p class="template-name">Minimal</p>
+                            </div>
+                            <div class="template-card" onclick="setTemplate('corporate')">
+                                <div class="template-preview" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);"></div>
+                                <p class="template-name">Corporate</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout Options Row -->
+                    <div class="form-row">
+                        <div class="form-row-header">
+                            <h4>
+                                <span class="material-icons">tune</span>
+                                Layout Options
+                            </h4>
+                        </div>
+                        <div class="form-control-row">
+                            <div class="form-group">
+                                <div class="toggle-row clearfix">
+                                    <span>Show Company Logo</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="showLogo" checked onchange="updatePreview()">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-row clearfix">
+                                    <span>Show Tax Information</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="showTax" checked onchange="updatePreview()">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="toggle-row clearfix">
+                                    <span>Show Payment Terms</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="showTerms" checked onchange="updatePreview()">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-row clearfix">
+                                    <span>Show Notes Section</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="showNotes" onchange="updatePreview()">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Live Preview -->
+        <div class="preview-section">
+            <div class="section-header clearfix">
+                <h3>
+                    <span class="material-icons">visibility</span>
+                    Live Preview
+                </h3>
+                <div class="preview-actions">
+                    <button onclick="refreshPreview()" class="btn btn-secondary btn-sm">
+                        <span class="material-icons">refresh</span>
+                        Refresh
+                    </button>
+                    <button onclick="exportTemplate()" class="btn btn-primary btn-sm">
+                        <span class="material-icons">download</span>
+                        Export
+                    </button>
+                    <button onclick="showPreviewInNewWindow()" class="btn btn-success btn-sm">
+                        <span class="material-icons">open_in_new</span>
+                        Full Screen
+                    </button>
+                </div>
+            </div>
+            <div class="preview-content">
+                <div id="invoicePreview" class="invoice-preview">
+                    <!-- Preview will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Details Row -->
+    <div class="design-controls-section">
+        <div class="section-header">
+            <h3>
+                <span class="material-icons">business</span>
+                Company & Invoice Details
+            </h3>
+        </div>
+        <div class="section-content">
+            <div class="form-rows">
+                <!-- Company Information Row -->
+                <div class="form-row">
+                    <div class="form-row-header">
+                        <h4>
+                            <span class="material-icons">account_balance</span>
+                            Company Information
+                        </h4>
+                    </div>
+                    <div class="form-row-content">
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" id="companyName" class="form-input"
+                                   placeholder="Your Company Name" value="Acme Corporation"
+                                   oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company Email</label>
+                            <input type="email" id="companyEmail" class="form-input"
+                                   placeholder="hello@company.com" value="contact@acme.com"
+                                   oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company Phone</label>
+                            <input type="tel" id="companyPhone" class="form-input"
+                                   placeholder="+1 (555) 123-4567" value="+1 (234) 567-8900"
+                                   oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company Address</label>
+                            <textarea id="companyAddress" class="form-input form-textarea"
+                                      placeholder="123 Business Street, City, State"
+                                      oninput="updatePreview()" style="min-height: 80px;">123 Business Street, Ikeja, Lagos</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Defaults Row -->
+                <div class="form-row">
+                    <div class="form-row-header">
+                        <h4>
+                            <span class="material-icons">receipt_long</span>
+                            Invoice Defaults
+                        </h4>
+                    </div>
+                    <div class="form-row-content">
+                        <div class="form-group">
+                            <label class="form-label">Default Tax Rate (%)</label>
+                            <input type="number" id="defaultTax" class="form-input"
+                                   value="7.5" min="0" max="100" step="0.1"
+                                   oninput="updatePreview()">
+                            <div class="help-text">Tax rate applied to all invoices</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Invoice Number Prefix</label>
+                            <input type="text" id="invoicePrefix" class="form-input"
+                                   value="INV" placeholder="INV"
+                                   oninput="updatePreview()">
+                            <div class="help-text">e.g., INV-2024-001</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payment Terms</label>
+                            <textarea id="paymentTerms" class="form-input form-textarea"
+                                      placeholder="Net 30 days. Payment due within 30 days."
+                                      oninput="updatePreview()" style="min-height: 80px;">Net 30 days. Payment due within 30 days of invoice date.</textarea>
+                            <div class="help-text">Displayed on all invoices</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Row -->
+                <div class="form-row">
+                    <div class="form-row-header">
+                        <h4>
+                            <span class="material-icons">bolt</span>
+                            Quick Actions
+                        </h4>
+                    </div>
+                    <div class="actions-row clearfix">
+                        <button onclick="saveTemplate()" class="btn btn-success btn-block">
+                            <span class="material-icons">save</span>
+                            Save Template (Local)
+                        </button>
+                        <button onclick="resetDesign()" class="btn btn-secondary btn-block">
+                            <span class="material-icons">restart_alt</span>
+                            Reset Design
+                        </button>
+                        <button onclick="loadSampleData()" class="btn btn-warning btn-block">
+                            <span class="material-icons">visibility</span>
+                            Load Sample Data
+                        </button>
+                        <button onclick="clearAll()" class="btn btn-danger btn-block">
+                            <span class="material-icons">delete</span>
+                            Clear All Fields
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simplified Form for Saving Design -->
+    <form id="saveDesignForm" action="/invoice/design" method="POST" style="display: none;">
+        <input type="hidden" id="designName" name="designName">
+        <input type="hidden" id="invoiceHtml" name="invoiceHtml">
+    </form>
+
+    <script>
+        // Design Configuration
+        const designConfig = {
+            id: Date.now().toString(),
+            name: 'My Custom Template',
+            color: 'blue',
+            template: 'modern',
+            showLogo: true,
+            showTax: true,
+            showTerms: true,
+            showNotes: false,
+            logoUrl: null,
+            logoFile: null,
+            companyName: 'Acme Corporation',
+            companyEmail: 'contact@acme.com',
+            companyPhone: '+1 (234) 567-8900',
+            companyAddress: '123 Business Street, Ikeja, Lagos',
+            defaultTax: 7.5,
+            paymentTerms: 'Net 30 days. Payment due within 30 days of invoice date.',
+            invoicePrefix: 'INV',
+            createdAt: new Date().toISOString()
+        };
+
+        // Initialize the designer
+        document.addEventListener('DOMContentLoaded', function() {
+            setupLogoUpload();
+            initializeColorPicker();
+            initializeTemplateCards();
+            updatePreview();
+            showNotification('Invoice Designer loaded successfully!', 'success');
+        });
+
+        // Set up logo upload functionality
+        function setupLogoUpload() {
+            const uploadArea = document.getElementById('logoUploadArea');
+            const fileInput = document.getElementById('logoFile');
+
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleLogoFile(files[0]);
+                }
+            });
+        }
+
+        function initializeColorPicker() {
+            const colorPickers = document.querySelectorAll('.color-picker');
+            colorPickers.forEach(picker => {
+                if (picker.dataset.color === designConfig.color) {
+                    picker.classList.add('active');
+                }
+            });
+        }
+
+        function initializeTemplateCards() {
+            const templateCards = document.querySelectorAll('.template-card');
+            templateCards.forEach(card => {
+                if (card.onclick && card.onclick.toString().includes(`'${designConfig.template}'`)) {
+                    card.classList.add('active');
+                }
+            });
+        }
+
+        // Handle logo upload from file input
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleLogoFile(file);
+            }
+        }
+
+        // Process logo file
+        function handleLogoFile(file) {
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Please upload a PNG or JPG image', 'error');
+                return;
+            }
+
+            // Validate file size (2MB max)
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showNotification('Image must be less than 2MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const logoUrl = e.target.result;
+                designConfig.logoUrl = logoUrl;
+                designConfig.logoFile = file;
+                updateLogoPreview(logoUrl);
+                updatePreview();
+                showNotification('Logo uploaded successfully!', 'success');
+            };
+
+            reader.onerror = function() {
+                showNotification('Error reading file. Please try again.', 'error');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Update logo preview
+        function updateLogoPreview(logoUrl) {
+            const logoPreview = document.getElementById('logoPreview');
+            const logoImage = document.getElementById('logoImage');
+            logoImage.src = logoUrl;
+            logoPreview.classList.add('active');
+        }
+
+        function changeLogo() {
+            document.getElementById('logoFile').click();
+        }
+
+        function removeLogo() {
+            designConfig.logoUrl = null;
+            designConfig.logoFile = null;
+            const logoPreview = document.getElementById('logoPreview');
+            logoPreview.classList.remove('active');
+            document.getElementById('logoFile').value = '';
+            updatePreview();
+            showNotification('Logo removed', 'info');
+        }
+
+        function setColor(color) {
+            designConfig.color = color;
+            document.querySelectorAll('.color-picker').forEach(picker => {
+                picker.classList.remove('active');
+                if (picker.dataset.color === color) {
+                    picker.classList.add('active');
+                }
+            });
+            updatePreview();
+        }
+
+        function setTemplate(template) {
+            designConfig.template = template;
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Apply template presets
+            const colorMap = {
+                'modern': 'blue',
+                'classic': 'dark',
+                'minimal': 'green',
+                'corporate': 'purple'
+            };
+
+            if (colorMap[template]) {
+                setColor(colorMap[template]);
+            }
+            updatePreview();
+        }
+
+        function saveTemplate() {
+            updateDesignConfigFromUI();
+            let templates = JSON.parse(localStorage.getItem('invoiceTemplates') || '[]');
+            const existingIndex = templates.findIndex(t => t.id === designConfig.id);
+
+            if (existingIndex >= 0) {
+                templates[existingIndex] = {...designConfig};
+            } else {
+                designConfig.id = Date.now().toString();
+                templates.unshift({...designConfig});
+            }
+
+            localStorage.setItem('invoiceTemplates', JSON.stringify(templates));
+            showNotification(`Template "${designConfig.name}" saved locally!`, 'success');
+        }
+
+        function saveDesign() {
+            // Get the design name from the template name input
+            const designName = document.getElementById('templateName').value.trim();
+
+            if (!designName) {
+                showNotification('Please enter a design name', 'error');
+                return;
+            }
+
+            // Get the current HTML preview
+            const invoiceHtml = document.getElementById('invoicePreview').innerHTML;
+
+            if (!invoiceHtml || invoiceHtml.trim() === '') {
+                showNotification('No preview content to save', 'error');
+                return;
+            }
+
+            // Set the form values
+            document.getElementById('designName').value = designName;
+            document.getElementById('invoiceHtml').value = invoiceHtml;
+
+            // Show notification
+            showNotification('Saving design to server...', 'info');
+
+            // Submit the form immediately
+            document.getElementById('saveDesignForm').submit();
+        }
+
+        function resetDesign() {
+            if (!confirm('Reset all design settings to default?')) return;
+
+            designConfig.name = 'My Custom Template';
+            designConfig.color = 'blue';
+            designConfig.template = 'modern';
+            designConfig.showLogo = true;
+            designConfig.showTax = true;
+            designConfig.showTerms = true;
+            designConfig.showNotes = false;
+            designConfig.logoUrl = null;
+            designConfig.logoFile = null;
+            designConfig.companyName = 'Acme Corporation';
+            designConfig.companyEmail = 'contact@acme.com';
+            designConfig.companyPhone = '+1 (234) 567-8900';
+            designConfig.companyAddress = '123 Business Street, Ikeja, Lagos';
+            designConfig.defaultTax = 7.5;
+            designConfig.paymentTerms = 'Net 30 days. Payment due within 30 days of invoice date.';
+            designConfig.invoicePrefix = 'INV';
+
+            // Update UI
+            document.getElementById('templateName').value = designConfig.name;
+            document.getElementById('companyName').value = designConfig.companyName;
+            document.getElementById('companyEmail').value = designConfig.companyEmail;
+            document.getElementById('companyPhone').value = designConfig.companyPhone;
+            document.getElementById('companyAddress').value = designConfig.companyAddress;
+            document.getElementById('defaultTax').value = designConfig.defaultTax;
+            document.getElementById('paymentTerms').value = designConfig.paymentTerms;
+            document.getElementById('invoicePrefix').value = designConfig.invoicePrefix;
+            document.getElementById('showLogo').checked = designConfig.showLogo;
+            document.getElementById('showTax').checked = designConfig.showTax;
+            document.getElementById('showTerms').checked = designConfig.showTerms;
+            document.getElementById('showNotes').checked = designConfig.showNotes;
+
+            initializeColorPicker();
+            initializeTemplateCards();
+
+            const logoPreview = document.getElementById('logoPreview');
+            logoPreview.classList.remove('active');
+            document.getElementById('logoFile').value = '';
+
+            updatePreview();
+            showNotification('Design reset to default', 'info');
+        }
+
+        function exportTemplate() {
+            updateDesignConfigFromUI();
+            const templateData = {
+                ...designConfig,
+                exportedAt: new Date().toISOString(),
+                version: '1.0'
+            };
+
+            const dataStr = JSON.stringify(templateData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `${designConfig.name.replace(/\s+/g, '_')}_template.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+
+            showNotification('Template exported successfully', 'success');
+        }
+
+        function updateDesignConfigFromUI() {
+            designConfig.name = document.getElementById('templateName').value;
+            designConfig.companyName = document.getElementById('companyName').value;
+            designConfig.companyEmail = document.getElementById('companyEmail').value;
+            designConfig.companyPhone = document.getElementById('companyPhone').value;
+            designConfig.companyAddress = document.getElementById('companyAddress').value;
+            designConfig.defaultTax = parseFloat(document.getElementById('defaultTax').value) || 7.5;
+            designConfig.paymentTerms = document.getElementById('paymentTerms').value;
+            designConfig.invoicePrefix = document.getElementById('invoicePrefix').value;
+            designConfig.showLogo = document.getElementById('showLogo').checked;
+            designConfig.showTax = document.getElementById('showTax').checked;
+            designConfig.showTerms = document.getElementById('showTerms').checked;
+            designConfig.showNotes = document.getElementById('showNotes').checked;
+            designConfig.createdAt = new Date().toISOString();
+        }
+
+        function updatePreview() {
+            updateDesignConfigFromUI();
+
+            const colorMap = {
+                blue: { primary: '#2563EB', light: '#DBEAFE' },
+                green: { primary: '#10B981', light: '#D1FAE5' },
+                purple: { primary: '#8B5CF6', light: '#EDE9FE' },
+                red: { primary: '#EF4444', light: '#FEE2E2' },
+                dark: { primary: '#1F2937', light: '#F3F4F6' }
+            };
+
+            const colors = colorMap[designConfig.color] || colorMap.blue;
+            const invoiceNumber = `${designConfig.invoicePrefix}-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
+            // ADDED: Rounded border and shadow styling to the existing structure
+            const previewHTML = `
+                <div style="font-family: 'Inter', sans-serif; padding: 1.5rem;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #E5E7EB;
+                    background: white;">
+                    <!-- Header -->
+                    <div style="display: block; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid ${colors.primary};">
+                        <div style="float: left; width: 70%;">
+                            <h1 style="color: ${colors.primary}; font-size: 1.5rem; font-weight: 700; margin: 0 0 0.25rem 0;">INVOICE</h1>
+                            <div style="color: #6B7280; font-size: 0.8125rem;">
+                                <div id="receiptInvoiceNumber"><strong>#:</strong> ${invoiceNumber}</div>
+                                <div id="receiptCreatedDate"><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+                                <div id="receiptDueDate"><strong>Due:</strong> ${new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+
+                        ${designConfig.showLogo && designConfig.logoUrl ? `
+                        <div style="float: right; width: 70px; height: 70px; text-align: center;">
+                            <img src="${designConfig.logoUrl}" alt="${designConfig.companyName} Logo"
+                                 style="max-width: 100%; max-height: 100%; display: inline-block; border-radius: 4px;">
+                        </div>` : designConfig.showLogo ? `
+                        <div style="float: right; width: 70px; height: 70px; background: ${colors.primary}; border-radius: 6px; text-align: center; color: white; font-weight: 700; font-size: 1.25rem; line-height: 70px;">
+                            ${designConfig.companyName.charAt(0)}
+                        </div>` : ''}
+                        <div style="clear: both;"></div>
+                    </div>
+
+                    <!-- Company Info -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="float: left; width: 48%; margin-right: 4%;">
+                            <h3 style="color: ${colors.primary}; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem;">FROM</h3>
+                            <div style="font-size: 0.8125rem; line-height: 1.4;">
+                                <div style="font-weight: 600;">${designConfig.companyName}</div>
+                                <div>${designConfig.companyAddress}</div>
+                                <div>${designConfig.companyEmail}</div>
+                                <div>${designConfig.companyPhone}</div>
+                            </div>
+                        </div>
+
+                        <div style="float: left; width: 48%;">
+                            <h3 style="color: ${colors.primary}; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem;">BILL TO</h3>
+                            <div style="font-size: 0.8125rem; line-height: 1.4;">
+                                <div id="receiptClientName" style="font-weight: 600;">Client Name</div>
+                                <div id="receiptClientAddress">123 Client Street, City</div>
+                                <div id="receiptClientEmail">client@email.com</div>
+                                <div id="receiptClientPhone">(555) 123-4567</div>
+                            </div>
+                        </div>
+                        <div style="clear: both;"></div>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: ${colors.light};">
+                                    <th style="text-align: left; padding: 0.625rem; font-size: 0.8125rem; font-weight: 600; color: ${colors.primary};">DESCRIPTION</th>
+                                    <th style="text-align: right; padding: 0.625rem; font-size: 0.8125rem; font-weight: 600; color: ${colors.primary};">AMOUNT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="receiptDescription" style="padding: 0.75rem; border-bottom: 1px solid #E5E7EB; font-size: 0.8125rem;">Professional Services</td>
+                                    <td id="receiptAmount" style="padding: 0.75rem; border-bottom: 1px solid #E5E7EB; text-align: right; font-weight: 600; font-size: 0.8125rem;">₦1,500.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals -->
+                    <div style="float: right; width: 220px;">
+                        <div style="background-color: ${colors.light}; padding: 0.75rem; border-radius: 6px;">
+                            <div style="margin-bottom: 0.5rem; font-size: 0.8125rem; overflow: hidden;">
+                                <span style="float: left;">Subtotal:</span>
+                                <span id="receiptSubTotal" style="float: right;">₦2,250.00</span>
+                            </div>
+                            <div style="overflow: hidden; font-weight: 700; font-size: 0.9375rem; color: ${colors.primary}; padding-top: 0.5rem; border-top: 1px solid ${colors.primary};">
+                                <span style="float: left;">Total:</span>
+                                <span id="receiptTotal" style="float: right;">₦2,418.75</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+            `;
+
+            document.getElementById('invoicePreview').innerHTML = previewHTML;
+        }
+
+        function refreshPreview() {
+            updatePreview();
+            showNotification('Preview refreshed', 'info');
+        }
+
+        function showPreviewInNewWindow() {
+            const previewContent = document.getElementById('invoicePreview').innerHTML;
+            const newWindow = window.open();
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Invoice Preview</title>
+                    <style>
+                        body { font-family: 'Inter', sans-serif; padding: 2rem; background: #f9fafb; }
+                        .invoice-container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border: 1px solid #E5E7EB; }
+                    </style>
+                </head>
+                <body>
+                    <div class="invoice-container">${previewContent}</div>
+                </body>
+                </html>
+            `);
+            newWindow.document.close();
+        }
+
+        function loadSampleData() {
+            if (!confirm('Load sample invoice data? This will overwrite current settings.')) return;
+
+            designConfig.companyName = 'Tech Solutions Inc.';
+            designConfig.companyEmail = 'info@techsolutions.com';
+            designConfig.companyPhone = '+1 (800) 123-4567';
+            designConfig.companyAddress = '456 Innovation Drive, Silicon Valley, CA';
+            designConfig.defaultTax = 8.5;
+            designConfig.paymentTerms = 'Net 15 days. Late payments subject to 1.5% monthly interest.';
+            designConfig.invoicePrefix = 'TSI';
+
+            // Update UI
+            document.getElementById('companyName').value = designConfig.companyName;
+            document.getElementById('companyEmail').value = designConfig.companyEmail;
+            document.getElementById('companyPhone').value = designConfig.companyPhone;
+            document.getElementById('companyAddress').value = designConfig.companyAddress;
+            document.getElementById('defaultTax').value = designConfig.defaultTax;
+            document.getElementById('paymentTerms').value = designConfig.paymentTerms;
+            document.getElementById('invoicePrefix').value = designConfig.invoicePrefix;
+
+            updatePreview();
+            showNotification('Sample data loaded successfully!', 'success');
+        }
+
+        function clearAll() {
+            if (!confirm('Clear all fields and reset to blank template?')) return;
+
+            designConfig.name = '';
+            designConfig.companyName = '';
+            designConfig.companyEmail = '';
+            designConfig.companyPhone = '';
+            designConfig.companyAddress = '';
+            designConfig.defaultTax = 0;
+            designConfig.paymentTerms = '';
+            designConfig.invoicePrefix = '';
+
+            // Update UI
+            document.getElementById('templateName').value = '';
+            document.getElementById('companyName').value = '';
+            document.getElementById('companyEmail').value = '';
+            document.getElementById('companyPhone').value = '';
+            document.getElementById('companyAddress').value = '';
+            document.getElementById('defaultTax').value = 0;
+            document.getElementById('paymentTerms').value = '';
+            document.getElementById('invoicePrefix').value = '';
+
+            updatePreview();
+            showNotification('All fields cleared', 'info');
+        }
+
+        function showNotification(message, type) {
+            const colors = {
+                success: '#10B981',
+                info: '#3B82F6',
+                error: '#EF4444',
+                warning: '#F59E0B'
+            };
+
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.backgroundColor = colors[type] || colors.info;
+            notification.innerHTML = `
+                <span class="material-icons">${type === 'success' ? 'check_circle' :
+                  type === 'error' ? 'error' :
+                  type === 'warning' ? 'warning' : 'info'}</span>
+                ${message}
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</div>
+</body>
+</html>

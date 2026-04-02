@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="receiptModal">
+    <div class="flex justify-end">
+        <button _="on click add .hidden to #invoiceModal" class="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+    </div>
+    <!-- HEADER -->
+    <div class="gradient-bg text-white rounded-t-2xl px-8 py-2 text-center">
+        <div class="flex items-center justify-center mb-2">
+            <i class="fas fa-check-circle text-4xl mr-3"></i>
+            <h1 class="text-base font-bold">Payment Confirmed</h1>
+        </div>
+    </div>
+
+    <!-- RECEIPT BODY -->
+    <div class="bg-white receipt-shadow rounded-b-2xl px-8 py-2">
+
+        <!-- BUSINESS + RECEIPT INFO -->
+        <div class="mb-2 pb-2 border-b flex flex-col gap-2 justify-between items-start">
+            <div class="w-full flex justify-center">
+                <h2 class="text-lg text-center font-bold text-gray-800" id="businessName">
+                    TechSolutions Inc.
+                </h2>
+            </div>
+
+            <div class="text-left">
+                <div class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg inline-block">
+                    <p class="text-xs font-semibold">Receipt No.</p>
+                    <p class="text-sm font-bold" id="receiptNumber">INV-2023-0876</p>
+                </div>
+
+                <p class="text-gray-500 text-xs mt-2">
+                    Paid Date: <span id="paidDate">November 12, 2023</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- CLIENT INFO -->
+<!--        <div class="mb-2">-->
+<!--            <h3 class="text-base font-semibold text-gray-700 mb-2 flex items-center">-->
+<!--                <i class="fas fa-user-circle mr-2 text-indigo-500"></i>-->
+<!--                Client Information-->
+<!--            </h3>-->
+
+<!--            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">-->
+<!--                <div class="bg-gray-50 p-4 rounded-lg">-->
+<!--                    <p class="text-xs text-gray-500">Client Name</p>-->
+<!--                    <p class="text-base font-semibold text-gray-800" id="clientName">-->
+<!--                        Sarah Johnson-->
+<!--                    </p>-->
+<!--                </div>-->
+
+<!--                <div class="bg-gray-50 p-4 rounded-lg">-->
+<!--                    <p class="text-xs text-gray-500">Client Address</p>-->
+<!--                    <p class="text-base font-semibold text-gray-800" id="clientAddress">-->
+<!--                        456 Innovation Drive, Mountain View, CA 94043-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <!-- PAYMENT DETAILS (ONLY DESCRIPTION + AMOUNT) -->
+        <div class="mb-2">
+            <h3 class="text-base font-semibold text-gray-700 mb-4 flex items-center">
+                <i class="fas fa-receipt mr-2 text-green-500"></i>
+                Payment Details
+            </h3>
+        </div>
+
+<!--        Recipient Details-->
+        <div class="mb-2">
+            <div class="flex justify-between bg-gray-50 px-4 rounded-lg">
+                <p class="text-sm text-gray-500">Recipient Details</p>
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs font-semibold text-gray-800 text-right" id="recipientName">
+                        Jane Doe
+                    </p>
+                    <div class="flex gap-2 text-xs justify-end">
+                        <p id="recipientBank">OPAY</p>
+                        <p>|</p>
+                        <p id="recipientAccountNumber">145820900</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!--        Sender Details-->
+        <div class="mb-2">
+            <div class="flex justify-between bg-gray-50 px-4 py-2 rounded-lg">
+                <p class="text-sm text-gray-500">Sender Details</p>
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs font-semibold text-gray-800 text-right" id="senderName">
+                        John Adam
+                    </p>
+                    <div class="flex gap-2 text-xs justify-end">
+                        <p id="senderBank">OPAY</p>
+                        <p>|</p>
+                        <p id="senderAccountNumber">145820900</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!--        Remark-->
+        <div class="mb-2">
+            <div class="flex justify-between bg-gray-50 px-4 py-2 rounded-lg">
+                <p class="text-sm text-gray-500">Remark</p>
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-gray-800" id="remark">
+                        Payment for Service
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL PAID ONLY -->
+        <div class="mb-2">
+            <div class="bg-indigo-50 p-6 rounded-xl flex justify-between items-center">
+                <p class="text-sm font-bold text-gray-800">Total Paid</p>
+
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-900" id="amountPaid">
+                        $1,317.00
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="border-t pt-3 text-center text-gray-500">
+            <div class="pt-3 flex justify-end gap-4">
+                <button type="button" class="flex items-center gap-2 px-5 py-2
+                border border-gray-300 rounded-lg hover:bg-gray-500 hover:text-white" >
+                    <span class="material-icons text-base">download</span>
+                    Download
+                </button>
+                <button type="button" id="approveButton" class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2
+                    rounded-lg hover:bg-blue-700 transition">
+                    <span class="material-icons text-base">share</span>
+                    Share
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

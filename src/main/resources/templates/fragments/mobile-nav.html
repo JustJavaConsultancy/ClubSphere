@@ -1,0 +1,185 @@
+<div th:fragment="mobile-nav" xmlns:th="http://www.thymeleaf.org">
+    <!-- Mobile menu overlay -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" id="mobile-overlay"></div>
+
+    <!-- Mobile Bottom Navigation - Context Aware -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50" id="mobile-bottom-nav">
+
+        <!-- Default Navigation (Channel & Organizations) -->
+        <div th:if="${session.selectedCommunityId == null}" class="flex justify-around items-center py-1 px-2">
+            <a th:href="@{/mobile/channel}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg"
+               th:classappend="${currentPath == '/channel'} ? ' text-violet-950' : ' text-gray-500'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2h4a1 1 0 011 1v14a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1h4zM9 12l2 2 4-4" />
+                </svg>
+                <span class="text-xs font-medium">Channel</span>
+            </a>
+
+            <a th:href="@{/mobile/organizations}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg"
+               th:classappend="${currentPath == '/organizations'} ? ' text-violet-950' : ' text-gray-500'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span class="text-xs font-medium">Organizations</span>
+            </a>
+        </div>
+
+        <!-- Community-Specific Navigation -->
+        <div th:if="${session.selectedCommunityId != null}" class="flex justify-around items-center py-1 px-2">
+            <a th:href="@{/mobile/home}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg"
+               th:classappend="${currentPath == '/home'} ? ' text-violet-950' : ' text-gray-500'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-xs font-medium">Home</span>
+            </a>
+
+            <a th:href="@{/mobile/my-community}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-2 rounded-lg"
+               th:classappend="${currentPath == '/my-community'} ? ' text-violet-950' : ' text-gray-500'">
+                <span class="material-icons text-xl md:text-2xl mb-1">handshake</span>
+                <span class="text-xs font-medium">Community</span>
+            </a>
+
+            <a th:href="@{/mobile/network}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg"
+               th:classappend="${currentPath == '/network'} ? ' text-violet-950' : ' text-gray-500'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="text-xs font-medium">Network</span>
+            </a>
+
+            <a th:href="@{/mobile/messages}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg"
+               th:classappend="${currentPath == '/messages'} ? ' text-violet-950' : ' text-gray-500'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span class="text-xs font-medium">Messages</span>
+            </a>
+
+            <button type="button" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg text-gray-500" id="mobile-more-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 0 012 0zm7 0a1 1 0 11-2 0 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                </svg>
+                <span class="text-xs font-medium">More</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile More Menu Overlay -->
+    <div class="menu-backdrop fixed inset-0 bg-black bg-opacity-30 z-40 hidden" id="mobile-more-overlay"></div>
+
+    <!-- Enhanced Mobile More Menu -->
+    <div class="mobile-more-menu fixed bottom-0 left-0 right-0 bg-white z-50" id="mobile-more-menu">
+        <!-- Handle Bar -->
+        <div class="pt-3">
+            <div class="menu-handle"></div>
+        </div>
+
+        <div class="px-6 pb-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">More Options</h3>
+                    <p class="text-sm text-gray-500 mt-1">Quick access to all features</p>
+                </div>
+                <button type="button" class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200" id="close-more-menu">
+                    <span class="material-icons text-gray-500">close</span>
+                </button>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <!-- Back to Organizations (only show when in mycommunity context) -->
+                <div th:if="${session.selectedCommunityId != null}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200" onclick="backToOrganizations()">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation">
+                        <span class="material-icons text-white text-xl">arrow_back</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Back</span>
+                    <span class="text-xs text-gray-500 mt-1">Organizations</span>
+                </div>
+
+                <a th:if="${session.isAdmin}" th:href="@{/mobile/admin/dashboard}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation">
+                        <span class="material-icons text-white text-xl">dashboard</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Dashboard</span>
+                    <span class="text-xs text-gray-500 mt-1">Admin Panel</span>
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/mobile/sessions}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation">
+                        <span class="material-icons text-white text-xl">book</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Training</span>
+                    <span class="text-xs text-gray-500 mt-1">Sessions & Courses</span>
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/mobile/meetings}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.1s;">
+                        <span class="material-icons text-white text-xl">event</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Meetings</span>
+                    <span class="text-xs text-gray-500 mt-1">Schedule & Events</span>
+                </a>
+
+                <a th:href="@{/mobile/modules}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.2s;">
+                        <span class="material-icons text-white text-xl">apps</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Modules</span>
+                    <span class="text-xs text-gray-500 mt-1">Learning Content</span>
+                </a>
+
+                <a th:href="@{/mobile/gallery}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.3s;">
+                        <span class="material-icons text-white text-xl">photo_library</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Gallery</span>
+                    <span class="text-xs text-gray-500 mt-1">Photos & Media</span>
+                </a>
+
+                <a th:href="@{/products/mobile}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.4s;">
+                        <span class="material-icons text-white text-xl">storefront</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Products</span>
+                    <span class="text-xs text-gray-500 mt-1">Sell Services</span>
+                </a>
+
+                <a th:href="@{/mobile/settings}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.5s;">
+                        <span class="material-icons text-white text-xl">settings</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Settings</span>
+                    <span class="text-xs text-gray-500 mt-1">Preferences</span>
+                </a>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="user-profile-section rounded-2xl p-4">
+                <div class="flex items-center">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-2xl size-14 shadow-md mr-4 flex-shrink-0" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVTJYkmJeXP9CMr48YxMfAjo22dGH1z1_ePNdqF3gPJt2S1OZvIzYmLbF1gxxqzYkM0Rb1UI0rQXNipMnYAHu7sTVxPfm2O_ZvDE-MMratIf4GP9IfMjT9joeWeib3U71__p8L8aZf5PBRkhWKjyjy6AZG0H2s4SRwuFktvatxiAUJKX1AbVeZitBZOHGgorTfHhlSWwUTqOEgkwJdXt94nk6-kVt7SxJKuOD6veLTJHMuG-J2BZP--a7CBnoMNmwokfd1McDQdI8");'></div>
+                    <div class="flex-1">
+                        <h4 th:text="${session.loggedInUser}" class="font-semibold text-gray-800 text-base">Alex Morgan</h4>
+                        <p class="text-sm text-gray-500">Community Member</p>
+                        <div class="flex items-center mt-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-xs text-gray-600">Active now</span>
+                        </div>
+                    </div>
+                    <button class="p-2 rounded-xl hover:bg-white hover:bg-opacity-50 transition-colors">
+                        <span class="material-icons text-gray-400">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function backToOrganizations() {
+            // Clear mycommunity context and redirect to organizations
+            // This will clear the session mycommunity data
+            window.location.href = '/mobile/organizations';
+        }
+    </script>
+</div>

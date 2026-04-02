@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <title>Group - Connect</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <style>
+        /* Group page specific styles */
+        .group-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .member-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-transition {
+            transition: all 0.2s ease;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .post-header {
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .post-content {
+            padding: 16px;
+        }
+
+        .post-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .post-actions {
+            padding: 12px 16px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            gap: 16px;
+        }
+
+        .post-action-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .post-action-btn:hover {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .members-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .members-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .members-modal-content {
+            background-color: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .members-modal.active .members-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .member-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-name {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+        }
+
+        .member-email {
+            font-size: 0.875rem;
+            color: #6b7280;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .error-banner {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .error-content {
+            display: flex;
+            align-items: center;
+            color: #dc2626;
+        }
+
+        .error-content svg {
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 64px 24px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            background-color: #f3f4f6;
+            border-radius: 50%;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: #9ca3af;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-description {
+            color: #6b7280;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        /* Comment section styles */
+        .comment-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .comment-section.expanded {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comment {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 12px;
+        }
+
+        .comment-container {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .comment-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .comment-container::-webkit-scrollbar-track {
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .comment-container::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .comment-container::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Status badges for sessions/meetings */
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .coaching-card, .meeting-card {
+            position: relative;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .members-modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .modal-header {
+                padding: 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .modal-title {
+                font-size: 1.125rem;
+            }
+
+            .member-info {
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .member-name, .member-email {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            @media (max-width: 480px) {
+                .member-name, .member-email {
+                    white-space: normal;
+                    word-break: break-all;
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Members Modal -->
+    <div class="members-modal" id="members-modal">
+        <div class="members-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">All Group Members</h2>
+                <button class="modal-close" id="close-members-modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="all-members-list">
+                <!-- All members will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${error}" class="error-banner">
+        <div class="error-content">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${error}">Error message</span>
+        </div>
+    </div>
+
+    <!-- Group Header -->
+    <header class="group-header" th:if="${group != null}">
+        <div class="flex justify-between items-start">
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold mb-2" th:text="${group.groupName}">Group Name</h1>
+                <p class="opacity-90 mb-4" th:text="${group.groupDescription}">Group description</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Two column layout -->
+    <div class="flex flex-col lg:flex-row gap-6" th:if="${group != null}">
+        <!-- Left column -->
+        <div class="w-full lg:w-8/12">
+            <!-- Create post -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 card-hover">
+                <form id="post-form" enctype="multipart/form-data">
+                    <div class="flex">
+                        <!-- Profile Avatar -->
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0 shadow-md mr-3"
+                             style='background-image: url("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80");'>
+                        </div>
+
+                        <!-- Post Input -->
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-gray-600">Share something with the group</span>
+                            </div>
+                            <textarea id="post-content" name="content" placeholder="What's on your mind?"
+                                      class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      rows="3" required></textarea>
+
+                            <!-- File input (hidden) -->
+                            <input type="file" id="post-file" name="file" accept="image/*" style="display: none;">
+
+                            <!-- Buttons -->
+                            <div class="flex justify-between items-center mt-3">
+                                <div class="flex gap-3">
+                                    <!-- Upload Image Button -->
+                                    <button type="button" id="upload-btn" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+
+                                    <!-- Emoji Button -->
+                                    <button type="button" class="p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 btn-transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <!-- Submit -->
+                                <button type="submit" id="post-submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 btn-transition">
+                                    Post
+                                </button>
+                            </div>
+
+                            <!-- File preview -->
+                            <div id="file-preview" class="mt-3" style="display: none;">
+                                <div class="relative inline-block">
+                                    <img id="preview-image" src="" alt="Preview" class="max-w-xs rounded-lg">
+                                    <button type="button" id="remove-file" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Group Posts -->
+            <div id="posts-container" class="space-y-6">
+                <!-- Posts will be loaded here -->
+                <div th:if="${#lists.isEmpty(groupPosts)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 00-2-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                    </div>
+                    <h3 class="empty-state-title">No Posts Yet</h3>
+                    <p class="empty-state-description">Be the first to share something with this group!</p>
+                </div>
+
+                <!-- Existing Posts -->
+                <div th:if="${!#lists.isEmpty(groupPosts)}" th:each="post : ${groupPosts}" class="bg-white rounded-xl shadow-sm p-4 card-hover animate-fade-in" style="opacity: 1; transform: translateY(0px); transition: 0.3s;">
+                    <div class="flex justify-between items-start">
+                        <div class="flex">
+                            <div th:text="${#strings.substring(post.userFullName,0,2)}" class="avatar">AA</div>
+                            <div>
+                                <h3 th:text="${post.userFullName}" class="font-medium text-gray-800">User Name</h3>
+                                <p class="text-xs text-gray-500">
+                                    <span th:attr="data-time=${post.dateCreated}" class="time-ago"></span> · <i class="fas fa-globe-americas"></i>
+                                </p>
+                            </div>
+                        </div>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <p th:text="${post.content}" class="mt-3 text-gray-700">Post content</p>
+                    <img th:if="${post.picture != null}" th:src="'data:image/jpeg;base64,' + ${post.picture}" class="post-image" alt="Post image">
+
+                    <!-- Comment + toggle buttons -->
+                    <div class="flex justify-between mt-4 pt-4 border-t border-gray-100 text-gray-500">
+                        <button class="flex items-center hover:text-blue-600 comment-btn" th:attr="data-post=${post.postID}">
+                            <span th:text="${#lists.size(post.comments)} + ' comments'">0 comments</span>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-between mt-3 pt-3 border border-gray-100">
+                        <button class="flex items-center text-gray-500 hover:text-blue-600 flex-1 justify-center py-1 rounded-lg hover:bg-gray-100 comment-btn" th:attr="data-post=${post.postID}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 00-2-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4"></path>
+                            </svg>
+                            <span>Comment</span>
+                        </button>
+                    </div>
+
+                    <!-- Comment section for each post -->
+                    <div class="comment-section mt-4" th:id="'comments-' + ${post.postID}">
+                        <div th:id="${'comments' + post.postID}" class="comment-container space-y-4">
+                            <div th:each="comment : ${post.comments}" class="flex comment">
+                                <div th:text="${#strings.substring(comment.senderFullName,0,2)}" class="avatar">AA</div>
+                                <div class="flex-1">
+                                    <h4 th:text="${comment.senderFullName}" class="font-medium text-gray-800">User Name</h4>
+                                    <p th:text="${comment.comment}" class="text-sm text-gray-600">Comment text</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add comment input -->
+                        <div class="flex mt-4 pt-4">
+                            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 shadow-md mr-3"
+                                 style="background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?...');"></div>
+                            <div class="flex-1 relative">
+                                <form class="comment-form">
+                                    <input name="comment" type="text" placeholder="Write a comment..."
+                                           class="w-full border border-gray-200 rounded-full py-2 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           required>
+                                    <input name="postId" type="hidden" th:value="${post.postID}">
+                                    <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="w-full lg:w-4/12">
+            <!-- Coaching sessions -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Coaching Sessions</h2>
+
+                <div class="space-y-4">
+                    <div th:if="${#lists.isEmpty(upcomingEvents)}" class="flex flex-col items-center justify-center py-8 px-4 text-center">
+                        <div class="bg-blue-100 p-4 rounded-full mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-2">No upcoming sessions</h3>
+                        <p class="text-sm text-gray-600 mb-4">You don't have any coaching sessions scheduled yet.</p>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(upcomingEvents)}" th:each="upcomingSession : ${upcomingEvents}" class="coaching-card bg-white border border-gray-200 rounded-lg p-4 relative">
+                        <input id="sessionID" type="hidden" th:value="${upcomingSession.id}">
+                        <span class="status-badge bg-green-100 text-green-800">Upcoming</span>
+                        <h3 th:text="${upcomingSession.moduleName}" class="font-medium text-gray-800">Career Development Workshop</h3>
+                        <div class="flex items-center mt-2 text-sm text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span th:text="${upcomingSession.startTime} + ' - ' + ${upcomingSession.eventEndTime}">Today, 3:00 PM - 4:30 PM</span>
+                        </div>
+
+                        <button th:style="${upcomingSession.isReady} ? 'background-color:#2a5dea;' : 'background-color:gray;'"
+                                class="start-video-call-user w-full mt-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 btn-transition"
+                                th:disabled="${!upcomingSession.isReady}"
+                                th:data-session-id="${upcomingSession.id}">
+                            <span class="button-content">Join Session</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="w-full mt-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 btn-transition">
+                    View All Sessions
+                </button>
+            </div>
+
+            <!-- Meetings -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Meetings</h2>
+
+                <div class="space-y-4">
+                    <div th:if="${#lists.isEmpty(upcomingMeetings)}" class="flex flex-col items-center justify-center py-8 px-4 text-center">
+                        <div class="bg-purple-100 p-4 rounded-full mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-2">No upcoming meetings</h3>
+                        <p class="text-sm text-gray-600 mb-4">You don't have any meetings scheduled yet.</p>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(upcomingMeetings)}" th:each="upcomingMeeting : ${upcomingMeetings}" class="meeting-card bg-white border border-gray-200 rounded-lg p-4 relative">
+                        <input class="meetingID" type="hidden" th:value="${upcomingMeeting.id}">
+                        <span class="status-badge bg-purple-100 text-purple-800">Upcoming</span>
+                        <h3 th:text="${upcomingMeeting.moduleName}" class="font-medium text-gray-800">Team Meeting</h3>
+                        <div class="flex items-center mt-2 text-sm text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span th:text="${upcomingMeeting.startTime} + ' - ' + ${upcomingMeeting.eventEndTime}">Today, 2:00 PM - 3:00 PM</span>
+                        </div>
+                        <div th:if="${upcomingMeeting.participantNames != null and !#lists.isEmpty(upcomingMeeting.participantNames)}" class="mt-2">
+                            <p class="text-xs text-gray-500">Participants:</p>
+                            <p class="text-sm text-gray-600" th:text="${#strings.listJoin(upcomingMeeting.participantNames, ', ')}">John, Jane, Bob</p>
+                        </div>
+
+                        <button th:style="${upcomingMeeting.isReady} ? 'background-color:#7c3aed;' : 'background-color:gray;'"
+                                class="start-video-call-meeting w-full mt-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 btn-transition"
+                                th:disabled="${!upcomingMeeting.isReady}"
+                                th:data-meeting-id="${upcomingMeeting.id}">
+                            <span class="button-content">Join Meeting</span>
+                        </button>
+                    </div>
+                </div>
+
+                <a href="/meetings" style="text-decoration:none">
+                    <button class="w-full mt-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 btn-transition">
+                        View All Meetings
+                    </button>
+                </a>
+            </div>
+
+            <!-- Group Members -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Group Members</h2>
+
+                <div class="space-y-3" id="members-preview">
+                    <!-- Display first 5 members -->
+                    <div th:each="member, iterStat : ${groupMembers}" th:if="${iterStat.index < 5}" class="flex items-center">
+                        <div class="member-avatar-small">
+                            <span th:text="${#strings.substring(member.firstName != null ? member.firstName : member.email, 0, 1) + #strings.substring(member.lastName != null ? member.lastName : '', 0, 1)}">U</span>
+                        </div>
+                        <div class="member-info">
+                            <h3 class="member-name text-sm" th:text="${member.firstName != null and member.lastName != null ? member.firstName + ' ' + member.lastName : member.email}">Member Name</h3>
+                            <p class="member-email text-xs" th:text="${member.email}">member@email.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View All Members button (only show if more than 5 members) -->
+                <button th:if="${#lists.size(groupMembers) > 5}" id="view-all-members-btn" class="w-full mt-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 btn-transition">
+                    View All Members (<span th:text="${#lists.size(groupMembers)}">0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <script src="/js/videoSession.js"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const groupId = /*[[${group?.id}]]*/ null;
+        const groupMembers = /*[[${groupMembers}]]*/ [];
+        /*]]>*/
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- tiny helpers ---
+            const $ = (sel, root = document) => root.querySelector(sel);
+            const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
+
+            // --- Time ago formatter ---
+            function formatTimeAgo(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffSeconds = Math.floor((now - date) / 1000);
+                const diffMinutes = Math.floor(diffSeconds / 60);
+                const diffHours = Math.floor(diffMinutes / 60);
+                const diffDays = Math.floor(diffHours / 24);
+
+                if (diffDays === 0) {
+                    if (diffHours > 0) return `${diffHours} hours ago`;
+                    if (diffMinutes > 0) return `${diffMinutes} minutes ago`;
+                    return `${diffSeconds} seconds ago`;
+                } else if (diffDays === 1) {
+                    return `yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                } else {
+                    return (
+                        date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }) +
+                        ' ' +
+                        date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    );
+                }
+            }
+
+            const renderAllTimeAgo = (root = document) => {
+                $$('.time-ago', root).forEach(el => (el.textContent = formatTimeAgo(el.dataset.time)));
+            };
+
+            // Post form handling
+            const postForm = document.getElementById('post-form');
+            const postContent = document.getElementById('post-content');
+            const postFile = document.getElementById('post-file');
+            const uploadBtn = document.getElementById('upload-btn');
+            const filePreview = document.getElementById('file-preview');
+            const previewImage = document.getElementById('preview-image');
+            const removeFileBtn = document.getElementById('remove-file');
+
+            // File upload handling
+            uploadBtn.addEventListener('click', function() {
+                postFile.click();
+            });
+
+            postFile.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        filePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            removeFileBtn.addEventListener('click', function() {
+                postFile.value = '';
+                filePreview.style.display = 'none';
+                previewImage.src = '';
+            });
+
+            // Post form submission
+            postForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (!groupId) {
+                    alert('Group ID not found');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('groupId', groupId);
+                formData.append('content', postContent.value);
+
+                if (postFile.files[0]) {
+                    formData.append('file', postFile.files[0]);
+                }
+
+                fetch('/group/post', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Clear form
+                        postContent.value = '';
+                        postFile.value = '';
+                        filePreview.style.display = 'none';
+                        previewImage.src = '';
+
+                        // Reload page to show new post
+                        window.location.reload();
+                    } else {
+                        alert('Failed to create post: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the post');
+                });
+            });
+
+            // Comment form handling
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer?.addEventListener('submit', function(e) {
+                if (e.target.classList.contains('comment-form')) {
+                    e.preventDefault();
+                    const form = e.target;
+                    const formData = new FormData(form);
+
+                    fetch('/post-comment', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            form.reset();
+                            // Optionally reload to show new comment
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error posting comment:', error);
+                    });
+                }
+            });
+
+            // Event delegation for comment toggle
+            postsContainer?.addEventListener('click', e => {
+                const btn = e.target.closest('.comment-btn');
+                if (!btn) return;
+                const postId = btn.dataset.post;
+                const commentSection = document.getElementById(`comments-${postId}`);
+                if (commentSection) commentSection.classList.toggle('expanded');
+            });
+
+            // Members modal handling
+            const membersModal = document.getElementById('members-modal');
+            const closeMembersModalBtn = document.getElementById('close-members-modal');
+            const viewAllMembersBtn = document.getElementById('view-all-members-btn');
+            const allMembersList = document.getElementById('all-members-list');
+
+            if (viewAllMembersBtn) {
+                viewAllMembersBtn.addEventListener('click', function() {
+                    // Populate all members in modal
+                    allMembersList.innerHTML = groupMembers.map(member => {
+                        const firstName = member.firstName || '';
+                        const lastName = member.lastName || '';
+                        const fullName = (firstName + ' ' + lastName).trim() || member.email || 'Unknown User';
+                        const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || member.email.charAt(0).toUpperCase();
+
+                        return `
+                            <div class="member-item">
+                                <div class="member-avatar">
+                                    ${initials}
+                                </div>
+                                <div class="member-info">
+                                    <div class="member-name">${fullName}</div>
+                                    <div class="member-email">${member.email || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    membersModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            closeMembersModalBtn.addEventListener('click', function() {
+                membersModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+
+            // Close modal when clicking outside
+            membersModal.addEventListener('click', function(e) {
+                if (e.target === membersModal) {
+                    membersModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && membersModal.classList.contains('active')) {
+                    membersModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+
+            // Initial time-ago render for existing items
+            renderAllTimeAgo();
+        });
+    </script>
+</div>
+</body>
+</html>

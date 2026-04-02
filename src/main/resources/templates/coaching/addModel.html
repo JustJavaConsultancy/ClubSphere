@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div layout:fragment="content" class="bg-white p-8 rounded-2xl shadow-lg">
+    <form th:action="@{/module/create}" class="space-y-8" method="POST" enctype="multipart/form-data">
+        <!-- Module Name -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="module-name">Module Name</label>
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">article</span>
+                <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input"
+                       id="module-name" name="name"
+                       placeholder="e.g., Introduction to Web Development" type="text" required />
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="description">Short Description</label>
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-4 text-gray-400">description</span>
+                <textarea class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input"
+                          id="description" name="description"
+                          placeholder="Provide a brief summary..." rows="4" required></textarea>
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Add Resources</label>
+            <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+                <div class="text-center">
+                    <span class="material-icons text-6xl text-gray-300">cloud_upload</span>
+                    <div class="mt-4 flex text-sm leading-6 text-gray-600">
+                        <label class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 hover:text-indigo-500" for="file-upload">
+                            <span>Upload files</span>
+                            <input class="sr-only" id="file-upload" name="file" type="file" />
+                        </label>
+                        <p class="pl-1">or drag and drop</p>
+                    </div>
+                    <p class="text-xs leading-5 text-gray-600">PDF, DOCX, PNG, JPG, GIF up to 10MB</p>
+                </div>
+            </div>
+            <div class="mt-4 space-y-3" id="file-list"></div>
+        </div>
+
+        <!-- Price -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="price">Set Price</label>
+            <div class="relative rounded-md shadow-sm">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <span class="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <input class="block w-full rounded-md border-0 py-3 pl-7 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 form-input"
+                       id="price" name="price" placeholder="0.00" type="number" step="0.01" required />
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <span class="text-gray-500 sm:text-sm" id="currency">USD</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex justify-end pt-6 border-t border-gray-200">
+            <button class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors mr-4" type="button">Cancel</button>
+            <button id="submitBtn"
+                    class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2"
+                    type="submit">
+                <span class="material-icons">add_circle_outline</span>
+                Create Module
+            </button>
+        </div>
+    </form>
+
+    <script>
+        const moduleName = document.getElementById('module-name');
+        const description = document.getElementById('description');
+        const price = document.getElementById('price');
+        const fileUpload = document.getElementById('file-upload');
+        const fileList = document.getElementById('file-list');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function checkFormValidity() {
+            const isModuleNameFilled = moduleName.value.trim() !== "";
+            const isDescriptionFilled = description.value.trim() !== "";
+            const isPriceFilled = price.value.trim() !== "";
+            const hasFile = fileList.children.length > 0;
+
+            if (isModuleNameFilled && isDescriptionFilled && isPriceFilled && hasFile) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+                submitBtn.classList.add("bg-indigo-600", "hover:bg-indigo-700");
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+                submitBtn.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+            }
+        }
+
+        // Listen for input changes
+        moduleName.addEventListener("input", checkFormValidity);
+        description.addEventListener("input", checkFormValidity);
+        price.addEventListener("input", checkFormValidity);
+
+        // Handle file upload
+        fileUpload.addEventListener('change', (event) => {
+            const files = event.target.files;
+            for (const file of files) {
+                const fileItem = document.createElement('div');
+                fileItem.className = "flex items-center justify-between p-3 bg-gray-50 rounded-lg";
+                fileItem.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="material-icons mr-3 text-gray-500">insert_drive_file</span>
+                        <div>
+                            <p class="font-medium text-gray-800">${file.name}</p>
+                            <p class="text-sm text-gray-500">${(file.size / 1024).toFixed(2)} KB</p>
+                        </div>
+                    </div>
+                    <button class="remove-btn p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-500 transition-colors">
+                        <span class="material-icons">close</span>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+
+                // Remove file
+                fileItem.querySelector('.remove-btn').addEventListener('click', () => {
+                    fileItem.remove();
+                    checkFormValidity();
+                });
+            }
+            checkFormValidity();
+        });
+    </script>
+
+</div>
+</body>
+</html>

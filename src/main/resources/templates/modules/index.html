@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Modules</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/modules.css">
+    <style>
+        /* Additional styles for scrollable modal */
+        .modal-container {
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            overflow-y: auto;
+            max-height: calc(90vh - 140px);
+            padding-right: 5px;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .modal-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <span class="material-icons text-blue-600">widgets</span>
+            Modules
+        </h1>
+        <div class="relative">
+            <input id="moduleSearch" type="text" class="border border-gray-300 rounded-lg px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search modules...">
+        </div>
+    </div>
+
+    <!-- Modules Grid -->
+    <div id="modulesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Module Cards -->
+        <div th:if="${modules != null and !#lists.isEmpty(modules)}"
+             th:each="module : ${modules}"
+             class="module-card">
+            <div class="flex items-start gap-3 mb-3">
+                <div class="module-icon">
+                    <span class="material-icons">auto_awesome_motion</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold text-gray-900" th:text="${module.name}">Module Name</h3>
+                        <span class="price-tag" th:text="${'$' + #numbers.formatDecimal(module.price, 1, 2)}">$0.00</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1 line-clamp-2" th:text="${module.description}">Module description</p>
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="module-badge">
+                            <span class="material-icons" style="font-size:14px">schedule</span>
+                            Flexible dates
+                        </span>
+                        <span class="module-badge">
+                            <span class="material-icons" style="font-size:14px">verified</span>
+                            Trusted
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <button class="brand-btn px-3 py-2 rounded-lg flex items-center gap-2 book-btn"
+                        th:attr="data-id=${module.id}, data-name=${module.name}, data-price=${module.price}"
+                        onclick="openBooking(this.dataset.id, this.dataset.name, this.dataset.price)">
+                    <span class="material-icons">event_available</span> Book
+                </button>
+                <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 details-btn">
+                    Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${modules == null or #lists.isEmpty(modules)}"
+         class="flex flex-col items-center justify-center text-center py-16">
+        <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
+            <span class="material-icons text-blue-600">view_quilt</span>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">No modules available</h3>
+        <p class="text-sm text-gray-600">We couldn't load any modules. Please try again later.</p>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-40 p-4">
+        <div class="modal-container bg-white rounded-xl shadow-xl w-full max-w-md border border-gray-200">
+            <div class="p-5 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Book Module</h3>
+                    <button id="closeBooking" class="p-1 rounded hover:bg-gray-100">
+                        <span class="material-icons text-gray-600">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-content p-5">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">Module</label>
+                        <div id="bookingModuleName" class="text-gray-900 font-medium"></div>
+                        <input type="hidden" name="">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="description">Comment</label>
+                        <div class="relative">
+                            <span class="material-icons absolute left-3 top-4 text-gray-400">description</span>
+                            <textarea class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="description" name="description" placeholder="Provide a short description of the training session..." rows="4"></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-700 mb-1">Pick a date</label>
+                        <input type="date" id="bookingDate" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="startTime">Time</label>
+                        <div class="relative">
+                            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">schedule</span>
+                            <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="startTime" name="startTime" type="time">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="duration">Duration (minutes)</label>
+                        <div class="relative">
+                            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">hourglass_top</span>
+                            <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="duration" min="15" name="duration" step="15" type="number">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer p-5 border-t border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-sm text-gray-600">Total</div>
+                    <div id="bookingPrice" class="text-lg font-semibold text-gray-900"></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="confirmBooking" class="brand-btn px-4 py-2 rounded-lg flex items-center gap-2">
+                        <span class="material-icons">shopping_cart_checkout</span> Proceed
+                    </button>
+                    <span id="bookingFeedback" class="text-sm text-gray-500"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/modules.js"></script>
+</main>
+</body>
+</html>

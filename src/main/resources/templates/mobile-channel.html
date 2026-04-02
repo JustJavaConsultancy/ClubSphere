@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel - Connect</title>
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+    <style>
+        /* Mobile-optimized channel styles */
+        .channel-header {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(42, 36, 148, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .channel-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .channel-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mobile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-card:active {
+            transform: scale(0.98);
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .post-card:active {
+            transform: scale(0.99);
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .avatar-small {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+        }
+
+        .brand-btn {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .brand-btn:active {
+            transform: scale(0.95);
+        }
+
+        .post-input {
+            width: 100%;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .post-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .comment-input {
+            width: 100%;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 12px 16px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 40px;
+        }
+
+        .action-btn:active {
+            background: rgba(42, 36, 148, 0.1);
+            color: #2A2494;
+            transform: scale(0.95);
+        }
+
+        .comment-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .comment-section.expanded {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comment-container {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .comment {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 12px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+        }
+
+        .touch-feedback {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touch-feedback::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(42, 36, 148, 0.2) 0%, transparent 70%);
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            border-radius: inherit;
+        }
+
+        .touch-feedback:active::after {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        .image-preview {
+            margin-top: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            max-height: 200px;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Hidden inputs -->
+    <input type="hidden" id="userId" th:value="${userId}">
+    <input type="hidden" id="isAdmin" th:value="${isAdmin}">
+
+    <!-- Channel Header -->
+    <div class="channel-header">
+        <div class="channel-content">
+            <h1 class="text-xl font-bold mb-2">
+                Welcome to Channel,
+                <span th:text="${#strings.arraySplit(usersName, ' ')[#strings.arraySplit(usersName, ' ').length - 1]}">Alex</span>!
+            </h1>
+            <p class="opacity-90 text-sm mb-4">
+                Stay connected with posts from all your communities in one place.
+            </p>
+        </div>
+    </div>
+
+    <!-- Posts Feed -->
+    <div id="listed-Posts" class="space-y-4">
+        <!-- Empty State -->
+        <div id="emptyPost" th:if="${#lists.isEmpty(allPosts)}" class="empty-state">
+            <div class="empty-state-icon">
+                <span class="material-icons text-2xl" style="color: #2A2494;">dynamic_feed</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">No posts yet</h3>
+            <p class="text-gray-600">No posts available from your communities!</p>
+        </div>
+
+        <!-- Posts -->
+        <article th:if="${!#lists.isEmpty(allPosts)}"
+                 th:each="posts : ${allPosts}"
+                 class="post-card touch-feedback fade-in">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex gap-3">
+                    <div th:text="${#strings.substring(posts.userFullName,0,2)}" class="avatar">
+                        AA
+                    </div>
+                    <div>
+                        <h3 th:text="${posts.userFullName}" class="font-semibold text-gray-900">Sophia Bennett</h3>
+                        <p class="text-xs text-gray-500">
+                            <span th:attr="data-time=${posts.dateCreated}" class="time-ago"></span> ·
+                            <span class="material-icons text-xs">public</span> ·
+                            <span th:text="${posts.communityName}" class="font-medium" style="color: #2A2494;">Community Name</span>
+                        </p>
+                    </div>
+                </div>
+                <button class="action-btn">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+
+            <p th:text="${posts.content}" class="text-gray-700 mb-4 leading-relaxed">
+                Just finished an amazing project using React and Tailwind CSS! The power of component-based architecture combined with utility-first CSS is incredible. 🚀
+            </p>
+
+            <!-- Post Actions -->
+            <div class="flex justify-between items-center py-3 border-t border-gray-100 text-gray-500">
+                <button class="action-btn comment-btn touch-feedback"
+                        th:attr="data-post=${posts.postID}">
+                    <span class="material-icons text-lg">chat_bubble_outline</span>
+                    <span th:text="${#lists.size(posts.comments)} + ' comments'">7 comments</span>
+                </button>
+            </div>
+
+            <!-- Comment Section -->
+            <div class="comment-section mt-4" th:id="'comments-' + ${posts.postID}">
+                <div th:id="${'comments' + posts.postID}" class="comment-container space-y-3">
+                    <div th:each="comment : ${posts.comments}" class="flex gap-3 comment">
+                        <div th:text="${#strings.substring(comment.senderFullName,0,2)}" class="avatar avatar-small">
+                            AA
+                        </div>
+                        <div class="flex-1">
+                            <h4 th:text="${comment.senderFullName}" class="font-medium text-gray-900 text-sm">Michael Chen</h4>
+                            <p th:text="${comment.comment}" class="text-sm text-gray-600">This looks amazing!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Comment -->
+                <div class="flex gap-3 mt-4 pt-4">
+                    <div class="avatar avatar-small">
+                        <span th:text="${#strings.substring(usersName,0,2)}">AA</span>
+                    </div>
+                    <div class="flex-1">
+                        <form hx-post="/mobile/post-comment"
+                              hx-trigger="click"
+                              hx-on::after-request="this.reset();"
+                              class="flex gap-2">
+                            <input name="comment"
+                                   type="text"
+                                   placeholder="Write a comment..."
+                                   class="comment-input flex-1"
+                                   required>
+                            <input name="postId" type="hidden" th:value="${posts.postID}">
+                            <button class="brand-btn touch-feedback" style="padding: 8px 12px; min-height: 40px;">
+                                <span class="material-icons text-lg">send</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        (function () {
+            // Helper functions
+            const $ = (sel, root = document) => root.querySelector(sel);
+            const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
+
+            // Time ago formatter
+            function formatTimeAgo(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffSeconds = Math.floor((now - date) / 1000);
+                const diffMinutes = Math.floor(diffSeconds / 60);
+                const diffHours = Math.floor(diffMinutes / 60);
+                const diffDays = Math.floor(diffHours / 24);
+
+                if (diffDays === 0) {
+                    if (diffHours > 0) return `${diffHours}h ago`;
+                    if (diffMinutes > 0) return `${diffMinutes}m ago`;
+                    return `${diffSeconds}s ago`;
+                } else if (diffDays === 1) {
+                    return `yesterday`;
+                } else if (diffDays < 7) {
+                    return `${diffDays}d ago`;
+                } else {
+                    return date.toLocaleDateString();
+                }
+            }
+
+            const renderAllTimeAgo = (root = document) => {
+                $$('.time-ago', root).forEach(el => (el.textContent = formatTimeAgo(el.dataset.time)));
+            };
+
+            // Comment toggle functionality
+            const postsContainer = $('#listed-Posts');
+            postsContainer?.addEventListener('click', e => {
+                const btn = e.target.closest('.comment-btn');
+                if (!btn) return;
+                const postId = btn.dataset.post;
+                const commentSection = document.getElementById(`comments-${postId}`);
+                if (commentSection) commentSection.classList.toggle('expanded');
+            });
+
+            // Touch feedback setup
+            function setupTouchFeedback(root = document) {
+                const touchElements = $$('.touch-feedback', root);
+                touchElements.forEach(element => {
+                    element.addEventListener('touchstart', () => {
+                        element.style.transform = 'scale(0.98)';
+                    });
+
+                    element.addEventListener('touchend', () => {
+                        setTimeout(() => {
+                            element.style.transform = '';
+                        }, 150);
+                    });
+                });
+            }
+
+            // Initialize
+            renderAllTimeAgo();
+            setupTouchFeedback();
+        })();
+    </script>
+</div>
+</body>
+</html>

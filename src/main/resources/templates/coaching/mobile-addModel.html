@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Module</title>
+    <style>
+        .mobile-add-module {
+            padding: 16px;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .form-subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 20px;
+            z-index: 1;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 16px 16px 52px !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            background-color: #fafafa;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 16px 16px 16px 52px !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            background-color: #fafafa;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2A2494;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #fafafa;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #2A2494;
+            background-color: #f0f9ff;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #2A2494;
+            background-color: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            color: #6b7280;
+            font-size: 24px;
+        }
+
+        .file-details h4 {
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 2px 0;
+            font-size: 14px;
+        }
+
+        .file-details p {
+            color: #64748b;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .remove-file-btn {
+            padding: 8px;
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .remove-file-btn:active {
+            background-color: #fecaca;
+            transform: scale(0.9);
+        }
+
+        .price-input-wrapper {
+            position: relative;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .currency-code {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .price-input {
+            width: 100%;
+            padding: 16px 60px 16px 40px !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            background-color: #fafafa;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .price-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(42, 36, 148, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-primary:disabled:active {
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-secondary:active {
+            background-color: #e2e8f0;
+            transform: scale(0.98);
+        }
+
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @media (min-width: 640px) {
+            .form-actions {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+
+            .btn {
+                flex: none;
+                min-width: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="mobile-add-module">
+    <div class="form-container">
+        <header class="form-header">
+            <h1 class="form-title">Add New Module</h1>
+            <p class="form-subtitle">Create a new training module with resources</p>
+        </header>
+
+        <form th:action="@{/mobile/module/create}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="form-label" for="module-name">Module Name</label>
+                <div class="input-wrapper">
+                    <span class="material-icons input-icon">article</span>
+                    <input class="form-input" id="module-name" name="name" placeholder="e.g., Introduction to Web Development" type="text" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Short Description</label>
+                <div class="input-wrapper">
+                    <span class="material-icons input-icon" style="top: 24px;">description</span>
+                    <textarea class="form-textarea" id="description" name="description" placeholder="Provide a brief summary..." required></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Add Resources</label>
+                <div class="file-upload-area" id="file-upload-area">
+                    <span class="material-icons upload-icon">cloud_upload</span>
+                    <p class="upload-text">Upload files</p>
+                    <p class="upload-subtext">or drag and drop</p>
+                    <p class="upload-hint">PDF, DOCX, PNG, JPG, GIF up to 10MB</p>
+                    <input class="file-input" id="file-upload" name="file" type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.gif">
+                </div>
+                <div class="file-list" id="file-list"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="price">Set Price</label>
+                <div class="price-input-wrapper">
+                    <span class="currency-symbol">$</span>
+                    <input class="price-input" id="price" name="price" placeholder="0.00" type="number" step="0.01" min="0" required>
+                    <span class="currency-code">USD</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" type="button" onclick="history.back()">Cancel</button>
+                <button class="btn btn-primary" id="submitBtn" type="submit" disabled>
+                    <span class="material-icons">add_circle_outline</span>
+                    Create Module
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const moduleName = document.getElementById('module-name');
+        const description = document.getElementById('description');
+        const price = document.getElementById('price');
+        const fileUpload = document.getElementById('file-upload');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileList = document.getElementById('file-list');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function checkFormValidity() {
+            const isModuleNameFilled = moduleName.value.trim() !== "";
+            const isDescriptionFilled = description.value.trim() !== "";
+            const isPriceFilled = price.value.trim() !== "";
+            const hasFile = fileList.children.length > 0;
+
+            if (isModuleNameFilled && isDescriptionFilled && isPriceFilled && hasFile) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove("btn-disabled");
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add("btn-disabled");
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function addFileToList(file) {
+            const fileItem = document.createElement('div');
+            fileItem.className = "file-item";
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <span class="material-icons file-icon">insert_drive_file</span>
+                    <div class="file-details">
+                        <h4>${file.name}</h4>
+                        <p>${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <button class="remove-file-btn" type="button">
+                    <span class="material-icons">close</span>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
+
+            fileItem.querySelector('.remove-file-btn').addEventListener('click', () => {
+                fileItem.remove();
+                fileUpload.value = '';
+                checkFormValidity();
+            });
+
+            checkFormValidity();
+        }
+
+        // File upload click handler
+        fileUploadArea.addEventListener('click', () => {
+            fileUpload.click();
+        });
+
+        // File input change handler
+        fileUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                // Clear existing files
+                fileList.innerHTML = '';
+                addFileToList(file);
+            }
+        });
+
+        // Drag and drop handlers
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                // Clear existing files
+                fileList.innerHTML = '';
+                addFileToList(file);
+
+                // Update the file input
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileUpload.files = dt.files;
+            }
+        });
+
+        // Form validation listeners
+        moduleName.addEventListener("input", checkFormValidity);
+        description.addEventListener("input", checkFormValidity);
+        price.addEventListener("input", checkFormValidity);
+
+        // Initial form validation
+        checkFormValidity();
+    </script>
+</main>
+</body>
+</html>

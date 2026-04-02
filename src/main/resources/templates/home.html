@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <title>Zam Connect</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        /* ===== GLOBAL STYLES ===== */
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gray-100: #f9fafb;
+            --gray-200: #f3f4f6;
+            --gray-300: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--gray-800);
+        }
+
+        /* ===== SUPPORT SYSTEM STYLES ===== */
+        .support-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .support-modal.active {
+            display: flex;
+        }
+
+        .support-modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ===== TICKET STATUS STYLES ===== */
+        .ticket-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .ticket-status.open {
+            background-color: #DEF7EC;
+            color: #046C4E;
+        }
+
+        .ticket-status.pending {
+            background-color: #FDF6B2;
+            color: #8E4B10;
+        }
+
+        .ticket-status.closed {
+            background-color: #E5E7EB;
+            color: #374151;
+        }
+
+        .ticket-item {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .ticket-item:hover {
+            border-left-color: #2a5dea;
+            background-color: #f8fafc;
+        }
+
+        /* ===== COMMENT SECTION STYLES ===== */
+        .comment-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .comment-section.expanded {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comment {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 12px;
+        }
+
+        .comment-container {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Custom scrollbar for comments */
+        .comment-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .comment-container::-webkit-scrollbar-track {
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .comment-container::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .comment-container::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* ===== AVATAR STYLES ===== */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        /* ===== LOADING STATES ===== */
+        .video-btn-loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        .connection-status {
+            transition: all 0.3s ease;
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-200);
+        }
+
+        .btn-transition {
+            transition: all 0.2s ease;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-purple {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        /* ===== LAYOUT STYLES ===== */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .main-container {
+                flex-direction: row;
+            }
+        }
+
+        .content-main {
+            flex: 1;
+            min-width: 0; /* Prevent flex item from overflowing */
+        }
+
+        .content-sidebar {
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .content-sidebar {
+                width: 380px;
+                flex-shrink: 0;
+            }
+        }
+
+        .sidebar-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            margin-right: 12px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin: 0;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .empty-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+        }
+
+        .empty-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .event-card, .meeting-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .event-card:last-child, .meeting-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .event-title, .meeting-title {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .event-time, .meeting-time {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-bottom: 0.5rem;
+        }
+
+        .event-time svg, .meeting-time svg {
+            margin-right: 0.5rem;
+        }
+
+        .participants {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 0.75rem;
+        }
+
+        .participant-list {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .stat-info h3 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem 0;
+            color: var(--gray-800);
+        }
+
+        .stat-info p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        .stat-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+        }
+
+        /* Post Styles */
+        .post-card {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .post-user {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .post-content {
+            margin-bottom: 1rem;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+            color: var(--gray-500);
+        }
+
+        .post-action-btn {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .post-action-btn:hover {
+            background-color: var(--gray-100);
+            color: var(--primary);
+        }
+
+        .post-action-btn svg {
+            margin-right: 0.5rem;
+        }
+
+        /* Create Post */
+        .create-post {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .post-form {
+            display: flex;
+        }
+
+        .post-input {
+            flex: 1;
+        }
+
+        .post-textarea {
+            width: 100%;
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            padding: 1rem;
+            resize: none;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .post-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .post-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .post-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .post-option-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            color: var(--gray-500);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .post-option-btn:hover {
+            background-color: var(--gray-100);
+            color: var(--primary);
+        }
+
+        /* Support Card */
+        .support-card {
+            padding: 1.5rem;
+        }
+
+        .support-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .support-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background-color: #e0e7ff;
+            color: var(--primary);
+            margin-right: 1rem;
+        }
+
+        .support-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .support-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            z-index: 50;
+        }
+
+        .status-online {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-loading {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-offline {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* WebSocket Status */
+        .websocket-status {
+            position: fixed;
+            bottom: 4rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            z-index: 50;
+        }
+
+        .ws-connected {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .ws-connecting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .ws-disconnected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Community Navigation */
+        .community-nav {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .community-nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .community-nav a:hover {
+            color: white;
+        }
+
+        .community-nav span {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0 0.5rem;
+        }
+
+        .community-nav .current-community {
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body th:data-can-user-post="${canUserPost}">
+<div layout:fragment="content">
+    <!-- Support Modal -->
+    <div class="support-modal" id="support-modal">
+        <div class="support-modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Contact Support</h3>
+                    <button class="text-gray-400 hover:text-gray-600" id="close-support-modal">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="support-form" hx-post="/support/chat">
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">How can we help you?</label>
+                        <textarea name="message" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="5"
+                                  placeholder="Please describe your issue in detail..." required></textarea>
+                    </div>
+
+                    <!--
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <input type="text" name="subject"
+                               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="What do you need help with?" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea name="description" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="5"
+                                  placeholder="Please describe your issue in detail..." required></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="priority" value="low" class="text-blue-600 focus:ring-blue-500" checked required>
+                                <span class="ml-2">Low</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="priority" value="medium" class="text-blue-600 focus:ring-blue-500" required>
+                                <span class="ml-2">Medium</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="priority" value="high" class="text-blue-600 focus:ring-blue-500" required>
+                                <span class="ml-2">High</span>
+                            </label>
+                        </div>
+                    </div>
+-->
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" class="btn btn-secondary" id="cancel-support">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Inputs -->
+    <input type="hidden" id="userId" th:value="${userId}">
+    <input type="hidden" id="isAdmin" th:value="${isAdmin}">
+    <input type="hidden" id="selectedCommunityId" th:value="${selectedCommunityId}">
+    <input type="hidden" id="selectedCommunityName" th:value="${selectedCommunityName}">
+
+    <!-- Welcome Section -->
+    <section class="mb-8">
+        <h1 class="text-2xl font-bold">Welcome back, <span th:text="${#strings.arraySplit(usersName, ' ')[#strings.arraySplit(usersName, ' ').length - 1]}">John</span> 👋</h1>
+        <p class="text-gray-600 mt-1" th:if="${selectedCommunityName == null}">
+            Here's what's happening in your communities today.
+        </p>
+        <p class="text-gray-600 mt-1" th:if="${selectedCommunityName != null}">
+            Here's what's happening in <strong th:text="${selectedCommunityName}">Community Name</strong> today.
+        </p>
+
+        <!-- Community Navigation -->
+        <div th:if="${selectedCommunityName != null}" class="community-nav">
+            <nav class="flex items-center space-x-2 text-sm">
+                <a href="/organizations" class="hover:text-white transition-colors">Organizations</a>
+                <span>›</span>
+                <span th:text="${selectedCommunityName}" class="current-community">Community Name</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-grid">
+        <div class="card stat-card card-hover">
+            <div class="stat-info">
+                <p class="text-gray-500 text-sm">Communities</p>
+                <h3 th:text="${community}">5</h3>
+            </div>
+            <div class="stat-icon bg-blue-100 text-blue-600">
+                <i class="fas fa-users text-xl"></i>
+            </div>
+        </div>
+
+        <div class="card stat-card card-hover">
+            <div class="stat-info">
+                <p class="text-gray-500 text-sm">Groups</p>
+                <h3 th:text="${groups}">12</h3>
+            </div>
+            <div class="stat-icon bg-purple-100 text-purple-600">
+                <i class="fas fa-layer-group text-xl"></i>
+            </div>
+        </div>
+
+        <div class="card stat-card card-hover">
+            <div class="stat-info">
+                <p class="text-gray-500 text-sm">Upcoming Events</p>
+                <h3 th:text="${upcomingEventNum}">3</h3>
+            </div>
+            <div class="stat-icon bg-green-100 text-green-600">
+                <i class="fas fa-calendar-alt text-xl"></i>
+            </div>
+        </div>
+
+        <div class="card stat-card card-hover">
+            <div class="stat-info">
+                <p class="text-gray-500 text-sm">Network</p>
+                <h3 th:text="${myNetwork}">47</h3>
+            </div>
+            <div class="stat-icon bg-yellow-100 text-yellow-600">
+                <i class="fas fa-user-friends text-xl"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Layout -->
+    <div class="main-container">
+        <!-- Left Column - Main Content -->
+        <div class="content-main">
+            <!-- Message for users who cannot post -->
+            <div class="card create-post" th:if="${!canUserPost}">
+                <div class="p-6 text-center">
+                    <div class="empty-icon bg-blue-100 text-blue-600 mx-auto mb-4">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <h3 class="empty-title">Join a Community to Start Posting</h3>
+                    <p class="empty-text mb-4">You need to be a member of at least one community to create posts.</p>
+                    <a href="/organizations" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i>
+                        Browse Communities
+                    </a>
+                </div>
+            </div>
+
+            <!-- Create Post -->
+            <div class="card create-post card-hover" th:if="${canUserPost}">
+                <form id="create-post-form">
+                    <div class="post-form">
+                        <!-- Profile Avatar -->
+                        <div class="relative flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-full shadow-md size-10 shrink-0 mr-3 border border-blue-200">
+                            <span class="text-blue-700 font-bold text-sm tracking-wide uppercase">AA</span>
+                        </div>
+
+                        <!-- Post Input -->
+                        <div class="post-input">
+                            <textarea name="content"
+                                      th:placeholder="${selectedCommunityName != null ? 'Share an update with ' + selectedCommunityName : 'Share an update with your communities'}"
+                                      class="post-textarea"
+                                      rows="3"
+                                      required></textarea>
+
+                            <!-- Image Preview -->
+                            <div id="image-preview" class="mt-3 hidden">
+                                <img id="preview-img" src="" alt="Preview" class="rounded-lg max-h-40 object-cover shadow-sm">
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="post-options">
+                                <div class="post-buttons">
+                                    <!-- Upload Image Button -->
+                                    <label class="post-option-btn">
+                                        <input type="file" name="image" accept="image/*" class="hidden" id="upload-input">
+                                        <i class="fas fa-image"></i>
+                                    </label>
+
+                                    <!-- Emoji Button -->
+                                    <button type="button" class="post-option-btn">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Submit -->
+                                <button type="submit" class="btn btn-primary">
+                                    Post
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Feed -->
+            <div id="listed-Posts" class="space-y-4">
+                <!-- Empty State -->
+                <div id="emptyPost" th:if="${#lists.isEmpty(allPosts)}" class="card empty-state">
+                    <div class="empty-icon bg-indigo-100 text-indigo-500">
+                        <i class="fas fa-newspaper text-2xl"></i>
+                    </div>
+                    <h3 class="empty-title">No posts yet</h3>
+                    <p class="empty-text" th:if="${selectedCommunityName == null}">Be the first one to share something with the community!</p>
+                    <p class="empty-text" th:if="${selectedCommunityName != null}">Be the first one to share something in <span th:text="${selectedCommunityName}">this community</span>!</p>
+                </div>
+
+                <!-- Posts -->
+                <div th:if="${!#lists.isEmpty(allPosts)}" th:each="posts : ${allPosts}" class="card post-card card-hover animate-fade-in">
+                    <div class="post-header">
+                        <div class="post-user">
+                            <div th:text="${#strings.substring(posts.userFullName,0,2)}" class="avatar">
+                                AA
+                            </div>
+                            <div>
+                                <h3 th:text="${posts.userFullName}" class="font-medium text-gray-800">Sophia Bennett</h3>
+                                <p class="text-xs text-gray-500">
+                                    <span th:attr="data-time=${posts.dateCreated}" class="time-ago"></span> ·
+                                    <span th:if="${posts.communityName != null}" class="text-blue-600 font-medium" th:text="${posts.communityName}">Community Name</span>
+                                    <span th:if="${posts.isGeneralPost}" class="ml-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">General</span>
+                                    <i class="fas fa-globe-americas ml-1"></i>
+                                </p>
+                            </div>
+                        </div>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </div>
+
+                    <p th:text="${posts.content}" class="post-content">
+                        Just finished an amazing project using React and Tailwind CSS! The power of component-based architecture combined with utility-first CSS is incredible. 🚀
+                    </p>
+
+                    <!-- Comment + Toggle Buttons -->
+                    <div class="post-actions">
+                        <button class="post-action-btn comment-btn" th:attr="data-post=${posts.postID}">
+                            <i class="fas fa-comment"></i>
+                            <span style="margin-left:5px" th:text="${#lists.size(posts.comments)} + ' comments'">7 comments</span>
+                        </button>
+                    </div>
+
+                    <!-- Comment Section -->
+                    <div class="comment-section mt-4" th:id="'comments-' + ${posts.postID}">
+                        <div th:id="${'comments' + posts.postID}" class="comment-container space-y-4">
+                            <div th:each="comment : ${posts.comments}" class="flex comment">
+                                <div th:text="${#strings.substring(comment.senderFullName,0,2)}" class="avatar">AA</div>
+                                <div class="flex-1">
+                                    <h4 th:text="${comment.senderFullName}" class="font-medium text-gray-800">Michael Chen</h4>
+                                    <p th:text="${comment.comment}" class="text-sm text-gray-60">This looks amazing!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Comment Input -->
+                        <div class="flex mt-4 pt-4">
+                            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 shadow-md mr-3"
+                                 style="background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?...');"></div>
+                            <div class="flex-1 relative">
+                                <form style="    margin-right: 5px;margin-bottom: 5px;" class="comment-form" th:attr="data-post-id=${posts.postID}">
+                                    <input name="comment" type="text" placeholder="Write a comment..."
+                                           class="w-full border border-gray-200 rounded-full py-2 px-4 pr-10
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           required>
+                                    <input name="postId" type="hidden" th:value="${posts.postID}">
+                                    <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Sidebar -->
+        <div class="content-sidebar">
+            <!-- Support Section -->
+            <div class="sidebar-section" th:if="${!isSupportAdmin}">
+                <div class="card support-card card-hover">
+                    <div class="support-header">
+                        <div class="support-icon">
+                            <i class="fas fa-headset text-xl"></i>
+                        </div>
+                        <h2 class="section-title">Need Help?</h2>
+                    </div>
+                    <div class="support-content">
+                        <p class="text-sm text-gray-600">Our support team is here to help you with any questions or issues you might have.</p>
+                    </div>
+                    <div class="support-actions">
+                        <button class="btn btn-primary" id="support-card-btn">
+                            Contact Support
+                        </button>
+                        <a style="text-decoration:none;" th:href="@{/support/my-tickets}">
+                            <button style="width:100%;" class="btn btn-secondary">
+                                View My Tickets
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coaching Sessions -->
+            <div class="sidebar-section">
+                <div class="card card-hover">
+                    <div class="p-4">
+                        <div class="section-header">
+                            <div class="section-icon bg-blue-100 text-blue-600">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h2 class="section-title">Coaching Sessions</h2>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div th:if="${#lists.isEmpty(upcomingEvents)}" class="empty-state py-6">
+                                <div class="empty-icon bg-blue-100 text-blue-600">
+                                    <i class="fas fa-calendar text-xl"></i>
+                                </div>
+                                <h3 class="empty-title">No upcoming sessions</h3>
+                                <p class="empty-text">You don't have any coaching sessions scheduled yet.</p>
+                            </div>
+
+                            <div th:if="${!#lists.isEmpty(upcomingEvents)}" th:each="upcomingSession : ${upcomingEvents}" class="card event-card card-hover">
+                                <span class="status-badge badge-success">Upcoming</span>
+                                <h3 th:text="${upcomingSession.moduleName}" class="event-title">Career Development Workshop</h3>
+                                <!-- For live sessions -->
+                                <div th:if="${upcomingSession.sessionType == 'live'}" class="event-time">
+                                    <i class="fas fa-clock"></i>
+                                    <span style="margin-left:7px"
+                                          th:text="${upcomingSession.displayDate} + ', ' + ${upcomingSession.startTime} + ' - ' + ${upcomingSession.eventEndTime}">
+        Mon, Jan 1, 2024, 3:00 PM - 4:30 PM
+    </span>
+                                </div>
+
+                                <!-- For recorded sessions -->
+                                <div th:if="${upcomingSession.sessionType == 'recorded'}" class="event-time">
+                                    <i class="fas fa-video"></i>
+                                    <span style="margin-left:7px;"
+                                          th:text="'This is a recorded session. You can start watching immediately at your convenience.'">
+        This is a recorded session. You can start watching immediately at your convenience.
+    </span>
+                                </div>
+
+                                <div th:if="${upcomingSession.sessionType == 'recorded'}">
+                                    <a th:href="@{/recorded-session/{sessionId}(sessionId=${upcomingSession.id})}" style="background-color:#2a5dea;"
+                                       class="btn btn-primary w-full"
+                                    >
+                                        <span class="button-content">Join Session</span>
+                                    </a>
+                                </div>
+                                <div th:if="${upcomingSession.sessionType == 'live'}">
+                                    <button th:style="${upcomingSession.isReady} ? 'background-color:#2a5dea;' : 'background-color:gray;'"
+                                            class="start-video-call-user btn btn-primary w-full"
+                                            th:disabled="${!upcomingSession.isReady}"
+                                            th:data-session-id="${upcomingSession.id}">
+                                        <span class="button-content">Join Session</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button style="width:100%;" class="btn btn-secondary w-full mt-4">
+                            View All Sessions
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meetings -->
+            <div class="sidebar-section">
+                <div class="card card-hover">
+                    <div class="p-4">
+                        <div class="section-header">
+                            <div class="section-icon bg-purple-100 text-purple-600">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h2 class="section-title">Meetings</h2>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div th:if="${#lists.isEmpty(upcomingMeetings)}" class="empty-state py-6">
+                                <div class="empty-icon bg-purple-100 text-purple-600">
+                                    <i class="fas fa-user-friends text-xl"></i>
+                                </div>
+                                <h3 class="empty-title">No upcoming meetings</h3>
+                                <p class="empty-text">You don't have any meetings scheduled yet.</p>
+                            </div>
+
+                            <div th:if="${!#lists.isEmpty(upcomingMeetings)}" th:each="upcomingMeeting : ${upcomingMeetings}" class="card meeting-card card-hover">
+                                <span class="status-badge badge-purple">Upcoming</span>
+                                <h3 th:text="${upcomingMeeting.moduleName}" class="meeting-title">Team Meeting</h3>
+                                <div class="meeting-time">
+                                    <i class="fas fa-clock"></i>
+                                    <span th:text="${upcomingMeeting.startTime} + ' - ' + ${upcomingMeeting.eventEndTime}">Today, 2:00 PM - 3:00 PM</span>
+                                </div>
+                                <div th:if="${upcomingMeeting.participantNames != null and !#lists.isEmpty(upcomingMeeting.participantNames)}" class="participants">
+                                    <p class="text-xs text-gray-500">Participants:</p>
+                                    <p class="participant-list" th:text="${#strings.listJoin(upcomingMeeting.participantNames, ', ')}">John, Jane, Bob</p>
+                                </div>
+
+                                <button th:style="${upcomingMeeting.isReady} ? 'background-color:#7c3aed;' : 'background-color:gray;'"
+                                        class="start-video-call-meeting btn w-full mt-2"
+                                        style="background-color: #7c3aed; color: white;"
+                                        th:disabled="${!upcomingMeeting.isReady}"
+                                        th:data-meeting-id="${upcomingMeeting.id}">
+                                    <span class="button-content">Join Meeting</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <a href="/meetings" style="text-decoration:none">
+                            <button class="btn btn-secondary w-full mt-4">
+                                View All Meetings
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status Indicator -->
+    <div id="connection-status" class="connection-status status-online">
+        🟢 Ready for video calls
+    </div>
+
+    <!-- WebSocket Status Indicator -->
+    <div id="websocket-status" class="websocket-status ws-connected">
+        🟢 Live updates active
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"
+            onload="console.log('SockJS loaded')"
+            onerror="console.error('Failed to load SockJS')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"
+            onload="console.log('STOMP loaded')"
+            onerror="console.error('Failed to load STOMP')"></script>
+
+    <!-- Video Call Scripts -->
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"
+            onload="console.log('ZegoCloud loaded')"
+            onerror="console.error('Failed to load ZegoCloud')"></script>
+    <script src="/js/videoSession.js"
+            onload="console.log('VideoSession loaded')"
+            onerror="console.error('Failed to load videoSession.js')"></script>
+
+    <!-- Application Script -->
+    <script>
+        (function () {
+            // --- WebSocket Connection ---
+            let stompClient = null;
+            let isConnected = false;
+            const userId = document.getElementById('userId')?.value;
+            const selectedCommunityId = document.getElementById('selectedCommunityId')?.value;
+            const selectedCommunityName = document.getElementById('selectedCommunityName')?.value;
+            const wsStatus = document.getElementById('websocket-status');
+
+            // Get current page context
+            const isInSpecificCommunity = selectedCommunityId && selectedCommunityId !== 'null';
+
+            console.log('Page context:', {
+                userId,
+                selectedCommunityId,
+                selectedCommunityName,
+                isInSpecificCommunity
+            });
+
+            function updateWebSocketStatus(status, message) {
+                if (!wsStatus) return;
+                wsStatus.className = 'websocket-status ' + status;
+                wsStatus.textContent = message;
+            }
+
+            function connectWebSocket() {
+                updateWebSocketStatus('ws-connecting', '🟡 Connecting...');
+
+                try {
+                    const socket = new SockJS('/ws');
+                    stompClient = Stomp.over(socket);
+
+                    stompClient.connect({}, function (frame) {
+                        console.log('Connected:', frame);
+                        isConnected = true;
+                        updateWebSocketStatus('ws-connected', '🟢 Live updates active');
+
+                        // Subscribe to general mycommunity posts (for universal view)
+                        stompClient.subscribe('/topic/posts/', function (message) {
+                            console.log('Received general community post:', message.body);
+                            const post = JSON.parse(message.body);
+                            handleNewPost(post, 'general');
+                        });
+
+                        // Subscribe to private posts for current user
+                        if (userId) {
+                            stompClient.subscribe('/topic/posts/' + userId, function (message) {
+                                console.log('Received private post:', message.body);
+                                const post = JSON.parse(message.body);
+                                handleNewPost(post, 'private');
+                            });
+                        }
+
+                        // Subscribe to comments
+                        stompClient.subscribe('/topic/comment/', function (message) {
+                            console.log('Received comment:', message.body);
+                            handleNewComment(JSON.parse(message.body));
+                        });
+
+                    }, function (error) {
+                        console.error('WebSocket connection error:', error);
+                        isConnected = false;
+                        updateWebSocketStatus('ws-disconnected', '🔴 Connection lost');
+
+                        // Attempt to reconnect after 5 seconds
+                        setTimeout(connectWebSocket, 5000);
+                    });
+                } catch (error) {
+                    console.error('WebSocket initialization error:', error);
+                    updateWebSocketStatus('ws-disconnected', '🔴 Connection failed');
+                    setTimeout(connectWebSocket, 5000);
+                }
+            }
+
+            // Initialize WebSocket connection
+            connectWebSocket();
+
+            // Function to handle new posts from WebSocket
+            function handleNewPost(post, source = 'general') {
+                if (!post || !post.postID) {
+                    console.error('Invalid post data received:', post);
+                    return;
+                }
+
+                console.log('Handling new post:', {
+                    postId: post.postID,
+                    source,
+                    postLevelId: post.postLevelId,
+                    selectedCommunityId,
+                    isInSpecificCommunity
+                });
+
+                // Determine if this post should be displayed based on current context
+                let shouldDisplay = false;
+
+                if (isInSpecificCommunity) {
+                    // In specific mycommunity view - only show posts from this mycommunity
+                    shouldDisplay = post.postLevelId && post.postLevelId.toString() === selectedCommunityId;
+                    console.log('Community-specific view check:', {
+                        postLevelId: post.postLevelId,
+                        selectedCommunityId,
+                        shouldDisplay
+                    });
+                } else {
+                    // In universal view - show all posts
+                    shouldDisplay = true;
+                    console.log('Universal view - showing all posts');
+                }
+
+                if (!shouldDisplay) {
+                    console.log('Post not displayed due to context filtering');
+                    return;
+                }
+
+                // Get mycommunity name for display
+                let communityName = 'Community';
+                if (post.communityName) {
+                    communityName = post.communityName;
+                } else if (isInSpecificCommunity && selectedCommunityName) {
+                    communityName = selectedCommunityName;
+                }
+
+                // Build HTML for the new post
+                const newPostHtml = `
+                    <div class="card post-card card-hover animate-fade-in">
+                        <div class="post-header">
+                            <div class="post-user">
+                                <div class="avatar">${(post.userFullName || 'AA').substring(0,2)}</div>
+                                <div>
+                                    <h3 class="font-medium text-gray-800">${post.userFullName || 'User'}</h3>
+                                    <p class="text-xs text-gray-500">
+                                        <span class="time-ago" data-time="${post.dateCreated || new Date().toISOString()}">Just now</span> ·
+                                        <span class="text-blue-600 font-medium">${communityName}</span>
+                                        ${!isInSpecificCommunity ? '<span class="ml-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">General</span>' : ''}
+                                        <i class="fas fa-globe-americas ml-1"></i>
+                                    </p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+
+                        <p class="post-content">${post.content || ''}</p>
+
+                        ${post.imageUrl ? `<div class="mt-3">
+                            <img src="${post.imageUrl}" alt="Post image" class="rounded-lg max-h-80 object-cover shadow-sm">
+                        </div>` : ''}
+
+                        <div class="post-actions">
+                            <button class="post-action-btn comment-btn" data-post="${post.postID}">
+                                <i class="fas fa-comment"></i>
+                                <span style="margin-left:5px">0 comments</span>
+                            </button>
+                        </div>
+
+                        <div class="comment-section mt-4" id="comments-${post.postID}">
+                            <div id="comments${post.postID}" class="comment-container space-y-4"></div>
+
+                            <div class="flex mt-4 pt-4">
+                                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 shadow-md mr-3"
+                                    style="background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?...');"></div>
+                                <div class="flex-1 relative">
+                                    <form style="margin-right: 5px;margin-bottom: 5px;" class="comment-form" data-post-id="${post.postID}">
+                                        <input name="comment" type="text" placeholder="Write a comment..."
+                                            class="w-full border border-gray-200 rounded-full py-2 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required>
+                                        <input name="postId" type="hidden" value="${post.postID}">
+                                        <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Insert the new post at the top of the feed
+                const postList = document.getElementById("listed-Posts");
+                if (postList) {
+                    postList.insertAdjacentHTML("afterbegin", newPostHtml);
+
+                    // Remove empty state if it exists
+                    const emptyPost = document.getElementById("emptyPost");
+                    if (emptyPost) {
+                        emptyPost.remove();
+                    }
+
+                    // Apply "time ago" formatting to the new post
+                    const newTimeAgo = postList.querySelector('.time-ago');
+                    if (newTimeAgo) {
+                        newTimeAgo.textContent = formatTimeAgo(newTimeAgo.dataset.time);
+                    }
+
+                    // Attach comment toggle functionality to the new post
+                    const newCommentBtn = postList.querySelector(`.comment-btn[data-post="${post.postID}"]`);
+                    if (newCommentBtn) {
+                        newCommentBtn.addEventListener('click', function() {
+                            const postId = this.getAttribute('data-post');
+                            const commentSection = document.getElementById(`comments-${postId}`);
+                            if (commentSection) {
+                                commentSection.classList.toggle('expanded');
+                            }
+                        });
+                    }
+
+                    console.log('Post successfully added to feed');
+                }
+            }
+
+            // Function to handle new comments from WebSocket
+            function handleNewComment(comment) {
+                if (!comment || !comment.postId) {
+                    console.error('Invalid comment data received:', comment);
+                    return;
+                }
+
+                const commentContainer = document.getElementById(`comments${comment.postId}`);
+                if (!commentContainer) return;
+
+                const commentHtml = `
+                    <div class="flex comment">
+                        <div class="avatar">${(comment.senderFullName || 'AA').substring(0,2)}</div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-800">${comment.senderFullName || 'User'}</h4>
+                            <p class="text-sm text-gray-600">${comment.comment || ''}</p>
+                            <span class="text-xs text-gray-400">${formatTimeAgo(comment.dateCreated)}</span>
+                        </div>
+                    </div>
+                `;
+
+                commentContainer.insertAdjacentHTML('beforeend', commentHtml);
+
+                // Update comment count
+                const commentBtn = document.querySelector(`.comment-btn[data-post="${comment.postId}"]`);
+                if (commentBtn) {
+                    const countSpan = commentBtn.querySelector('span');
+                    const currentCount = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = `${currentCount + 1} comments`;
+                }
+            }
+
+            // --- Replace form submission with WebSocket ---
+            const postForm = document.getElementById('create-post-form');
+            if (postForm) {
+                postForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const content = formData.get('content');
+                    const imageFile = formData.get('image');
+
+                    if (!userId) {
+                        console.error('User ID not found');
+                        alert('Please refresh the page and try again.');
+                        return;
+                    }
+
+                    if (!content.trim()) {
+                        alert('Please enter some content for your post.');
+                        return;
+                    }
+
+                    // Check if user can post (this should be passed from backend)
+                    const canUserPost = document.body.dataset.canUserPost === 'true';
+                    if (!canUserPost) {
+                        alert('You must belong to at least one community to create posts. Please join a community first.');
+                        return;
+                    }
+
+                    // If there's an image, upload it first via HTTP
+                    let imageUrl = null;
+                    if (imageFile && imageFile.size > 0) {
+                        try {
+                            imageUrl = await uploadImage(imageFile);
+                        } catch (error) {
+                            console.error('Error uploading image:', error);
+                            alert('Failed to upload image. Please try again.');
+                            return;
+                        }
+                    }
+
+                    // Create post message object
+                    const postMessage = {
+                        userId: userId,
+                        content: content,
+                        imageUrl: imageUrl,
+                        postLevel: 'COMMUNITY'
+                    };
+
+                    // Add mycommunity-specific posting if we're in a specific mycommunity
+                    if (isInSpecificCommunity) {
+                        postMessage.postLevelId = parseInt(selectedCommunityId);
+                        console.log('Posting to specific community:', selectedCommunityId);
+                    } else {
+                        console.log('Posting to general feed');
+                    }
+
+                    // Send via WebSocket
+                    if (stompClient && isConnected) {
+                        try {
+                            console.log('Sending post message:', postMessage);
+                            stompClient.send('/app/post.sendMessage', {}, JSON.stringify(postMessage));
+
+                            // Clear form
+                            this.reset();
+                            resetImagePreview();
+
+                            // Show success feedback
+                            const submitBtn = this.querySelector('button[type="submit"]');
+                            const originalText = submitBtn.innerHTML;
+                            submitBtn.innerHTML = '<i class="fas fa-check"></i> Posted!';
+                            submitBtn.disabled = true;
+
+                            setTimeout(() => {
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.disabled = false;
+                            }, 2000);
+
+                        } catch (error) {
+                            console.error('Error sending post:', error);
+                            alert('Failed to post. Please try again.');
+                        }
+                    } else {
+                        console.error('WebSocket not connected');
+                        alert('Connection lost. Please refresh the page and try again.');
+                    }
+                });
+            }
+
+            // Function to upload image via HTTP
+            async function uploadImage(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const result = await response.json();
+                return result.imageUrl; // Assuming backend returns { imageUrl: '...' }
+            }
+
+            // --- Update comment form to use WebSocket ---
+            document.addEventListener('submit', function(e) {
+                if (e.target.classList.contains('comment-form')) {
+                    e.preventDefault();
+
+                    const form = e.target;
+                    const commentInput = form.querySelector('input[name="comment"]');
+                    const postId = form.dataset.postId;
+                    const comment = commentInput.value.trim();
+
+                    if (!comment) return;
+
+                    if (!userId) {
+                        alert('Please refresh the page and try again.');
+                        return;
+                    }
+
+                    if (stompClient && isConnected) {
+                        try {
+                            const commentMessage = {
+                                userId: userId,
+                                postId: parseInt(postId),
+                                comment: comment
+                            };
+
+                            stompClient.send('/app/comment.sendMessage', {}, JSON.stringify(commentMessage));
+                            form.reset();
+                        } catch (error) {
+                            console.error('Error sending comment:', error);
+                            alert('Failed to post comment. Please try again.');
+                        }
+                    } else {
+                        alert('Connection lost. Please refresh the page and try again.');
+                    }
+                }
+            });
+
+            // --- tiny helpers ---
+            const $ = (sel, root = document) => root.querySelector(sel);
+            const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
+
+            // --- Support modal (safe guards if elements missing) ---
+            const supportModal = $('#support-modal');
+            const toggleSupportModal = (show = null) => {
+                if (!supportModal) return;
+                const active = show === null ? !supportModal.classList.contains('active') : !!show;
+                supportModal.classList.toggle('active', active);
+                document.body.style.overflow = active ? 'hidden' : 'auto';
+            };
+
+            ['support-card-btn', 'support-welcome-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', () => toggleSupportModal(true));
+            });
+            ['close-support-modal', 'cancel-support'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', () => toggleSupportModal(false));
+            });
+
+            // --- Time ago formatter ---
+            function formatTimeAgo(dateString) {
+                if (!dateString) return 'Just now';
+
+                try {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffSeconds = Math.floor(diffMs / 1000);
+                    const diffMinutes = Math.floor(diffSeconds / 60);
+                    const diffHours = Math.floor(diffMinutes / 60);
+                    const diffDays = Math.floor(diffHours / 24);
+
+                    if (diffDays > 0) {
+                        return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+                    } else if (diffHours > 0) {
+                        return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+                    } else if (diffMinutes > 0) {
+                        return diffMinutes === 1 ? '1 minute ago' : `${diffMinutes} minutes ago`;
+                    } else {
+                        return 'Just now';
+                    }
+                } catch (error) {
+                    console.error('Error formatting time:', error);
+                    return 'Recently';
+                }
+            }
+
+            // Initialize time-ago for existing posts
+            document.querySelectorAll('.time-ago').forEach(el => {
+                el.textContent = formatTimeAgo(el.dataset.time);
+            });
+
+            // --- Event delegation for comment toggle (works for existing + new posts) ---
+            const postsContainer = document.getElementById('listed-Posts');
+            postsContainer?.addEventListener('click', e => {
+                const btn = e.target.closest('.comment-btn');
+                if (!btn) return;
+                const postId = btn.dataset.post;
+                const commentSection = document.getElementById(`comments-${postId}`);
+                if (commentSection) commentSection.classList.toggle('expanded');
+            });
+
+            // --- Image preview and reset ---
+            const uploadInput = document.getElementById('upload-input');
+            const previewContainer = document.getElementById('image-preview');
+            const previewImg = document.getElementById('preview-img');
+
+            function resetImagePreview() {
+                if (previewContainer) previewContainer.classList.add('hidden');
+                if (previewImg) previewImg.src = '';
+                if (uploadInput) uploadInput.value = '';
+            }
+
+            uploadInput?.addEventListener('change', function () {
+                const file = this.files?.[0];
+                if (!file) {
+                    resetImagePreview();
+                    return;
+                }
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    resetImagePreview();
+                    return;
+                }
+
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image size must be less than 5MB.');
+                    resetImagePreview();
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    if (previewImg) previewImg.src = e.target.result;
+                    previewContainer?.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // --- Video call functionality is now handled by Enhanced VideoCallManager ---
+            // The Enhanced VideoCallManager handles all video call button clicks with retry logic
+
+            // Add connection status indicator
+            function updateConnectionStatus() {
+                const statusIndicator = document.getElementById('connection-status');
+                if (statusIndicator) {
+                    const isOnline = navigator.onLine;
+                    const hasVideoManager = window.videoCallManager?.isServiceReady();
+
+                    if (isOnline && hasVideoManager) {
+                        statusIndicator.textContent = '🟢 Ready for video calls';
+                        statusIndicator.className = 'connection-status status-online';
+                    } else if (isOnline) {
+                        statusIndicator.textContent = '🟡 Loading video services...';
+                        statusIndicator.className = 'connection-status status-loading';
+                    } else {
+                        statusIndicator.textContent = '🔴 No internet connection';
+                        statusIndicator.className = 'connection-status status-offline';
+                    }
+                }
+            }
+
+            // Monitor connection status
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+
+            // Check status periodically and when video manager is ready
+            setInterval(updateConnectionStatus, 5000);
+
+            // Listen for video manager ready event
+            document.addEventListener('videoManagerReady', updateConnectionStatus);
+
+            updateConnectionStatus();
+
+        })(); // IIFE
+    </script>
+</div>
+</body>
+</html>

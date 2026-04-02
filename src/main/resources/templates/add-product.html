@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product/Service</title>
+    <style>
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .image-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .image-upload-area:hover {
+            border-color: #2563eb;
+        }
+
+        .image-upload-area.dragover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-sm p-6 mb-6 text-white">
+        <h1 class="text-2xl font-bold mb-2">Add Product/Service</h1>
+        <p class="opacity-90">Share your products or services with the community</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <form action="/products/add"
+              method="post"
+              enctype="multipart/form-data"
+              onsubmit="return validateForm()"
+              id="productForm">
+
+            <div class="form-group">
+                <label for="name" class="form-label">
+                    Product/Service Name <span class="required">*</span>
+                </label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       class="form-input"
+                       placeholder="Enter product or service name"
+                       required>
+                <div id="nameError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">
+                    Description <span class="required">*</span>
+                </label>
+                <textarea id="description"
+                          name="description"
+                          class="form-input form-textarea"
+                          placeholder="Describe your product or service in detail"
+                          required></textarea>
+                <div id="descriptionError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="price" class="form-label">
+                    Price (USD) <span class="required">*</span>
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <input type="number"
+                           id="price"
+                           name="price"
+                           class="form-input pl-8"
+                           placeholder="0.00"
+                           step="0.01"
+                           min="0"
+                           required>
+                </div>
+                <div id="priceError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="image" class="form-label">
+                    Product Image <span class="required">*</span>
+                </label>
+                <div class="image-upload-area" onclick="document.getElementById('image').click()">
+                    <input type="file"
+                           id="image"
+                           name="image"
+                           accept="image/*"
+                           style="display: none;"
+                           required>
+                    <div id="uploadContent">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-gray-600">Click to upload an image</p>
+                        <p class="text-sm text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                    <img id="imagePreview" class="image-preview" style="display: none;">
+                </div>
+                <div id="imageError" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                <a href="/products" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                        id="submitBtn"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Add Product/Service
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Image upload handling
+        document.getElementById('image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const uploadContent = document.getElementById('uploadContent');
+
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadContent.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.querySelector('.image-upload-area');
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('image').files = files;
+                document.getElementById('image').dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+
+            // Validate name
+            const name = document.getElementById('name').value.trim();
+            if (!name) {
+                showError('nameError', 'Product/Service name is required');
+                isValid = false;
+            }
+
+            // Validate description
+            const description = document.getElementById('description').value.trim();
+            if (!description) {
+                showError('descriptionError', 'Description is required');
+                isValid = false;
+            }
+
+            // Validate price
+            const price = document.getElementById('price').value;
+            if (!price || parseFloat(price) <= 0) {
+                showError('priceError', 'Please enter a valid price');
+                isValid = false;
+            }
+
+            // Validate image
+            const image = document.getElementById('image').files[0];
+            if (!image) {
+                showError('imageError', 'Please upload an image');
+                isValid = false;
+            }
+
+            if (isValid) {
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').textContent = 'Adding...';
+            }
+
+            return isValid;
+        }
+
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+    </script>
+</div>
+</body>
+</html>

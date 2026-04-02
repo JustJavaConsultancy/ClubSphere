@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Messages - Connect</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .mobile-chat-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f8fafc;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-chat-header {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(42, 36, 148, 0.3);
+        }
+
+        .mobile-chat-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .mobile-sidebar {
+            background: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .mobile-chat-view {
+            background: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-chat-view.active {
+            transform: translateX(0);
+        }
+
+        .chat-list-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            min-height: 80px;
+        }
+
+        .chat-list-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .chat-list-item.active {
+            background-color: #ede9fe;
+            border-right: 3px solid #2A2494;
+        }
+
+        .chat-avatar, .user-avatar, .group-name-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .chat-preview {
+            color: #6b7280;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .chat-time {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .mobile-search {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .mobile-search-input, .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-search-input:focus, .search-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .mobile-messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8fafc;
+        }
+
+        .message-bubble {
+            max-width: 280px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message-sent {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-received {
+            background: white;
+            color: #1f2937;
+            margin-right: auto;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .mobile-input-area {
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .mobile-input-container {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-input-container:focus-within {
+            border-color: #2A2494;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .mobile-message-input, .message-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px 12px;
+            font-size: 16px;
+            color: #1f2937;
+        }
+
+        .mobile-send-btn, .send-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-send-btn:hover, .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .mobile-send-btn:active, .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .action-btn, .action-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #6b7280;
+        }
+
+        .action-btn:hover, .action-button:hover {
+            background: #f1f5f9;
+        }
+
+        .empty-chat-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .empty-chat-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-chat-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .empty-chat-subtitle {
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 280px;
+        }
+
+        .no-conversations {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .no-conversations-icon {
+            font-size: 64px;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .mobile-fab {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.4);
+            transition: all 0.2s ease;
+            z-index: 40;
+        }
+
+        .mobile-fab:hover {
+            transform: scale(1.1);
+        }
+
+        .mobile-fab:active {
+            transform: scale(0.95);
+        }
+
+        .chat-header-mobile {
+            background: white;
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #374151;
+        }
+
+        .chat-header-info {
+            flex: 1;
+        }
+
+        .chat-header-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .chat-header-status {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        /* Modal Styles */
+        .mobile-modal-overlay, .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .mobile-modal-content, .modal-content {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-modal-overlay.show .mobile-modal-content,
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .mobile-modal-header, .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mobile-modal-body, .modal-body {
+            padding: 20px;
+        }
+
+        .mobile-modal-footer, .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .user-list-item, .user-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .user-list-item:hover, .user-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .user-list-item.selected, .user-item.selected {
+            background-color: #ede9fe;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #374151;
+            border: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .checkbox-container {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checkbox-container input {
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: #2A2494;
+            border-color: #2A2494;
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .user-list-start, .user-list-group {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 640px) {
+            .mobile-chat-container {
+                bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <input id="currentUserId" th:value="${currentUser}" type="hidden">
+    <input id="currentUserName" th:value="${currentUserName}" type="hidden">
+
+    <!-- Mobile Chat Container -->
+    <div class="mobile-chat-container">
+        <!-- Header -->
+        <div class="mobile-chat-header">
+            <div class="flex items-center">
+                <span class="material-icons text-2xl mr-3">chat</span>
+                <h1 class="text-xl font-bold">Messages</h1>
+            </div>
+            <button class="action-btn text-white" id="startChatButton">
+                <span class="material-icons">add</span>
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="mobile-chat-content">
+            <!-- Sidebar (Chat List) -->
+            <div class="mobile-sidebar" id="mobileSidebar">
+                <!-- Search -->
+                <div class="mobile-search">
+                    <div class="relative">
+                        <span class="search-icon material-icons">search</span>
+                        <input class="mobile-search-input" placeholder="Search chats..." type="text" id="searchInput"/>
+                    </div>
+                </div>
+
+                <!-- Chat List -->
+                <div class="flex-1 overflow-y-auto" id="chatList">
+                    <div class="no-conversations">
+                        <span class="no-conversations-icon material-icons">forum</span>
+                        <h3 class="text-xl font-medium mb-2 text-gray-700">No conversations yet</h3>
+                        <p class="text-gray-500 mb-4">Start a new conversation by clicking the + button above</p>
+                    </div>
+                </div>
+
+                <!-- Create Group Button -->
+                <div class="p-4 border-t border-gray-200">
+                    <button class="w-full flex items-center justify-center btn-primary py-2 px-4 rounded-lg transition-all text-sm" id="createGroupButton">
+                        <span class="material-icons mr-2">group_add</span>
+                        <span>Create Group Chat</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div class="mobile-chat-view" id="mobileChatView">
+                <!-- Default Chat Header -->
+                <div class="chat-header-mobile" id="chatHeaderDefault">
+                    <button class="back-btn" id="mobileBackBtn">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <div class="chat-avatar">
+                        <span class="material-icons">chat</span>
+                    </div>
+                    <div class="chat-header-info">
+                        <div class="chat-header-name">Select a message</div>
+                        <div class="chat-header-status">Choose a conversation to start messaging</div>
+                    </div>
+                </div>
+
+                <!-- User Chat Header -->
+                <div class="chat-header-mobile hidden" id="chatHeaderUser">
+                    <button class="back-btn" id="mobileBackBtnUser">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <div id="userAvatarContainer" class="chat-avatar">
+                        <!-- Initials will be placed here -->
+                    </div>
+                    <div class="chat-header-info">
+                        <div class="chat-header-name" id="userChatName">User Name</div>
+                        <div class="chat-header-status" id="userChatStatus">Offline</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <button id="video-call-dropdown-btn-user" class="action-btn">
+                                <span class="material-icons">videocam</span>
+                            </button>
+                            <div id="video-call-dropdown-menu-user" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                <button id="start-video-call-user" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center">
+                                    <span class="material-icons mr-2">play_circle</span> Start Video Call
+                                </button>
+                                <button id="copy-meeting-link-user" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center">
+                                    <span class="material-icons mr-2">link</span> Copy Meeting Link
+                                </button>
+                            </div>
+                        </div>
+                        <button class="action-btn">
+                            <span class="material-icons">call</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-icons">more_vert</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group Chat Header -->
+                <div class="chat-header-mobile hidden" id="chatHeaderGroup">
+                    <button class="back-btn" id="mobileBackBtnGroup">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <div class="chat-avatar" id="groupNameAvatar">
+                        <!-- Group name initials will be placed here -->
+                    </div>
+                    <div class="chat-header-info">
+                        <div class="chat-header-name" id="groupChatName">Group Name</div>
+                        <div class="chat-header-status" id="groupMembersCount">3 members</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <button id="video-call-dropdown-btn-group" class="action-btn">
+                                <span class="material-icons">videocam</span>
+                            </button>
+                            <div id="video-call-dropdown-menu-group" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                <button id="start-video-call-group" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center">
+                                    <span class="material-icons mr-2">play_circle</span> Start Video Call
+                                </button>
+                                <button id="copy-meeting-link-group" class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center">
+                                    <span class="material-icons mr-2">link</span> Copy Meeting Link
+                                </button>
+                            </div>
+                        </div>
+                        <button class="action-btn">
+                            <span class="material-icons">call</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-icons">more_vert</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div class="mobile-messages-container" id="messagesContainer">
+                    <div class="empty-chat-state">
+                        <span class="empty-chat-icon material-icons">sentiment_satisfied_alt</span>
+                        <h3 class="empty-chat-title">No messages yet</h3>
+                        <p class="empty-chat-subtitle">Select a chat to start messaging or create a new conversation</p>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="mobile-input-area">
+                    <div class="mobile-input-container">
+                        <button class="action-btn">
+                            <span class="material-icons">add_reaction</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-icons">attach_file</span>
+                        </button>
+                        <input class="mobile-message-input" placeholder="Type a message..." type="text" id="messageInput"/>
+                        <button class="mobile-send-btn" onclick="sendMessageOverWebSocket()">
+                            <span class="material-icons">send</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Chat Modal -->
+    <div class="modal-overlay" id="startChatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold text-gray-900">Start New Chat</h3>
+                <button class="action-btn" id="closeStartChatModal">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="relative mb-4">
+                    <span class="search-icon material-icons">search</span>
+                    <input class="search-input" placeholder="Search users..." type="text" id="userSearchStart"/>
+                </div>
+                <div class="user-list-start">
+                    <div th:each="user : ${users}" class="user-item select-user">
+                        <input type="hidden" class="user-id" th:value="${user.userId}" />
+                        <input type="hidden" class="user-firstname" th:value="${user.firstName}" />
+                        <input type="hidden" class="user-lastname" th:value="${user.lastName}" />
+                        <input type="hidden" class="user-online" th:value="${user.online}" />
+
+                        <div class="user-avatar"
+                             th:text="${#strings.substring(user.firstName, 0, 1) + #strings.substring(user.lastName, 0, 1)}">
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></div>
+                            <div class="text-sm text-gray-500" th:text="${user.email}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelStartChat">Cancel</button>
+                <button class="btn-primary" id="confirmStartChat">Start Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Chat Modal -->
+    <div class="modal-overlay" id="createGroupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold text-gray-900">Create Group Chat</h3>
+                <button class="action-btn" id="closeCreateGroupModal">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <input class="search-input" placeholder="Group name (required)" type="text" id="groupName" required />
+                    <div class="error-message hidden" id="groupNameError">Group name is required</div>
+                </div>
+                <div class="relative mb-4">
+                    <span class="search-icon material-icons">search</span>
+                    <input class="search-input" placeholder="Search users..." type="text" id="userSearchGroup"/>
+                </div>
+                <div class="user-list-group">
+                    <div th:each="user : ${users}" class="user-item">
+                        <input type="hidden" class="user-id" th:value="${user.userId}" />
+                        <input type="hidden" class="user-firstname" th:value="${user.firstName}" />
+                        <input type="hidden" class="user-lastname" th:value="${user.lastName}" />
+
+                        <div class="user-avatar"
+                             th:text="${#strings.substring(user.firstName, 0, 1) + #strings.substring(user.lastName, 0, 1)}">
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></div>
+                            <div class="text-sm text-gray-500" th:text="${user.email}"></div>
+                        </div>
+                        <label class="checkbox-container">
+                            <input type="checkbox" class="user-checkbox" th:value="${user.userId}">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelCreateGroup">Cancel</button>
+                <button class="btn-primary btn-disabled" id="confirmCreateGroup" disabled>Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+
+    <script>
+        // Global variables from original chat.js
+        let stompClient = null;
+        let currentUserId = null;
+        let currentUserName = null;
+        let selectedUser = null;
+        let selectedUsers = [];
+        let currentChatId = null;
+        let currentChatType = null; // 'user' or 'group'
+        let conversations = new Map();
+
+        // Initialize mobile chat
+        document.addEventListener('DOMContentLoaded', function() {
+            currentUserId = document.getElementById('currentUserId').value;
+            currentUserName = document.getElementById('currentUserName').value;
+
+            initializeMobileChat();
+            connectWebSocket();
+            loadConversations();
+        });
+
+        function initializeMobileChat() {
+            // Modal controls
+            const startChatButton = document.getElementById('startChatButton');
+            const createGroupButton = document.getElementById('createGroupButton');
+
+            // Back buttons
+            const backBtns = document.querySelectorAll('[id^="mobileBackBtn"]');
+            backBtns.forEach(btn => {
+                btn.addEventListener('click', showChatList);
+            });
+
+            // Event listeners
+            startChatButton?.addEventListener('click', () => showModal('startChatModal'));
+            createGroupButton?.addEventListener('click', () => showModal('createGroupModal'));
+
+            // Modal close buttons
+            document.getElementById('closeStartChatModal')?.addEventListener('click', () => hideModal('startChatModal'));
+            document.getElementById('closeCreateGroupModal')?.addEventListener('click', () => hideModal('createGroupModal'));
+
+            // Modal actions
+            document.getElementById('confirmStartChat')?.addEventListener('click', startChat);
+            document.getElementById('cancelStartChat')?.addEventListener('click', () => hideModal('startChatModal'));
+            document.getElementById('confirmCreateGroup')?.addEventListener('click', createGroup);
+            document.getElementById('cancelCreateGroup')?.addEventListener('click', () => hideModal('createGroupModal'));
+
+            // User selection for start chat - immediately open chat when user is selected
+            document.querySelectorAll('.select-user').forEach(item => {
+                item.addEventListener('click', function() {
+                    console.log('User selected:', this); // Debug log
+
+                    document.querySelectorAll('.select-user').forEach(u => u.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    const userIdElement = this.querySelector('.user-id');
+                    const userFirstNameElement = this.querySelector('.user-firstname');
+                    const userLastNameElement = this.querySelector('.user-lastname');
+                    const userOnlineElement = this.querySelector('.user-online');
+
+                    console.log('User elements:', {
+                        userIdElement,
+                        userFirstNameElement,
+                        userLastNameElement,
+                        userOnlineElement
+                    }); // Debug log
+
+                    if (userIdElement && userFirstNameElement && userLastNameElement) {
+                        selectedUser = {
+                            id: userIdElement.value,
+                            firstName: userFirstNameElement.value,
+                            lastName: userLastNameElement.value,
+                            online: userOnlineElement ? userOnlineElement.value === 'true' : false
+                        };
+
+                        console.log('Selected user object:', selectedUser); // Debug log
+
+                        // Immediately start chat when user is selected
+                        hideModal('startChatModal');
+                        openChat(selectedUser, 'user');
+                    } else {
+                        console.error('Missing user data elements');
+                    }
+                });
+            });
+
+            // Group user selection
+            document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const userId = this.value;
+                    console.log('Checkbox changed:', userId, this.checked); // Debug log
+
+                    if (this.checked) {
+                        if (!selectedUsers.includes(userId)) {
+                            selectedUsers.push(userId);
+                        }
+                    } else {
+                        selectedUsers = selectedUsers.filter(id => id !== userId);
+                    }
+
+                    console.log('Selected users:', selectedUsers); // Debug log
+                    updateCreateGroupButton();
+                });
+            });
+
+            // Group name validation
+            const groupNameInput = document.getElementById('groupName');
+            if (groupNameInput) {
+                groupNameInput.addEventListener('input', function() {
+                    console.log('Group name changed:', this.value); // Debug log
+                    updateCreateGroupButton();
+
+                    const errorDiv = document.getElementById('groupNameError');
+                    if (errorDiv) {
+                        if (!this.value.trim() && this.value.length > 0) {
+                            errorDiv.classList.remove('hidden');
+                        } else {
+                            errorDiv.classList.add('hidden');
+                        }
+                    }
+                });
+
+                // Initial button state update
+                setTimeout(() => {
+                    updateCreateGroupButton();
+                }, 100);
+            }
+
+            // Search functionality
+            setupSearch();
+
+            // Video call dropdowns
+            setupVideoCallDropdowns();
+        }
+
+        function updateCreateGroupButton() {
+            const confirmBtn = document.getElementById('confirmCreateGroup');
+            const groupNameInput = document.getElementById('groupName');
+
+            if (!confirmBtn || !groupNameInput) {
+                console.error('Group creation elements not found');
+                return;
+            }
+
+            const groupName = groupNameInput.value.trim();
+            const isValid = selectedUsers.length > 0 && groupName.length > 0;
+
+            console.log('Updating group button:', {
+                groupName,
+                selectedUsersCount: selectedUsers.length,
+                isValid
+            }); // Debug log
+
+            confirmBtn.disabled = !isValid;
+            if (isValid) {
+                confirmBtn.classList.remove('btn-disabled');
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+            } else {
+                confirmBtn.classList.add('btn-disabled');
+                confirmBtn.style.opacity = '0.5';
+                confirmBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        function setupVideoCallDropdowns() {
+            // User video call dropdown
+            const userDropdownBtn = document.getElementById('video-call-dropdown-btn-user');
+            const userDropdownMenu = document.getElementById('video-call-dropdown-menu-user');
+
+            userDropdownBtn?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDropdownMenu.classList.toggle('hidden');
+            });
+
+            // Group video call dropdown
+            const groupDropdownBtn = document.getElementById('video-call-dropdown-btn-group');
+            const groupDropdownMenu = document.getElementById('video-call-dropdown-menu-group');
+
+            groupDropdownBtn?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                groupDropdownMenu.classList.toggle('hidden');
+            });
+
+            // Video call actions
+            document.getElementById('start-video-call-user')?.addEventListener('click', () => startVideoCall('user'));
+            document.getElementById('copy-meeting-link-user')?.addEventListener('click', () => copyMeetingLink('user'));
+            document.getElementById('start-video-call-group')?.addEventListener('click', () => startVideoCall('group'));
+            document.getElementById('copy-meeting-link-group')?.addEventListener('click', () => copyMeetingLink('group'));
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                userDropdownMenu?.classList.add('hidden');
+                groupDropdownMenu?.classList.add('hidden');
+            });
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const userSearchStart = document.getElementById('userSearchStart');
+            const userSearchGroup = document.getElementById('userSearchGroup');
+
+            // Chat list search
+            searchInput?.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                filterChatList(query);
+            });
+
+            // User search in start chat modal
+            userSearchStart?.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                filterUserList('.user-list-start .user-item', query);
+            });
+
+            // User search in group modal
+            userSearchGroup?.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                filterUserList('.user-list-group .user-item', query);
+            });
+        }
+
+        function filterChatList(query) {
+            const chatItems = document.querySelectorAll('#chatList .chat-list-item');
+            chatItems.forEach(item => {
+                const name = item.querySelector('.chat-name')?.textContent.toLowerCase() || '';
+                const preview = item.querySelector('.chat-preview')?.textContent.toLowerCase() || '';
+
+                if (name.includes(query) || preview.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterUserList(selector, query) {
+            const items = document.querySelectorAll(selector);
+            items.forEach(item => {
+                const name = item.querySelector('.font-medium')?.textContent.toLowerCase() || '';
+                const email = item.querySelector('.text-gray-500')?.textContent.toLowerCase() || '';
+
+                if (name.includes(query) || email.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('show'), 10);
+            }
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => modal.style.display = 'none', 300);
+
+                // Reset modal state
+                if (modalId === 'startChatModal') {
+                    selectedUser = null;
+                    document.querySelectorAll('.select-user').forEach(u => u.classList.remove('selected'));
+                } else if (modalId === 'createGroupModal') {
+                    selectedUsers = [];
+                    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+                    document.getElementById('groupName').value = '';
+                    document.getElementById('groupNameError').classList.add('hidden');
+                    updateCreateGroupButton();
+                }
+            }
+        }
+
+        function showChatList() {
+            document.getElementById('mobileSidebar').classList.remove('hidden');
+            document.getElementById('mobileChatView').classList.remove('active');
+
+            // Hide all chat headers
+            document.getElementById('chatHeaderDefault').style.display = 'flex';
+            document.getElementById('chatHeaderUser').classList.add('hidden');
+            document.getElementById('chatHeaderGroup').classList.add('hidden');
+        }
+
+        function showChatView(type = 'default') {
+            document.getElementById('mobileSidebar').classList.add('hidden');
+            document.getElementById('mobileChatView').classList.add('active');
+
+            // Show appropriate header
+            document.getElementById('chatHeaderDefault').style.display = type === 'default' ? 'flex' : 'none';
+            document.getElementById('chatHeaderUser').classList.toggle('hidden', type !== 'user');
+            document.getElementById('chatHeaderGroup').classList.toggle('hidden', type !== 'group');
+        }
+
+        function startChat() {
+            if (!selectedUser) return;
+
+            hideModal('startChatModal');
+            openChat(selectedUser, 'user');
+        }
+
+        function createGroup() {
+            console.log('Create group called'); // Debug log
+
+            const groupNameInput = document.getElementById('groupName');
+            const groupName = groupNameInput ? groupNameInput.value.trim() : '';
+
+            console.log('Group creation data:', {
+                groupName,
+                selectedUsers,
+                selectedUsersLength: selectedUsers.length
+            }); // Debug log
+
+            if (!groupName || selectedUsers.length === 0) {
+                const errorDiv = document.getElementById('groupNameError');
+                if (errorDiv) {
+                    if (!groupName) {
+                        errorDiv.textContent = 'Group name is required';
+                        errorDiv.classList.remove('hidden');
+                    } else if (selectedUsers.length === 0) {
+                        errorDiv.textContent = 'Please select at least one user';
+                        errorDiv.classList.remove('hidden');
+                    }
+                }
+                return;
+            }
+
+            hideModal('createGroupModal');
+
+            // Create group chat with the same logic as web version
+            const groupData = {
+                name: groupName,
+                members: selectedUsers,
+                createdBy: currentUserId,
+                type: 'group'
+            };
+
+            console.log('Sending group data:', groupData); // Debug log
+
+            // Send group creation request via WebSocket (same as web version)
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/createGroup", {}, JSON.stringify(groupData));
+
+                // Show loading state or success message
+                console.log('Creating group:', groupName, 'with users:', selectedUsers);
+
+                // Optionally show a temporary success message
+                showTemporaryMessage('Group chat created successfully!');
+            } else {
+                console.error('WebSocket not connected');
+                showTemporaryMessage('Failed to create group. Please try again.');
+            }
+
+            // Reset form
+            if (groupNameInput) {
+                groupNameInput.value = '';
+            }
+            selectedUsers = [];
+            document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+            updateCreateGroupButton();
+        }
+
+        function showTemporaryMessage(message) {
+            // Create a temporary toast message
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function openChat(chatData, type) {
+            console.log('Opening chat:', chatData, type); // Debug log
+
+            if (!chatData || !chatData.id) {
+                console.error('Invalid chat data:', chatData);
+                return;
+            }
+
+            currentChatId = chatData.id;
+            currentChatType = type;
+
+            if (type === 'user') {
+                // Update user chat header
+                document.getElementById('userChatName').textContent = `${chatData.firstName} ${chatData.lastName}`;
+                document.getElementById('userChatStatus').innerHTML = chatData.online ?
+                    '<span class="online-indicator"></span>Online' : 'Offline';
+                document.getElementById('userAvatarContainer').textContent =
+                    chatData.firstName.charAt(0) + chatData.lastName.charAt(0);
+            } else if (type === 'group') {
+                // Update group chat header
+                document.getElementById('groupChatName').textContent = chatData.name;
+                document.getElementById('groupMembersCount').textContent = `${chatData.memberCount} members`;
+                document.getElementById('groupNameAvatar').textContent =
+                    chatData.name.substring(0, 2).toUpperCase();
+            }
+
+            // Clear messages and load chat
+            clearMessages();
+            showChatView(type);
+            loadChatHistory(chatData.id, type);
+        }
+
+        function clearMessages() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+        }
+
+        function loadChatHistory(chatId, type) {
+            // Load chat history from server
+            console.log('Loading chat history for:', chatId, type);
+            // Implementation depends on your backend API
+        }
+
+        function loadConversations() {
+            // Load existing conversations from server
+            console.log('Loading conversations for user:', currentUserId);
+            // Implementation depends on your backend API
+        }
+
+        function sendMessageOverWebSocket() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message || !currentChatId) return;
+
+            const messageData = {
+                content: message,
+                senderId: currentUserId,
+                recipientId: currentChatType === 'user' ? currentChatId : null,
+                groupId: currentChatType === 'group' ? currentChatId : null,
+                timestamp: new Date().toISOString()
+            };
+
+            // Add message to UI immediately
+            addMessageToUI(messageData, true);
+
+            // Send via WebSocket
+            if (stompClient && stompClient.connected) {
+                const endpoint = currentChatType === 'group' ? '/app/groupChat' : '/app/chat';
+                stompClient.send(endpoint, {}, JSON.stringify(messageData));
+            }
+
+            messageInput.value = '';
+        }
+
+        function addMessageToUI(messageData, isSent) {
+            const messagesContainer = document.getElementById('messagesContainer');
+
+            // Remove empty state if present
+            const emptyState = messagesContainer.querySelector('.empty-chat-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
+
+            const timestamp = new Date(messageData.timestamp);
+            const timeStr = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            messageDiv.innerHTML = `
+                <div>${messageData.content}</div>
+                <div class="message-time">${timeStr}</div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function connectWebSocket() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function(frame) {
+                console.log('Connected: ' + frame);
+
+                // Subscribe to personal messages
+                stompClient.subscribe(`/user/${currentUserId}/queue/messages`, function(message) {
+                    const messageData = JSON.parse(message.body);
+                    if (messageData.senderId === currentChatId && currentChatType === 'user') {
+                        addMessageToUI(messageData, false);
+                    }
+                });
+
+                // Subscribe to group messages
+                stompClient.subscribe(`/user/${currentUserId}/queue/groupMessages`, function(message) {
+                    const messageData = JSON.parse(message.body);
+                    if (messageData.groupId === currentChatId && currentChatType === 'group') {
+                        addMessageToUI(messageData, false);
+                    }
+                });
+
+                // Subscribe to group creation notifications
+                stompClient.subscribe(`/user/${currentUserId}/queue/groupCreated`, function(message) {
+                    const groupData = JSON.parse(message.body);
+                    console.log('Group created:', groupData);
+
+                    // Add the new group to the chat list
+                    addGroupToChatList(groupData);
+
+                    // Optionally open the newly created group chat
+                    openChat(groupData, 'group');
+                });
+
+            }, function(error) {
+                console.log('WebSocket connection error: ' + error);
+                setTimeout(connectWebSocket, 5000); // Retry connection
+            });
+        }
+
+        function startVideoCall(type) {
+            const chatId = currentChatId;
+            if (!chatId) return;
+
+            // Generate meeting room ID
+            const roomID = `${currentUserId}_${chatId}_${Date.now()}`;
+
+            // Initialize video call
+            const appID = 1234567890; // Replace with your actual app ID
+            const serverSecret = "your_server_secret"; // Replace with your actual server secret
+
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+                appID,
+                serverSecret,
+                roomID,
+                currentUserId,
+                currentUserName
+            );
+
+            const zp = ZegoUIKitPrebuilt.create(kitToken);
+
+            zp.joinRoom({
+                container: document.body,
+                scenario: {
+                    mode: ZegoUIKitPrebuilt.VideoConference,
+                },
+                showPreJoinView: false,
+            });
+
+            // Hide dropdown
+            if (type === 'user') {
+                document.getElementById('video-call-dropdown-menu-user').classList.add('hidden');
+            } else {
+                document.getElementById('video-call-dropdown-menu-group').classList.add('hidden');
+            }
+        }
+
+        function copyMeetingLink(type) {
+            const chatId = currentChatId;
+            if (!chatId) return;
+
+            const roomID = `${currentUserId}_${chatId}_${Date.now()}`;
+            const meetingLink = `${window.location.origin}/video-call?room=${roomID}`;
+
+            navigator.clipboard.writeText(meetingLink).then(() => {
+                alert('Meeting link copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy meeting link');
+            });
+
+            // Hide dropdown
+            if (type === 'user') {
+                document.getElementById('video-call-dropdown-menu-user').classList.add('hidden');
+            } else {
+                document.getElementById('video-call-dropdown-menu-group').classList.add('hidden');
+            }
+        }
+
+        // Handle modal backdrop clicks
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                    setTimeout(() => this.style.display = 'none', 300);
+                }
+            });
+        });
+
+        // Handle Enter key in message input
+        document.getElementById('messageInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessageOverWebSocket();
+            }
+        });
+
+        function addGroupToChatList(groupData) {
+            const chatList = document.getElementById('chatList');
+            const noConversations = chatList.querySelector('.no-conversations');
+
+            // Remove "no conversations" message if present
+            if (noConversations) {
+                noConversations.remove();
+            }
+
+            // Create group chat item
+            const groupItem = document.createElement('div');
+            groupItem.className = 'chat-list-item';
+            groupItem.setAttribute('data-chat-id', groupData.id);
+            groupItem.setAttribute('data-chat-type', 'group');
+
+            groupItem.innerHTML = `
+                <div class="chat-avatar">${groupData.name.substring(0, 2).toUpperCase()}</div>
+                <div class="chat-info">
+                    <div class="chat-name">${groupData.name}</div>
+                    <div class="chat-preview">Group created</div>
+                </div>
+                <div class="chat-meta">
+                    <div class="chat-time">now</div>
+                </div>
+            `;
+
+            // Add click handler
+            groupItem.addEventListener('click', function() {
+                openChat({
+                    id: groupData.id,
+                    name: groupData.name,
+                    memberCount: groupData.members ? groupData.members.length : 0
+                }, 'group');
+            });
+
+            chatList.appendChild(groupItem);
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Senior Review</title>
+    <style>
+        .btn-primary {
+            background-color: #2563EB;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #1D4ED8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+        }
+        .btn-secondary {
+            background-color: #6B7280;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #4B5563;
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background-color: #DC2626;
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background-color: #B91C1C;
+            transform: translateY(-1px);
+        }
+        .card {
+            background-color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-input {
+            background-color: #F9FAFB;
+            border: 1px solid #D1D5DB;
+            transition: all 0.3s ease;
+            color: #374151;
+        }
+        .form-input:focus {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+            background-color: white;
+        }
+        .form-input[readonly] {
+            background-color: #F3F4F6;
+            color: #6B7280;
+            cursor: not-allowed;
+        }
+        .form-label {
+            color: #374151;
+            font-weight: 500;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-transition {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body id="mainBody">
+<div layout:fragment="content" class="min-h-screen bg-gray-50 p-4 md:p-6">
+    <main class="max-w-4xl mx-auto">
+        <div class="max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800">Review Invoice</h2>
+                    <p class="text-gray-600 mt-1">Review and approve or decline this invoice</p>
+                </div>
+                <button onclick="window.history.back()" class="btn-secondary flex items-center px-4 py-2 rounded-lg text-white font-medium btn-transition">
+                    <span class="material-icons mr-2">arrow_back</span>
+                    Back
+                </button>
+            </div>
+
+            <form>
+                <!-- Client Information Card -->
+                <div class="card rounded-xl p-6 mb-6 fade-in">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="material-icons mr-2 text-blue-600">person</span>
+                        Client Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="form-label block text-sm mb-2">Business Name</label>
+                            <input name="businessName" th:value="${invoiceData.businessName}" type="text" class="form-input w-full px-4 py-3 rounded-lg"
+                                   placeholder="Acme Corporation" required readonly>
+                        </div>
+                        <div>
+                            <label class="form-label block text-sm mb-2">Client Name</label>
+                            <input name="clientName" th:value="${invoiceData.clientName}" type="text" class="form-input w-full px-4 py-3 rounded-lg"
+                                   placeholder="Jane Doe" required readonly>
+                        </div>
+                        <div>
+                            <label class="form-label block text-sm mb-2">Email</label>
+                            <input name="email" th:value="${invoiceData.email}" type="email" class="form-input w-full px-4 py-3 rounded-lg"
+                                   placeholder="contact@acme.com" required readonly>
+                        </div>
+                        <div>
+                            <label class="form-label block text-sm mb-2">Address</label>
+                            <input name="address" th:value="${invoiceData.address}" type="text" class="form-input w-full px-4 py-3 rounded-lg"
+                                   placeholder="Ikeja, Lagos" required readonly>
+                        </div>
+                        <div>
+                            <label class="form-label block text-sm mb-2">Phone (Optional)</label>
+                            <input name="phoneNumber" th:value="${invoiceData.phoneNumber}" type="tel" class="form-input w-full px-4 py-3 rounded-lg"
+                                   placeholder="+1 (555) 123-4567" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Details Card -->
+                <div class="card rounded-xl p-6 mb-6 fade-in" style="animation-delay: 0.1s">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="material-icons mr-2 text-blue-600">receipt</span>
+                        Invoice Details
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label block text-sm mb-2">Amount</label>
+                            <div class="flex">
+                                <span class="inline-flex items-center px-3 rounded-l-lg bg-gray-200 text-gray-700 text-sm border border-r-0 border-gray-300">₦</span>
+                                <input name="amount" th:value="${invoiceData.amount}" type="number" class="form-input flex-1 rounded-r-lg rounded-l-none border-l-0"
+                                       placeholder="0.00" step="0.01" min="0" required readonly>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label block text-sm mb-2">Due Date</label>
+                            <input name="dueDate" th:value="${invoiceData.dueDate}" type="date" class="form-input w-full px-4 py-3 rounded-lg" required readonly>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label block text-sm mb-2">Description (Optional)</label>
+                        <textarea name="description" th:text="${invoiceData.description}" class="form-input w-full px-4 py-3 rounded-lg" rows="3"
+                                  placeholder="Service description" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- Review Status Card -->
+                <div class="card rounded-xl p-6 mb-6 fade-in" style="animation-delay: 0.2s">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="material-icons mr-2 text-blue-600">rate_review</span>
+                        Review Decision
+                    </h3>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <span class="material-icons text-yellow-600 mr-2">schedule</span>
+                            <p class="text-yellow-800 font-medium">This invoice is pending your review</p>
+                        </div>
+                        <p class="text-yellow-700 text-sm mt-1">Please review all details carefully before making a decision.</p>
+                    </div>
+                </div>
+
+                <!-- hidden input -->
+                <input type="hidden" name="taskId" th:value="${invoiceData.taskId}">
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 fade-in" style="animation-delay: 0.3s">
+                    <button type="button"
+                            hx-post="/invoice/submit-review"
+                            hx-trigger="click"
+                            hx-disabled-elt="this"
+                            hx-vals='{"status": "declined"}'
+                            hx-swap="outerHTML"
+                            hx-target="#mainBody"
+                            class="btn-danger flex items-center px-6 py-3 rounded-lg text-white font-medium btn-transition">
+                        <span class="material-icons mr-2">cancel</span>
+                        Decline
+                    </button>
+                    <button type="button"
+                            hx-post="/invoice/submit-review"
+                            hx-trigger="click"
+                            hx-disabled-elt="this"
+                            hx-vals='{"status":"approved"}'
+                            hx-swap="outerHTML"
+                            hx-target="#mainBody"
+                            class="btn-primary flex items-center px-6 py-3 rounded-lg text-white font-semibold btn-transition">
+                        <span class="material-icons mr-2">check_circle</span>
+                        Approve
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script>
+        const sections = document.querySelectorAll('.fade-in');
+        sections.forEach((section, index) => {
+            section.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        const createBtn = document.querySelector('.btn-primary');
+        if (createBtn) {
+            createBtn.addEventListener('mouseenter', () => {
+                createBtn.style.boxShadow = '0 0 20px rgba(37, 99, 235, 0.4)';
+            });
+            createBtn.addEventListener('mouseleave', () => {
+                createBtn.style.boxShadow = '';
+            });
+        }
+
+        const formInputs = document.querySelectorAll('input[required]');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value.trim() !== '') {
+                    input.classList.remove('border-red-500');
+                }
+            });
+        });
+
+        const amountInput = document.querySelector('input[type="number"]');
+        if (amountInput) {
+            amountInput.addEventListener('blur', () => {
+                if (amountInput.value) {
+                    amountInput.value = parseFloat(amountInput.value).toFixed(2);
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

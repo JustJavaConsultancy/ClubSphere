@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        .mobile-dashboard {
+            padding: 16px;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-color), var(--bg-color-dark));
+            color: white;
+            padding: 20px 16px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:active::before {
+            transform: scale(2);
+        }
+
+        .stat-card.blue {
+            --bg-color: #2A2494;
+            --bg-color-dark: #3730a3;
+        }
+
+        .stat-card.green {
+            --bg-color: #10b981;
+            --bg-color-dark: #059669;
+        }
+
+        .stat-card.yellow {
+            --bg-color: #f59e0b;
+            --bg-color-dark: #d97706;
+        }
+
+        .stat-card.purple {
+            --bg-color: #8b5cf6;
+            --bg-color-dark: #7c3aed;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            margin: 8px 0 4px 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 32px;
+            opacity: 0.3;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 16px 16px 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin: 4px 0 0 0;
+        }
+
+        .mobile-list {
+            padding: 0;
+        }
+
+        .mobile-list-item {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.2s ease;
+        }
+
+        .mobile-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-list-item:active {
+            background-color: #f8fafc;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 16px;
+            margin: 0 0 2px 0;
+        }
+
+        .user-email {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-meta {
+            color: #64748b;
+            font-size: 12px;
+            margin: 2px 0 0 0;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-review {
+            background-color: #ede9fe;
+            color: #2A2494;
+        }
+
+        .status-enabled {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-disabled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-btn.approve {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .action-btn.approve:active {
+            background-color: #059669;
+            transform: scale(0.95);
+        }
+
+        .action-btn.reject {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .action-btn.reject:active {
+            background-color: #dc2626;
+            transform: scale(0.95);
+        }
+
+        .action-btn.delete {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .action-btn.delete:active {
+            background-color: #dc2626;
+            transform: scale(0.95);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px auto;
+            background-color: #f1f5f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #94a3b8;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .empty-description {
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .session-type {
+            font-size: 12px;
+            color: #64748b;
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .session-time {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .view-all-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background-color: #f8fafc;
+            color: #2A2494;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .view-all-btn:active {
+            background-color: #f1f5f9;
+        }
+
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-number {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="mobile-dashboard">
+    <!-- Statistics Cards -->
+    <section class="stats-grid">
+        <article class="stat-card blue">
+            <div class="stat-icon">
+                <span class="material-icons">people</span>
+            </div>
+            <p class="stat-label">Total Users</p>
+            <p th:text="${userCount}" class="stat-number">1,250</p>
+        </article>
+
+        <article class="stat-card green">
+            <div class="stat-icon">
+                <span class="material-icons">event_available</span>
+            </div>
+            <p class="stat-label">Upcoming Sessions</p>
+            <p th:text="${upcomingSession}" class="stat-number">0</p>
+        </article>
+
+        <article class="stat-card yellow">
+            <div class="stat-icon">
+                <span class="material-icons">event_available</span>
+            </div>
+            <p class="stat-label">Completed Sessions</p>
+            <p th:text="${completedSession}" class="stat-number">0</p>
+        </article>
+
+        <article class="stat-card purple">
+            <div class="stat-icon">
+                <span class="material-icons">pending_actions</span>
+            </div>
+            <p class="stat-label">Session Requests</p>
+            <p th:text="${unapprovedSize}" class="stat-number">12</p>
+        </article>
+    </section>
+
+    <!-- Session Requests -->
+    <section class="section-card">
+        <header class="section-header">
+            <h2 class="section-title">Session Requests</h2>
+            <p class="section-subtitle">Pending approval requests</p>
+        </header>
+
+        <div class="mobile-list">
+            <div class="mobile-list-item">
+                <img alt="Michael Chen avatar" class="user-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80">
+                <div class="user-info">
+                    <h3 class="user-name">Michael Chen</h3>
+                    <p class="user-email">michael.c@example.com</p>
+                    <span class="session-type">One-on-One Coaching</span>
+                    <p class="session-time">2 hours ago</p>
+                </div>
+                <div class="action-buttons">
+                    <span class="status-badge status-pending">Pending</span>
+                </div>
+            </div>
+
+            <div class="mobile-list-item">
+                <img alt="Sarah Johnson avatar" class="user-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80">
+                <div class="user-info">
+                    <h3 class="user-name">Sarah Johnson</h3>
+                    <p class="user-email">sarah.j@example.com</p>
+                    <span class="session-type">Group Workshop</span>
+                    <p class="session-time">Yesterday</p>
+                </div>
+                <div class="action-buttons">
+                    <span class="status-badge status-pending">Pending</span>
+                </div>
+            </div>
+
+            <div class="mobile-list-item">
+                <img alt="David Wilson avatar" class="user-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&amp;auto=format&amp;fit=facearea&amp;facepad=2.25&amp;w=256&amp;h=256&amp;q=80">
+                <div class="user-info">
+                    <h3 class="user-name">David Wilson</h3>
+                    <p class="user-email">david.w@example.com</p>
+                    <span class="session-type">Career Consultation</span>
+                    <p class="session-time">3 days ago</p>
+                </div>
+                <div class="action-buttons">
+                    <span class="status-badge status-review">Under Review</span>
+                </div>
+            </div>
+        </div>
+
+        <a href="#session-requests" class="view-all-btn">
+            <span class="material-icons">list</span>
+            View All Session Requests
+        </a>
+    </section>
+
+    <!-- New Users -->
+    <section class="section-card">
+        <header class="section-header">
+            <h2 class="section-title">New Users</h2>
+            <p class="section-subtitle">Recently registered users</p>
+        </header>
+
+        <div class="mobile-list">
+            <div th:each="user : ${users}" class="mobile-list-item">
+                <div class="user-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">
+                    <span th:text="${user.firstName != null ? user.firstName.substring(0,1).toUpperCase() : 'U'}">J</span>
+                </div>
+                <div class="user-info">
+                    <h3 th:text="${user.firstName + ' ' + user.lastName}" class="user-name">Jane Doe</h3>
+                    <p th:text="${user.email}" class="user-email">jane.s@example.com</p>
+                    <p class="user-meta">Member since today</p>
+                </div>
+                <div class="action-buttons">
+                    <span th:if="${user.status == 'Enabled'}" class="status-badge status-enabled">Enabled</span>
+                    <span th:if="${user.status != 'Enabled'}" class="status-badge status-disabled">Disabled</span>
+                    <a class="action-btn delete" href="">Delete</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upcoming Training Sessions -->
+    <section class="section-card">
+        <header class="section-header">
+            <h2 class="section-title">Upcoming Training Sessions</h2>
+            <p class="section-subtitle">Scheduled sessions</p>
+        </header>
+
+        <div th:if="${#lists.isEmpty(upcoming)}" class="empty-state">
+            <div class="empty-icon">
+                <span class="material-icons">schedule</span>
+            </div>
+            <h3 class="empty-title">No upcoming sessions</h3>
+            <p class="empty-description">You don't have any training sessions scheduled yet. Create your first session to get started.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(upcoming)}" class="mobile-list">
+            <div th:each="upcomingSession : ${upcoming}" class="mobile-list-item">
+                <div class="empty-icon" style="width: 48px; height: 48px; margin: 0; background: linear-gradient(135deg, #10b981, #059669);">
+                    <span class="material-icons" style="color: white;">event</span>
+                </div>
+                <div class="user-info">
+                    <h3 th:text="${upcomingSession.moduleName}" class="user-name">Leadership Skills Training</h3>
+                    <p class="user-email"
+                       th:text="(${T(java.time.LocalDate).parse(upcomingSession.startDate).equals(T(java.time.LocalDate).now())
+                      ? 'Today'
+                      : #temporals.format(T(java.time.LocalDate).parse(upcomingSession.startDate), 'EEE, MMM dd')})
+                    + ', '
+                    + ${#temporals.format(T(java.time.LocalDate).parse(upcomingSession.startDate)
+                        .atTime(T(java.time.LocalTime).parse(upcomingSession.startTime)), 'h:mm a')}
+                    + ' - '
+                    + ${#temporals.format(T(java.time.LocalDate).parse(upcomingSession.startDate)
+                        .atTime(T(java.time.LocalTime).parse(upcomingSession.startTime))
+                        .plusMinutes(upcomingSession.duration), 'h:mm a')}">
+                        Thu, Jun 15, 10:00 AM - 12:00 PM
+                    </p>
+                </div>
+                <div class="action-buttons">
+                    <span class="status-badge status-approved">Upcoming</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Completed Training Sessions -->
+    <section class="section-card">
+        <header class="section-header">
+            <h2 class="section-title">Completed Training Sessions</h2>
+            <p class="section-subtitle">Finished sessions</p>
+        </header>
+
+        <div th:if="${#lists.isEmpty(completed)}" class="empty-state">
+            <div class="empty-icon">
+                <span class="material-icons">event_available</span>
+            </div>
+            <h3 class="empty-title">No completed sessions yet</h3>
+            <p class="empty-description">Completed sessions will appear here once your training sessions are finished.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(completed)}" class="mobile-list">
+            <div th:each="completedSession : ${completed}" class="mobile-list-item">
+                <div class="empty-icon" style="width: 48px; height: 48px; margin: 0; background: linear-gradient(135deg, #6b7280, #4b5563);">
+                    <span class="material-icons" style="color: white;">check_circle</span>
+                </div>
+                <div class="user-info">
+                    <h3 th:text="${completedSession.moduleName}" class="user-name">Advanced Public Speaking</h3>
+                    <p class="user-email">Completed: <span th:text="${T(java.time.LocalDate).parse(completedSession.startDate).format(T(java.time.format.DateTimeFormatter).ofPattern('MMM dd, yyyy'))}"></span></p>
+                </div>
+                <div class="action-buttons">
+                    <span class="status-badge" style="background-color: #f3f4f6; color: #374151;">Completed</span>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

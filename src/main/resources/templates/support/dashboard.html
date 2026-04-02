@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .card {
+               transition: transform 0.3s ease, box-shadow 0.3s ease;
+               border-radius: 12px;
+               overflow: hidden;
+           }
+           .card:hover {
+               transform: translateY(-5px);
+               box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+           }
+       .priority-high {
+               background-color: #fee2e2;
+               color: #dc2626;
+           }
+           .priority-medium {
+               background-color: #fef3c7;
+               color: #d97706;
+           }
+           .priority-low {
+               background-color: #d1fae5;
+               color: #059669;
+           }
+           .status-open {
+               background-color: #d1fae5;
+               color: #059669;
+           }
+           .status-pending {
+               background-color: #fef3c7;
+               color: #d97706;
+           }
+           .status-closed {
+               background-color: #f1f5f9;
+               color: #64748b;
+           }
+           .ticket-row {
+               transition: all 0.2s ease;
+           }
+           .ticket-row:hover {
+               background-color: #f8fafc;
+               transform: translateX(4px);
+           }
+           .progress-bar {
+               display:none;
+               height: 6px;
+               border-radius: 3px;
+               overflow: hidden;
+               background-color: #e5e7eb;
+           }
+           .progress-fill {
+               height: 100%;
+               border-radius: 3px;
+               background-color: #3b82f6;
+           }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="card bg-white p-6 shadow-sm slide-in-up" style="animation-delay: 0.1s;">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Total Tickets</p>
+                <p class="text-3xl font-bold text-gray-800" th:text="${totalTickets}">1,250</p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-full">
+                <span class="material-icons text-blue-600">confirmation_number</span>
+            </div>
+        </div>
+        <div class="progress-bar mt-4">
+            <div class="progress-fill" style="width: 65%;"></div>
+        </div>
+    </div>
+
+    <div class="card bg-white p-6 shadow-sm slide-in-up" style="animation-delay: 0.2s; transform: translateY(0px);">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Claimed Tickets</p>
+                <p class="text-3xl font-bold text-gray-800" th:text="${myTicketSize}">85</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-full">
+                <span class="material-icons text-green-600">open_in_browser</span>
+            </div>
+        </div>
+        <div class="progress-bar mt-4">
+            <div class="progress-fill" style="width: 25%; background-color: #10b981;"></div>
+        </div>
+    </div>
+
+    <div class="card bg-white p-6 shadow-sm slide-in-up" style="animation-delay: 0.3s; transform: translateY(0px);">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Unclaimed Tickets</p>
+                <p class="text-3xl font-bold text-gray-800" th:text="${unClaimedTicketSize}">1,165</p>
+
+            </div>
+            <div class="bg-red-100 p-3 rounded-full">
+                <span class="material-icons text-red-600">cancel</span>
+            </div>
+        </div>
+        <div class="progress-bar mt-4">
+            <div class="progress-fill" style="width: 90%; background-color: #ef4444;"></div>
+        </div>
+    </div>
+</div>
+    <div th:if="${#lists.isEmpty(unAssignedTickets)}" class="bg-white rounded-xl shadow-sm p-8 text-center animate-fade-in" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s, transform 0.6s;">
+        <div class="max-w-md mx-auto">
+            <div class="animate-float mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">No support tickets yet</h2>
+            <p class="text-gray-600 mb-6">It looks no user has created any support ticket yet.Recent tickets would be viewed here.</p>
+        </div>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(unAssignedTickets)}" class="bg-white rounded-xl shadow-sm p-6 fade-in">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Recent UnassignedTickets Support Tickets</h2>
+            <p class="text-gray-500">View here and claim on the claim tickets page</p>
+        </div>
+        <div class="flex items-center space-x-2 mt-4 md:mt-0">
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                <input class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto" placeholder="Search tickets..." type="text">
+            </div>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+            <tr class="border-b border-gray-200">
+                <th class="py-3 px-4 text-sm font-semibold text-gray-500">TICKET</th>
+                <th class="py-3 px-4 text-sm font-semibold text-gray-500">PRIORITY</th>
+                <th class="py-3 px-4 text-sm font-semibold text-gray-500">LAST UPDATED</th>
+                <th class="py-3 px-4 text-sm font-semibold text-gray-500">STATUS</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="ticket-row border-b border-gray-200" th:each="ticket : ${unAssignedTickets}">
+                <td class="py-4 px-4">
+                    <p class="font-semibold text-gray-800" th:text="'#TKT-' + ${ticket.id}">#TKT-1025</p>
+                    <p class="text-sm text-gray-600" th:text="${ticket.subject}">Coaching error</p>
+                </td>
+                <td class="py-4 px-4">
+                    <span class="px-3 py-1 text-xs font-medium priority-medium rounded-full"
+                          th:text="${ticket.priority}">Medium</span>
+                </td>
+                <td class="py-4 px-4">
+                    <p class="font-semibold text-gray-800"
+                       th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy')}">September 03, 2025</p>
+                    <p class="text-sm text-gray-600" th:text="${#temporals.format(ticket.lastUpdated, 'HH:mm')}">10:30 AM (2 days ago)</p>
+                </td>
+                <td class="py-4 px-4">
+                    <span class="px-3 py-1 text-xs font-medium status-open rounded-full" th:text="${ticket.status}">Open</span>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-between items-center mt-6">
+        <p class="text-sm text-gray-600">Showing 1 to 3 of 12 results</p>
+        <div class="flex items-center space-x-1">
+            <button class="p-2 rounded-md hover:bg-gray-100 text-gray-400">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            <button class="px-4 py-2 rounded-md bg-blue-600 text-white">1</button>
+            <button class="px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700">2</button>
+            <button class="px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700">3</button>
+            <button class="p-2 rounded-md hover:bg-gray-100 text-gray-700">
+                <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

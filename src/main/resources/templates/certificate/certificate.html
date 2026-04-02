@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""/>
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&amp;family=Be+Vietnam+Pro%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <title>My Certificates - Connect</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- HTMX (for modal loading, claiming, etc.) -->
+    <script src="https://unpkg.com/htmx.org@1.10.2"></script>
+
+    <style>
+        /* Your existing styles remain the same */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .card-hover {
+          transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .tab-transition {
+          transition: all 0.3s ease;
+        }
+
+        .tab-transition:hover {
+          color: #2a5dea;
+        }
+
+        .btn-transition {
+          transition: all 0.2s ease;
+        }
+
+        .btn-transition:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .gradient-text {
+          background: linear-gradient(90deg, #2a5dea, #8a3ffc);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .glass-effect {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        /* Mobile menu styles */
+        .mobile-menu {
+          transform: translateX(-100%);
+          transition: transform 0.3s ease-in-out;
+        }
+
+        .mobile-menu.open {
+          transform: translateX(0);
+        }
+
+        /* Certification-specific styles */
+        .certificate-preview {
+          border: 2px dashed #e5e7eb;
+          border-radius: 12px;
+          padding: 2rem;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          text-align: center;
+          margin-top: 1rem;
+        }
+
+        .certificate-badge {
+          background: linear-gradient(135deg, #2a5dea, #8a3ffc);
+          color: white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .certificate-card {
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border: 1px solid #e5e7eb;
+          border-left: 4px solid #2a5dea;
+        }
+
+        /* QR code styling */
+        .qr-code {
+          width: 120px;
+          height: 120px;
+          background: #f3f4f6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
+          margin: 1rem auto;
+        }
+
+        .claimed-badge {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .in-progress-badge {
+          background: linear-gradient(135deg, #f59e0b, #d97706);
+          color: white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        /* Certification-specific styles */
+        .certificate-preview {
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            text-align: center;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .certificate-badge {
+            background: linear-gradient(135deg, #2a5dea, #8a3ffc);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Certificate Customization Styles */
+        .certificate-customization {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            display: none; /* Hidden by default */
+        }
+
+        .customization-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab:hover:not(.active) {
+            color: #6b7280;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .color-input {
+            width: 3rem;
+            height: 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+
+        .font-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .font-option {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .font-option:hover {
+            border-color: #4f46e5;
+        }
+
+        .font-option.selected {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .logo-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logo-upload-area:hover {
+            border-color: #4f46e5;
+        }
+
+        .logo-upload-area.dragover {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .logo-preview {
+            max-width: 200px;
+            max-height: 100px;
+            margin: 0 auto 1rem;
+        }
+
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-container {
+            position: relative;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            min-height: 400px;
+            background: white;
+        }
+
+        .certificate-preview-content {
+            width: 100%;
+            min-height: 400px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            padding: 2rem;
+        }
+
+        .certificate-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .certificate-logo {
+            max-width: 150px;
+            max-height: 80px;
+            margin-bottom: 1.5rem;
+        }
+
+        .certificate-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .certificate-text {
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .certificate-name {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid;
+            padding-bottom: 0.5rem;
+        }
+
+        .certificate-details {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 2rem;
+        }
+
+        .certificate-signature {
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 200px;
+            height: 1px;
+            background-color: #000;
+            margin: 0.5rem auto;
+        }
+
+        .template-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .template-option {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-option:hover {
+            border-color: #4f46e5;
+        }
+
+        .template-option.selected {
+            border-color: #4f46e5;
+        }
+
+        .template-preview {
+            height: 120px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template-name {
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d5db;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #4f46e5;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        /* Professional Certificate Styling */
+        .certificate-border {
+            border: 15px solid;
+            padding: 2.5rem;
+            position: relative;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .certificate-seal {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .certificate-ribbon {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 30px;
+            background: linear-gradient(135deg, #2a5dea, #8a3ffc);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .certificate-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: bold;
+            opacity: 0.05;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Logo positioning classes */
+        .logo-top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .logo-top-center {
+            align-self: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        /* Signature Styles */
+        .signature-tab-content {
+            display: none;
+        }
+
+        .signature-tab-content.active {
+            display: block;
+        }
+
+        .signature-type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .signature-type {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .signature-type:hover {
+            border-color: #4f46e5;
+        }
+
+        .signature-type.selected {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .signature-method-icon {
+            font-size: 2.5rem;
+            color: #4f46e5;
+            margin-bottom: 0.5rem;
+        }
+
+        .signature-canvas-container {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            margin-bottom: 1rem;
+        }
+
+        #signature-canvas {
+            width: 100%;
+            height: 200px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .signature-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .signature-preview {
+            max-width: 300px;
+            max-height: 100px;
+            margin: 1rem auto;
+            border: 1px dashed #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9fafb;
+        }
+
+        .signature-preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .signature-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .signature-upload-area:hover {
+            border-color: #4f46e5;
+        }
+
+        .signature-upload-area.dragover {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .font-signature-preview {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.5rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animation for certificate preview */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .certificate-preview-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .grid-cols-2, .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .template-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .font-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .customization-tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+
+            .certificate-border {
+                padding: 1.5rem;
+                border-width: 10px;
+            }
+
+            .certificate-title {
+                font-size: 1.5rem;
+            }
+
+            .certificate-name {
+                font-size: 1.25rem;
+            }
+
+            .certificate-text {
+                font-size: 1rem;
+            }
+
+            .signature-type-selector {
+                flex-direction: column;
+            }
+        }
+
+        /* NEW: Certificate display container for PDF generation */
+        .certificate-display-container {
+            width: 1123px; /* A4 width in pixels for landscape */
+            height: 794px; /* A4 height in pixels for landscape */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background: white;
+            position: relative;
+        }
+
+        .certificate-content-display {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* NEW: Remove excess padding and margins for PDF generation */
+        .certificate-pdf-container {
+            width: 1123px;
+            height: 794px;
+            margin: 0;
+            padding: 0;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .certificate-pdf-content {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+    </style>
+
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="flex-1 px-4 py-4 sm:px-6 sm:py-6 max-w-6xl mx-auto w-full">
+
+        <!-- Stats Overview -->
+        <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-lg card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Certificates</p>
+                        <p th:text="${sessionsCount}" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <span class="material-icons text-blue-600">card_membership</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-lg card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Available to Claim</p>
+                        <p th:text="${completedSessionsCount}" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <span class="material-icons text-green-600">download</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-lg card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">In Progress</p>
+                        <p th:text="${upcomingSessionsCount}" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <span class="material-icons text-yellow-600">schedule</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="-mb-pix flex space-x-8">
+                <button id="tab-available-btn"
+                        class="tab-transition py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600"
+                        data-tab="available">
+                    Available to Claim (<span th:text="${completedSessionsCount}">0</span>)
+                </button>
+                <button id="tab-inprogress-btn"
+                        class="tab-transition py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        data-tab="in-progress">
+                    In Progress (<span th:text="${upcomingSessionsCount}">0</span>)
+                </button>
+            </nav>
+        </div>
+
+        <!-- Available to Claim Tab (uses completedSessions model variable) -->
+        <div id="available-tab" class="tab-content space-y-6">
+            <div th:if="${#lists.isEmpty(completedSessions)}" class="text-center py-12">
+                <span class="material-icons text-gray-400 text-6xl mb-4">card_membership</span>
+                <h3 class="text-xl font-semibold text-gray-600">No available certificates</h3>
+                <p class="text-gray-500 mt-2">Complete sessions to have certificates available to claim.</p>
+            </div>
+
+            <!-- Each available certificate -->
+            <div th:each="single : ${completedSessions}" class="bg-white rounded-2xl shadow-lg certificate-card p-6 card-hover">
+                <div class="flex flex-col md:flex-row md:items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 th:text="${single.moduleName}" class="text-xl font-bold text-gray-900">Module Name</h3>
+                            <span class="certificate-badge">Available</span>
+                        </div>
+
+                        <p class="text-gray-600 mb-4">
+                            Completed on <span th:text="${single.startDate}">Date</span>
+                        </p>
+
+                        <p th:text="${single.description}" class="text-gray-700">Description here</p>
+                    </div>
+
+                    <div class="mt-4 md:mt-0 md:ml-6 flex flex-col gap-3">
+                        <!-- Download PDF button -->
+                        <button
+                                class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 download-pdf-btn"
+                                th:data-certificate-id="${single.id}"
+                                th:data-module-name="${single.moduleName}"
+                                th:data-description="${single.description}"
+                                th:data-completion-date="${single.startDate}"
+                                onclick="downloadCertificateFromModal(this)">
+                            <span class="material-icons">file_download</span>
+                            Download PDF
+                        </button>
+
+                        <!-- View Details loads certificate preview into modal via HTMX -->
+                        <button
+                                class="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 view-certificate-btn"
+                                th:hx-get="@{/certificate/preview/{id}(id=${single.id})}"
+                                hx-target="#certificate-modal .modal-body"
+                                hx-trigger="click"
+                                hx-swap="innerHTML">
+                            <span class="material-icons">visibility</span>
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claimed Certificates Tab -->
+        <div id="claimed-tab" class="tab-content space-y-6 hidden">
+            <div class="text-center py-12">
+                <span class="material-icons text-gray-400 text-6xl mb-4">card_membership</span>
+                <h3 class="text-xl font-semibold text-gray-600">Claimed certificates will appear here</h3>
+                <p class="text-gray-500 mt-2">When you claim certificates from the "Available to Claim" tab, they will be displayed here</p>
+            </div>
+        </div>
+
+        <!-- In Progress Tab (uses upcomingSessions model variable) -->
+        <div id="in-progress-tab" class="tab-content space-y-6 hidden">
+            <div th:if="${#lists.isEmpty(upcomingSessions)}" class="text-center py-12">
+                <span class="material-icons text-gray-400 text-6xl mb-4">schedule</span>
+                <h3 class="text-xl font-semibold text-gray-600">No certificates in progress</h3>
+                <p class="text-gray-500 mt-2">Your ongoing training sessions will appear here</p>
+            </div>
+
+            <div th:each="single : ${upcomingSessions}" class="bg-white rounded-2xl shadow-lg certificate-card p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 th:text="${single.moduleName}" class="text-lg font-semibold">Upcoming Module</h3>
+                    </div>
+                    <div>
+                        <span class="in-progress-badge">In Progress</span>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-4">
+                    To be completed on <span th:text="${single.startDate}">Date</span>
+                </p>
+
+                <p th:text="${single.description}" class="text-gray-700">Description here</p>
+            </div>
+        </div>
+
+        <!-- Certificate Preview Modal (Empty body will be filled by HTMX preview endpoint) -->
+        <div id="certificate-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-2xl shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+                    <div class="p-6 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
+                        <h3 class="text-xl font-bold text-gray-900">Certificate Preview</h3>
+                        <button class="p-2 rounded-full hover:bg-gray-100" onclick="hideModal('#certificate-modal')">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+
+                    <!-- modal-body target - now scrollable -->
+                    <div class="p-6 modal-body overflow-y-auto flex-1">
+                        <!-- HTMX will inject the preview here from /certificate/preview/{id} -->
+                        <div class="text-center py-12 text-gray-500">Loading preview…</div>
+                    </div>
+
+                    <div class="p-6 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
+                        <button class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                                onclick="hideModal('#certificate-modal')">
+                            Close
+                        </button>
+                        <!-- Modal download button -->
+                        <button id="modal-download-btn"
+                                class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 hidden">
+                            <span class="material-icons">download</span>
+                            Download Certificate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- jsPDF for client-side PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for converting HTML to image in PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+
+        // Current certificate data for modal
+        let currentCertificateData = null;
+
+        // Tab switching
+        (function () {
+            const tabButtons = document.querySelectorAll('[data-tab]');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = button.getAttribute('data-tab');
+                    tabButtons.forEach(btn => btn.classList.remove('border-indigo-500', 'text-indigo-600'));
+                    button.classList.add('border-indigo-500', 'text-indigo-600');
+
+                    tabContents.forEach(c => c.classList.add('hidden'));
+                    document.getElementById(`${target}-tab`).classList.remove('hidden');
+                });
+            });
+
+            // initialize - show available by default
+            document.getElementById('available-tab').classList.remove('hidden');
+        })();
+
+        // Modal helpers
+        function showModal(selector) {
+            const modal = document.querySelector(selector);
+            if (!modal) {
+                console.error('Modal not found:', selector);
+                return;
+            }
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal(selector) {
+            const modal = document.querySelector(selector);
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Show a simple notification
+        function notify(message, level = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-3 rounded-lg shadow-lg z-50 animate-fade-in ${
+                level === 'success' ? 'bg-green-500 text-white' :
+                    level === 'error' ? 'bg-red-500 text-white' :
+                        'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function notifySuccess(msg) { notify(msg, 'success'); }
+        function notifyError(msg) { notify(msg, 'error'); }
+
+        // Generate PDF from the actual certificate HTML with high quality
+        function generateCertificatePDFFromHTML() {
+            if (!currentCertificateData) {
+                notifyError('No certificate data available');
+                return;
+            }
+
+            notify('Generating your certificate PDF...', 'info');
+
+            // Get the actual certificate content from the modal display
+            const certificateDisplay = document.querySelector('.certificate-display-container .certificate-content-display');
+            if (!certificateDisplay) {
+                notifyError('Certificate content not available for download');
+                return;
+            }
+
+            // Create a clone for PDF generation to avoid affecting the display
+            const elementToCapture = certificateDisplay.cloneNode(true);
+
+            // Apply the exact same styles as the preview
+            elementToCapture.style.width = '1123px'; // A4 width in pixels for landscape
+            elementToCapture.style.height = '794px'; // A4 height in pixels for landscape
+            elementToCapture.style.margin = '0';
+            elementToCapture.style.padding = '0';
+            elementToCapture.style.boxSizing = 'border-box';
+            elementToCapture.style.background = 'white';
+
+            // Ensure all certificate styles are applied
+            elementToCapture.classList.add('certificate-content-display');
+
+            // Temporarily add to DOM for proper rendering
+            elementToCapture.style.position = 'fixed';
+            elementToCapture.style.left = '-9999px';
+            elementToCapture.style.top = '0';
+            elementToCapture.style.zIndex = '-1000';
+            elementToCapture.style.opacity = '1'; // Make it visible for capture
+            document.body.appendChild(elementToCapture);
+
+            // Wait for fonts and images to load
+            setTimeout(() => {
+                // Use html2canvas with high quality settings optimized for certificates
+                html2canvas(elementToCapture, {
+                    scale: 2, // High resolution for crisp text
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    width: elementToCapture.offsetWidth,
+                    height: elementToCapture.offsetHeight,
+                    onclone: function(clonedDoc, element) {
+                        // Ensure all certificate-related styles are preserved
+                        const allStyles = document.querySelectorAll('style');
+                        allStyles.forEach(style => {
+                            clonedDoc.head.appendChild(style.cloneNode(true));
+                        });
+
+                        // Ensure the element has proper certificate styling
+                        element.style.width = '1123px';
+                        element.style.height = '794px';
+                        element.style.background = 'white';
+                    }
+                }).then(canvas => {
+                    // Clean up the temporary element
+                    document.body.removeChild(elementToCapture);
+
+                    const imgData = canvas.toDataURL('image/png', 1.0);
+
+                    // Create PDF with landscape orientation
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'px',
+                        format: [1123, 794] // Match the exact dimensions of our certificate
+                    });
+
+                    // Add the certificate image to PDF - full page
+                    pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794, '', 'FAST');
+
+                    // Set PDF metadata
+                    pdf.setProperties({
+                        title: `Certificate - ${currentCertificateData.moduleName}`,
+                        subject: 'Certificate of Completion',
+                        author: 'Training Academy',
+                        keywords: 'certificate, completion, training',
+                        creator: 'Connect Platform'
+                    });
+
+                    // Generate filename and save
+                    const fileName = `certificate-${currentCertificateData.moduleName.replace(/\s+/g, '-').toLowerCase()}-${currentCertificateData.certificateId}.pdf`;
+                    pdf.save(fileName);
+
+                    notifySuccess('Certificate downloaded successfully!');
+                    hideModal('#certificate-modal');
+
+                }).catch(error => {
+                    console.error('Error generating PDF:', error);
+                    // Clean up on error
+                    if (document.body.contains(elementToCapture)) {
+                        document.body.removeChild(elementToCapture);
+                    }
+                    notifyError('Failed to generate PDF certificate. Please try again.');
+                });
+            }, 500); // Increased delay to ensure proper rendering
+        }
+
+        // Enhanced PDF generation with better preloading
+        async function generateHighQualityPDF() {
+            if (!currentCertificateData) {
+                notifyError('No certificate data available');
+                return;
+            }
+
+            notify('Preparing certificate for download...', 'info');
+
+            try {
+                // Wait for all images and fonts to load in the modal
+                const displayElement = document.getElementById('certificate-display');
+                if (displayElement) {
+                    await preloadImages(displayElement);
+                }
+
+                // Additional delay to ensure all CSS is applied
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Generate PDF from the actual HTML
+                generateCertificatePDFFromHTML();
+            } catch (error) {
+                console.error('Error in PDF generation:', error);
+                notifyError('Failed to generate certificate PDF');
+            }
+        }
+
+        // Preload images for better PDF quality
+        function preloadImages(container) {
+            return new Promise((resolve) => {
+                const images = container.getElementsByTagName('img');
+                let loadedCount = 0;
+                const totalImages = images.length;
+
+                if (totalImages === 0) {
+                    resolve();
+                    return;
+                }
+
+                Array.from(images).forEach(img => {
+                    if (img.complete) {
+                        loadedCount++;
+                    } else {
+                        img.onload = () => {
+                            loadedCount++;
+                            if (loadedCount === totalImages) resolve();
+                        };
+                        img.onerror = () => {
+                            loadedCount++;
+                            if (loadedCount === totalImages) resolve();
+                        };
+                    }
+                });
+
+                // Resolve after all images are processed (loaded or errored)
+                if (loadedCount === totalImages) {
+                    resolve();
+                }
+            });
+        }
+
+        // Download certificate directly from main page (same as modal)
+        async function downloadCertificateFromModal(button) {
+            const certificateId = button.getAttribute('data-certificate-id');
+            const moduleName = button.getAttribute('data-module-name');
+            const description = button.getAttribute('data-description');
+            const completionDate = button.getAttribute('data-completion-date');
+
+            currentCertificateData = {
+                certificateId: certificateId,
+                moduleName: moduleName,
+                description: description,
+                completionDate: completionDate
+            };
+
+            notify('Loading certificate for download...', 'info');
+
+            try {
+                // First, fetch the certificate HTML from backend
+                const response = await fetch(`/certificate/preview/${certificateId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load certificate');
+                }
+                const html = await response.text();
+
+                // Create a temporary container for the certificate
+                const tempContainer = document.createElement('div');
+                tempContainer.style.position = 'fixed';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '0';
+                tempContainer.style.zIndex = '-1000';
+                tempContainer.style.opacity = '0';
+
+                // Add the certificate HTML with proper styling
+                tempContainer.innerHTML = `
+                    <div class="certificate-pdf-container">
+                        <div class="certificate-pdf-content">
+                            ${html}
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(tempContainer);
+
+                // Wait for rendering
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Capture the certificate
+                const certificateElement = tempContainer.querySelector('.certificate-pdf-container');
+
+                const canvas = await html2canvas(certificateElement, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    width: certificateElement.offsetWidth,
+                    height: certificateElement.offsetHeight,
+                    x: 0,
+                    y: 0,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: certificateElement.scrollWidth,
+                    windowHeight: certificateElement.scrollHeight
+                });
+
+                // Clean up
+                document.body.removeChild(tempContainer);
+
+                const imgData = canvas.toDataURL('image/png', 1.0);
+
+                // Create PDF
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'px',
+                    format: [1123, 794]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794, '', 'FAST');
+
+                pdf.setProperties({
+                    title: `Certificate - ${currentCertificateData.moduleName}`,
+                    subject: 'Certificate of Completion',
+                    author: 'Training Academy',
+                    keywords: 'certificate, completion, training',
+                    creator: 'Connect Platform'
+                });
+
+                const fileName = `certificate-${currentCertificateData.moduleName.replace(/\s+/g, '-').toLowerCase()}-${currentCertificateData.certificateId}.pdf`;
+                pdf.save(fileName);
+
+                notifySuccess('Certificate downloaded successfully!');
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                notifyError('Failed to generate certificate PDF. Please try again.');
+            }
+        }
+
+        // NEW: Optimized PDF generation function with minimal white space
+        async function generateOptimizedPDF() {
+            if (!currentCertificateData) {
+                notifyError('No certificate data available');
+                return;
+            }
+
+            notify('Generating optimized certificate PDF...', 'info');
+
+            try {
+                // Get the certificate content from the modal
+                const certificateElement = document.querySelector('.certificate-display-container .certificate-content-display');
+                if (!certificateElement) {
+                    throw new Error('Certificate content not found');
+                }
+
+                // Create a temporary container with exact dimensions
+                const tempContainer = document.createElement('div');
+                tempContainer.style.position = 'fixed';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '0';
+                tempContainer.style.zIndex = '-1000';
+                tempContainer.style.opacity = '0';
+
+                // Clone the certificate content
+                const certificateClone = certificateElement.cloneNode(true);
+
+                // Apply exact dimensions and remove any padding/margins
+                certificateClone.style.width = '1123px';
+                certificateClone.style.height = '794px';
+                certificateClone.style.margin = '0';
+                certificateClone.style.padding = '0';
+                certificateClone.style.boxSizing = 'border-box';
+                certificateClone.style.background = 'white';
+                certificateClone.style.overflow = 'hidden';
+
+                tempContainer.appendChild(certificateClone);
+                document.body.appendChild(tempContainer);
+
+                // Wait for rendering
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Capture with html2canvas
+                const canvas = await html2canvas(certificateClone, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    width: 1123,
+                    height: 794,
+                    x: 0,
+                    y: 0,
+                    scrollX: 0,
+                    scrollY: 0
+                });
+
+                // Clean up
+                document.body.removeChild(tempContainer);
+
+                const imgData = canvas.toDataURL('image/png', 1.0);
+
+                // Create PDF
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'px',
+                    format: [1123, 794]
+                });
+
+                // Add image to fill the entire PDF
+                pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794, '', 'FAST');
+
+                pdf.setProperties({
+                    title: `Certificate - ${currentCertificateData.moduleName}`,
+                    subject: 'Certificate of Completion',
+                    author: 'Training Academy',
+                    keywords: 'certificate, completion, training',
+                    creator: 'Connect Platform'
+                });
+
+                const fileName = `certificate-${currentCertificateData.moduleName.replace(/\s+/g, '-').toLowerCase()}-${currentCertificateData.certificateId}.pdf`;
+                pdf.save(fileName);
+
+                notifySuccess('Certificate downloaded successfully!');
+
+            } catch (error) {
+                console.error('Error generating optimized PDF:', error);
+                notifyError('Failed to generate certificate PDF. Please try again.');
+            }
+        }
+
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Main page download buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.download-pdf-btn')) {
+                    const button = e.target.closest('.download-pdf-btn');
+                    downloadCertificateFromModal(button);
+                }
+            });
+
+            // Modal download button - use optimized PDF generation
+            document.getElementById('modal-download-btn').addEventListener('click', function() {
+                // Get certificate data from the modal content
+                const modalBody = document.querySelector('#certificate-modal .modal-body');
+                const certificateElement = modalBody.querySelector('[data-certificate-id]');
+
+                if (certificateElement && currentCertificateData) {
+                    generateOptimizedPDF();
+                } else {
+                    notifyError('Please view the certificate first before downloading from modal.');
+                }
+            });
+        });
+
+        // HTMX global event listeners for nicer UX
+        document.body.addEventListener('htmx:afterSwap', function (evt) {
+            // If the swap swapped into the modal-body area, ensure modal is shown
+            if (evt.detail.target && evt.detail.target.classList && evt.detail.target.classList.contains('modal-body')) {
+                showModal('#certificate-modal');
+
+                // Extract certificate data from the loaded content for PDF generation
+                const certificateElement = evt.detail.target.querySelector('[data-certificate-id]');
+                if (certificateElement) {
+                    currentCertificateData = {
+                        certificateId: certificateElement.getAttribute('data-certificate-id'),
+                        moduleName: certificateElement.getAttribute('data-module-name') || 'Module Name',
+                        description: certificateElement.getAttribute('data-description') || 'Certificate of completion',
+                        completionDate: certificateElement.getAttribute('data-completion-date') || new Date().toLocaleDateString()
+                    };
+                }
+            }
+        });
+
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+    </script>
+</div>
+</body>
+</html>

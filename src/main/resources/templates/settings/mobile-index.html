@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+    <style>
+        /* Mobile-optimized settings styles */
+        .settings-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .settings-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .card-icon.danger {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        /* Status toggle styles */
+        .status-toggle {
+            position: relative;
+            display: inline-block;
+            width: 64px;
+            height: 36px;
+        }
+
+        .status-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .status-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e5e7eb;
+            transition: .4s;
+            border-radius: 36px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-slider:before {
+            position: absolute;
+            content: "";
+            height: 28px;
+            width: 28px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .status-slider {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+        }
+
+        input:checked + .status-slider:before {
+            transform: translateX(28px);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .status-public {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #2A2494;
+            border: 1px solid rgba(42, 36, 148, 0.2);
+        }
+
+        .status-private {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-explanation {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+            border-left: 4px solid #2A2494;
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            box-shadow: 0 0 0 4px rgba(42, 36, 148, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-input.success {
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        /* Button styles */
+        .brand-btn {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .brand-btn:active {
+            transform: scale(0.95);
+        }
+
+        .brand-btn:disabled {
+            background: #9ca3af;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .danger-btn {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .danger-btn:active {
+            transform: scale(0.95);
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid #e5e7eb;
+            color: #374151;
+            font-weight: 600;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            min-height: 52px;
+        }
+
+        .secondary-btn:active {
+            background: #f3f4f6;
+            transform: scale(0.95);
+        }
+
+        /* Tier cards */
+        .tier-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tier-card:active {
+            transform: scale(0.98);
+        }
+
+        .tier-card.active {
+            border-color: #2A2494;
+            background: linear-gradient(135deg, rgba(42, 36, 148, 0.05), rgba(55, 48, 163, 0.05));
+            box-shadow: 0 8px 25px rgba(42, 36, 148, 0.15);
+        }
+
+        .tier-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, transparent);
+            transition: all 0.3s ease;
+        }
+
+        .tier-card.active::before {
+            background: linear-gradient(90deg, #2A2494, #3730a3);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-bronze {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .badge-silver {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #374151;
+        }
+
+        .badge-gold {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .level-radio {
+            width: 20px;
+            height: 20px;
+            accent-color: #2A2494;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+
+        .feature-list .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #d1d5db;
+        }
+
+        .feature-list .enabled .dot {
+            background: #10b981;
+        }
+
+        /* Feedback styles */
+        .feedback {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .feedback.success {
+            color: #059669;
+        }
+
+        .feedback.error {
+            color: #dc2626;
+        }
+
+        .feedback.info {
+            color: #2A2494;
+        }
+
+        /* Grid responsive */
+        .tier-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 640px) {
+            .tier-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Touch feedback */
+        .touch-feedback {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touch-feedback::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(42, 36, 148, 0.2) 0%, transparent 70%);
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            border-radius: inherit;
+        }
+
+        .touch-feedback:active::after {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+    <!-- Header -->
+    <header class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <span class="material-icons text-white text-xl">tune</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+                <p class="text-sm text-gray-600">Manage your account preferences</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Status Visibility Card -->
+    <section class="settings-card touch-feedback">
+        <div class="card-header">
+            <div class="card-icon">
+                <span class="material-icons">visibility</span>
+            </div>
+            <h2 class="card-title">Profile Status</h2>
+        </div>
+
+        <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+                <p class="text-sm text-gray-700 mb-3">Control who can see your profile</p>
+                <div id="statusIndicator" class="status-indicator status-public">
+                    <span class="material-icons text-base">public</span>
+                    <span>Public Profile</span>
+                </div>
+                <div class="status-explanation" id="statusExplanation">
+                    Your profile is visible to everyone in the community.
+                </div>
+            </div>
+            <label class="status-toggle">
+                <input type="checkbox"
+                       id="statusToggle"
+                       th:checked="${user.privacy}"
+                       hx-post="/mobile/update-status"
+                       hx-target="#statusFeedback"
+                       hx-swap="innerHTML"
+                       hx-vals='js:{status: document.getElementById("statusToggle").checked ? "private" : "public"}'>
+                <span class="status-slider"></span>
+            </label>
+        </div>
+        <div class="mt-4">
+            <div id="statusFeedback" class="feedback success"></div>
+        </div>
+    </section>
+
+    <!-- Change Password Card -->
+    <section class="settings-card touch-feedback">
+        <div class="card-header">
+            <div class="card-icon">
+                <span class="material-icons">lock</span>
+            </div>
+            <h2 class="card-title">Change Password</h2>
+        </div>
+
+        <form hx-post="/mobile/change-password" hx-target="#passwordFeedback"
+              hx-swap="innerHTML" id="passwordForm" class="space-y-4"
+              _="on htmx:afterOnLoad
+                            remove .success from #passwordFeedback
+                            add .error to #passwordFeedback
+                            remove .cursor-progress from #savePasswordBtn">
+            <div class="form-group">
+                <label class="form-label">Current password</label>
+                <input id="currentPassword" name="oldPassword" type="password"
+                       class="form-input" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">New password</label>
+                <input id="newPassword" name="newPassword" type="password"
+                       class="form-input" placeholder="••••••••" required
+                       _="on input
+                       if me.value.length <= 7
+                            put 'New password must be at least 8 characters' into #passwordFeedback.innerHTML
+                            add .error to #passwordFeedback
+                            remove .success from #passwordFeedback
+                            add .error to me
+                            remove .success from me
+                       else
+                            put 'New password has at least 8 characters' into #passwordFeedback.innerHTML
+                            add .success to #passwordFeedback
+                            remove .error from #passwordFeedback
+                            add .success to me
+                            remove .error from me">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm new password</label>
+                <input id="confirmPassword" name="confirmPassword" type="password"
+                       class="form-input" placeholder="••••••••" required
+                       _="on input
+                       if me.value == #newPassword.value and me.value.length >= 8
+                            set #savePasswordBtn.disabled to false
+                            put 'Passwords match' into #passwordFeedback.innerHTML
+                            add .brand-btn to #savePasswordBtn
+                            remove .secondary-btn from #savePasswordBtn
+                            add .success to #passwordFeedback
+                            remove .error from #passwordFeedback
+                            add .success to me
+                            remove .error from me
+                       else
+                            set #savePasswordBtn.disabled to true
+                            put 'Passwords do not match' into #passwordFeedback.innerHTML
+                            add .error to #passwordFeedback
+                            remove .success from #passwordFeedback
+                            add .secondary-btn to #savePasswordBtn
+                            remove .brand-btn from #savePasswordBtn
+                            add .error to me
+                            remove .success from me">
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button type="submit" id="savePasswordBtn" class="secondary-btn touch-feedback"
+                        disabled
+                        _="on click
+                            add .cursor-progress to #savePasswordBtn
+                            put '' into #passwordFeedback.innerHTML">
+                    Update Password
+                </button>
+                <div id="passwordFeedback" class="feedback"></div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Upgrade Level Card -->
+    <section class="settings-card touch-feedback">
+        <div class="card-header">
+            <div class="card-icon">
+                <span class="material-icons">military_tech</span>
+            </div>
+            <h2 class="card-title">Upgrade Level</h2>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-6">Choose your access level. Higher levels include all features from lower levels.</p>
+
+        <div class="tier-grid">
+            <label class="tier-card touch-feedback">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="badge badge-bronze">
+                        <span class="material-icons" style="font-size: 14px;">military_tech</span>
+                        Bronze
+                    </span>
+                    <input type="radio" name="level" value="1" class="level-radio" th:checked="${user.level == '1'}">
+                </div>
+                <h3 class="font-bold text-gray-900 mb-1">Level 1</h3>
+                <p class="text-xs text-gray-500 mb-3">Explorer</p>
+                <ul class="feature-list">
+                    <li class="enabled"><span class="dot"></span> View posts</li>
+                    <li class="enabled"><span class="dot"></span> Make comments</li>
+                    <li><span class="dot"></span> Create posts</li>
+                    <li><span class="dot"></span> Create groups</li>
+                </ul>
+            </label>
+
+            <label class="tier-card touch-feedback">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="badge badge-silver">
+                        <span class="material-icons" style="font-size: 14px;">military_tech</span>
+                        Silver
+                    </span>
+                    <input type="radio" name="level" value="2" class="level-radio" th:checked="${user.level == '2'}">
+                </div>
+                <h3 class="font-bold text-gray-900 mb-1">Level 2</h3>
+                <p class="text-xs text-gray-500 mb-3">Creator</p>
+                <ul class="feature-list">
+                    <li class="enabled"><span class="dot"></span> View posts</li>
+                    <li class="enabled"><span class="dot"></span> Make comments</li>
+                    <li class="enabled"><span class="dot"></span> Create posts</li>
+                    <li><span class="dot"></span> Create groups</li>
+                </ul>
+            </label>
+
+            <label class="tier-card touch-feedback">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="badge badge-gold">
+                        <span class="material-icons" style="font-size: 14px;">military_tech</span>
+                        Gold
+                    </span>
+                    <input type="radio" name="level" value="3" class="level-radio" th:checked="${user.level == '3'}">
+                </div>
+                <h3 class="font-bold text-gray-900 mb-1">Level 3</h3>
+                <p class="text-xs text-gray-500 mb-3">Champion</p>
+                <ul class="feature-list">
+                    <li class="enabled"><span class="dot"></span> View posts</li>
+                    <li class="enabled"><span class="dot"></span> Make comments</li>
+                    <li class="enabled"><span class="dot"></span> Create posts</li>
+                    <li class="enabled"><span class="dot"></span> Create groups</li>
+                </ul>
+            </label>
+        </div>
+
+        <div class="mt-6 flex flex-col gap-3">
+            <button hx-post="/mobile/save-level" hx-include="[name='level']"
+                    type="button" id="upgradeLevelBtn" class="brand-btn touch-feedback">
+                Save Level
+            </button>
+            <div id="levelFeedback" class="feedback"></div>
+        </div>
+    </section>
+
+    <!-- Logout Card -->
+    <section class="settings-card touch-feedback">
+        <div class="card-header">
+            <div class="card-icon danger">
+                <span class="material-icons">logout</span>
+            </div>
+            <h2 class="card-title">Sign Out</h2>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <p class="text-sm text-gray-700">
+                Sign out of your account. You'll need to enter your credentials to sign back in.
+            </p>
+
+            <button hx-post="/mobile/logout"
+                    hx-target="#logoutFeedback"
+                    hx-swap="innerHTML"
+                    type="button"
+                    id="logoutBtn"
+                    class="danger-btn touch-feedback"
+                    _="on click
+                        put 'Signing out...' into #logoutFeedback.innerHTML
+                        add .info to #logoutFeedback
+                        remove .error from #logoutFeedback
+                        remove .success from #logoutFeedback">
+                <span class="material-icons">logout</span>
+                Sign Out
+            </button>
+
+            <div id="logoutFeedback" class="feedback"></div>
+        </div>
+    </section>
+
+    <script>
+        (function() {
+            console.log('🚀 SETTINGS: Initializing settings page');
+
+            // Status toggle setup
+            function setupStatusToggle() {
+                const statusToggle = document.getElementById('statusToggle');
+                if (statusToggle) {
+                    statusToggle.addEventListener('change', function() {
+                        const isPrivate = this.checked;
+                        const indicator = document.getElementById('statusIndicator');
+                        const explanation = document.getElementById('statusExplanation');
+
+                        if (isPrivate) {
+                            indicator.className = 'status-indicator status-private';
+                            indicator.innerHTML = '<span class="material-icons text-base">lock</span><span>Private Profile</span>';
+                            explanation.textContent = 'Your profile is only visible to the community admin.';
+                        } else {
+                            indicator.className = 'status-indicator status-public';
+                            indicator.innerHTML = '<span class="material-icons text-base">public</span><span>Public Profile</span>';
+                            explanation.textContent = 'Your profile is visible to everyone in the community.';
+                        }
+                    });
+                    console.log('✅ Status toggle listener attached');
+                }
+            }
+
+            // Level selection setup
+            function setupLevelSelection() {
+                document.querySelectorAll('.level-radio').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        document.querySelectorAll('.tier-card').forEach(card => card.classList.remove('active'));
+                        if (this.checked) {
+                            this.closest('.tier-card').classList.add('active');
+                        }
+                    });
+                });
+
+                const checkedRadio = document.querySelector('.level-radio:checked');
+                if (checkedRadio) {
+                    checkedRadio.closest('.tier-card').classList.add('active');
+                }
+                console.log('✅ Level selection listeners attached');
+            }
+
+            // Password validation setup
+            function setupPasswordValidation() {
+                function validatePasswords() {
+                    const current = document.getElementById('currentPassword');
+                    const newPass = document.getElementById('newPassword');
+                    const confirm = document.getElementById('confirmPassword');
+                    const feedback = document.getElementById('passwordFeedback');
+                    const button = document.getElementById('savePasswordBtn');
+
+                    if (!current || !newPass || !confirm || !feedback || !button) return;
+
+                    if (newPass.value.length >= 8 && newPass.value === confirm.value && current.value) {
+                        button.disabled = false;
+                        button.className = 'brand-btn touch-feedback';
+                        feedback.textContent = 'Passwords match';
+                        feedback.className = 'feedback success';
+                    } else {
+                        button.disabled = true;
+                        button.className = 'secondary-btn touch-feedback';
+                        if (newPass.value.length < 8) {
+                            feedback.textContent = 'Password must be at least 8 characters';
+                            feedback.className = 'feedback error';
+                        } else if (newPass.value !== confirm.value) {
+                            feedback.textContent = 'Passwords do not match';
+                            feedback.className = 'feedback error';
+                        }
+                    }
+                }
+
+                ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', validatePasswords);
+                    }
+                });
+                console.log('✅ Password validation listeners attached');
+            }
+
+            // Touch feedback setup
+            function setupTouchFeedback() {
+                document.querySelectorAll('.touch-feedback').forEach(element => {
+                    element.addEventListener('touchstart', () => {
+                        element.style.transform = 'scale(0.98)';
+                    });
+                    element.addEventListener('touchend', () => {
+                        setTimeout(() => {
+                            element.style.transform = '';
+                        }, 150);
+                    });
+                });
+                console.log('✅ Touch feedback listeners attached');
+            }
+
+            // Initialization
+            function initialize() {
+                console.log('🚀 SETTINGS: Initializing settings page');
+
+                setupStatusToggle();
+                setupLevelSelection();
+                setupPasswordValidation();
+                setupTouchFeedback();
+
+                console.log('✅ SETTINGS: Initialization complete');
+            }
+
+            // Start initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initialize);
+            } else {
+                initialize();
+            }
+
+        })();
+    </script>
+</main>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Meetings & Schedule</title>
+    <style>
+        .meeting-row {
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .status-upcoming {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-today {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dropdown-content a {
+            color: #374151;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f3f4f6;
+        }
+
+        .dropdown-content a.disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .dropdown-content a.disabled:hover {
+            background-color: transparent;
+        }
+
+        .dropdown.show .dropdown-content {
+            display: block;
+            animation: dropdownFadeIn 0.2s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .participant-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        .participants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .participant-card {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 animate-fade-in">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Meetings & Schedule</h1>
+            <p class="text-gray-600 mt-2">View and manage all your scheduled meetings</p>
+        </div>
+        <a th:href="@{/create-meeting}">
+            <button class="mt-4 md:mt-0 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2 btn-transition">
+                <span class="material-icons">add</span>
+                Schedule New Meeting
+            </button>
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex-1 relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                <input type="text" id="search-input" placeholder="Search meetings..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="flex gap-4">
+                <select id="status-filter" class="min-w-[140px] px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">All Statuses</option>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Today">Today</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(meetings)}" class="bg-white rounded-2xl shadow-lg p-12 text-center animate-fade-in">
+        <div class="max-w-md mx-auto">
+            <div class="flex justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No meetings scheduled</h3>
+            <p class="text-gray-600 mb-6">You don't have any meetings scheduled yet. Create your first meeting to get started.</p>
+            <a th:href="@{/create-meeting}">
+                <button class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+                    Schedule Your First Meeting
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(meetings)}" class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="overflow-x-auto">
+            <table class="w-full table-hover">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meeting</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participants</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="meetings-table-body" class="bg-white divide-y divide-gray-200">
+                <tr th:each="meeting, iterStat : ${meetings}" class="meeting-row" th:style="'animation-delay: ' + ${iterStat.index * 0.1 + 0.3} + 's;'">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <span class="material-icons text-indigo-600">event</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900" th:text="${meeting.moduleName}">Meeting Title</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            <div class="flex items-center">
+                                <span class="material-icons text-gray-400 mr-2 text-base">event</span>
+                                <span th:text="${T(java.time.LocalDate).parse(meeting.startDate).format(T(java.time.format.DateTimeFormatter).ofPattern('MMM dd, yyyy'))}">Dec 15, 2023</span>
+                            </div>
+                            <div class="flex items-center mt-1">
+                                <span class="material-icons text-gray-400 mr-2 text-base">schedule</span>
+                                <span th:text="${meeting.startTime}" class="text-gray-500">10:00 AM</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center text-sm text-gray-900">
+                            <span class="material-icons text-gray-400 mr-2 text-base">timer</span>
+                            <span th:text="${meeting.duration + ' min'}">30 min</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center text-sm text-gray-900">
+                            <span class="material-icons text-gray-400 mr-2 text-base">group</span>
+                            <span th:text="${meeting.numberOfParticipants}">5</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span th:if="${meeting.getStatus() == 'Completed'}" class="status-badge status-completed" th:text="${meeting.getStatus()}">Completed</span>
+                        <span th:if="${meeting.getStatus() == 'Upcoming'}" class="status-badge status-upcoming" th:text="${meeting.getStatus()}">Upcoming</span>
+                        <span th:if="${meeting.getStatus() == 'Today'}" class="status-badge status-today" th:text="${meeting.getStatus()}">Today</span>
+                        <span th:if="${meeting.getStatus() == 'Cancelled'}" class="status-badge status-cancelled" th:text="${meeting.getStatus()}">Cancelled</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="dropdown">
+                            <button class="p-2 rounded-full hover:bg-gray-100 transition-colors dropdown-btn" th:data-meeting-id="${meeting.id}">
+                                <span class="material-icons text-gray-500">more_vert</span>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="#" class="view-meeting" th:data-meeting-id="${meeting.id}">
+                                    <span class="material-icons text-sm mr-2">visibility</span>View Details
+                                </a>
+                                <a href="#" class="disabled" title="Edit functionality temporarily disabled">
+                                    <span class="material-icons text-sm mr-2">edit</span>Edit Meeting
+                                </a>
+                                <a href="#" class="disabled" title="Delete functionality temporarily disabled">
+                                    <span class="material-icons text-sm mr-2">delete</span>Cancel Meeting
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- View Meeting Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold text-gray-900">Meeting Details</h2>
+                <button class="close-modal p-2 rounded-full hover:bg-gray-100">
+                    <span class="material-icons text-gray-500">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="meeting-details">
+                    <!-- Meeting details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dropdown functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.dropdown-btn')) {
+                e.preventDefault();
+                const dropdown = e.target.closest('.dropdown');
+                const isOpen = dropdown.classList.contains('show');
+
+                // Close all dropdowns
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+
+                // Toggle current dropdown
+                if (!isOpen) {
+                    dropdown.classList.add('show');
+                }
+            } else {
+                // Close all dropdowns when clicking outside
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // View meeting functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-meeting')) {
+                e.preventDefault();
+                const meetingId = e.target.closest('.view-meeting').dataset.meetingId;
+                viewMeeting(meetingId);
+            }
+        });
+
+        async function viewMeeting(meetingId) {
+            try {
+                const response = await fetch(`/api/meetings/${meetingId}`);
+                const meeting = await response.json();
+
+                // Create participants HTML
+                let participantsHtml = '';
+                if (meeting.participantNames && meeting.participantNames.length > 0) {
+                    participantsHtml = `
+                        <div class="participants-grid">
+                            ${meeting.participantNames.map(name => `
+                                <div class="participant-card">
+                                    <div class="participant-avatar">${name.split(' ').map(n => n[0]).join('').toUpperCase()}</div>
+                                    <span class="text-sm font-medium text-gray-700">${name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    participantsHtml = '<p class="text-gray-500 text-sm">No participants added</p>';
+                }
+
+                // Format date for better display
+                const formatDate = (dateStr) => {
+                    try {
+                        const date = new Date(dateStr);
+                        return date.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    } catch (e) {
+                        return dateStr;
+                    }
+                };
+
+                // Format time for better display
+                const formatTime = (timeStr) => {
+                    try {
+                        const [hours, minutes] = timeStr.split(':');
+                        const date = new Date();
+                        date.setHours(parseInt(hours), parseInt(minutes));
+                        return date.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                    } catch (e) {
+                        return timeStr;
+                    }
+                };
+
+                // Calculate status for display
+                const getStatusClass = (status) => {
+                    switch(status?.toLowerCase()) {
+                        case 'completed': return 'status-completed';
+                        case 'today': return 'status-today';
+                        case 'upcoming': return 'status-upcoming';
+                        default: return 'status-upcoming';
+                    }
+                };
+
+                const detailsHtml = `
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">${meeting.moduleName || 'Meeting'}</h3>
+                            <p class="text-gray-600">${meeting.description || 'No description available'}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="material-icons text-gray-500 mr-2">event</span>
+                                    <span class="text-sm font-medium text-gray-500">Date</span>
+                                </div>
+                                <p class="text-gray-900 font-medium">${meeting.startDate ? formatDate(meeting.startDate) : 'Not specified'}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="material-icons text-gray-500 mr-2">schedule</span>
+                                    <span class="text-sm font-medium text-gray-500">Time</span>
+                                </div>
+                                <p class="text-gray-900 font-medium">${meeting.startTime ? formatTime(meeting.startTime) : 'Not specified'}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="material-icons text-gray-500 mr-2">timer</span>
+                                    <span class="text-sm font-medium text-gray-500">Duration</span>
+                                </div>
+                                <p class="text-gray-900 font-medium">${meeting.duration || 'Not specified'} minutes</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="material-icons text-gray-500 mr-2">info</span>
+                                    <span class="text-sm font-medium text-gray-500">Status</span>
+                                </div>
+                                <span class="status-badge ${getStatusClass(meeting.status)}">${meeting.status || 'Upcoming'}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center mb-3">
+                                <span class="material-icons text-gray-500 mr-2">group</span>
+                                <span class="text-sm font-medium text-gray-500">Participants (${meeting.numberOfParticipants || 0})</span>
+                            </div>
+                            ${participantsHtml}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('meeting-details').innerHTML = detailsHtml;
+                document.getElementById('viewModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading meeting details:', error);
+                alert('Error loading meeting details');
+            }
+        }
+
+        // Modal close functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal') || e.target.closest('.close-modal')) {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+
+        // Search and filter functionality
+        function filterMeetings() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            const tableBody = document.getElementById('meetings-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const titleElement = row.querySelector('.text-sm.font-medium.text-gray-900');
+                const descriptionElement = row.querySelector('.text-sm.text-gray-500');
+                const statusElement = row.querySelector('.status-badge');
+
+                if (!titleElement) return;
+
+                const title = titleElement.textContent.toLowerCase();
+                const description = descriptionElement ? descriptionElement.textContent.toLowerCase() : '';
+                const status = statusElement ? statusElement.textContent.trim() : '';
+
+                // Check search term match
+                const matchesSearch = searchTerm === '' ||
+                    title.includes(searchTerm) ||
+                    description.includes(searchTerm);
+
+                // Check status filter match
+                const matchesStatus = statusFilter === '' || status === statusFilter;
+
+                // Show/hide row based on filters
+                if (matchesSearch && matchesStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Show/hide empty state message
+            const emptyMessage = document.getElementById('no-results-message');
+            if (visibleCount === 0 && (searchTerm !== '' || statusFilter !== '')) {
+                if (!emptyMessage) {
+                    const tbody = document.getElementById('meetings-table-body');
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.id = 'no-results-message';
+                    emptyRow.innerHTML = `
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <span class="material-icons text-4xl mb-2 text-gray-300">search_off</span>
+                                <p class="text-lg font-medium">No meetings found</p>
+                                <p class="text-sm">Try adjusting your search or filter criteria</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(emptyRow);
+                }
+            } else if (emptyMessage) {
+                emptyMessage.remove();
+            }
+        }
+
+        // Add event listeners for search and filter
+        document.getElementById('search-input').addEventListener('input', filterMeetings);
+        document.getElementById('status-filter').addEventListener('change', filterMeetings);
+    </script>
+</div>
+</body>
+</html>

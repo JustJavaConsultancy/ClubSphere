@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <title>Add File - Gallery - Connect Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<main layout:fragment="content" class="mobile-add-file">
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success">
+        <div class="alert-content">
+            <svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span th:text="${success}"></span>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-error">
+        <div class="alert-content">
+            <svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${error}"></span>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="page-header">
+        <div class="header-nav">
+            <a th:href="@{/mobile/gallery}" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            <div class="header-content">
+                <h1 class="page-title">Upload Files</h1>
+                <p class="page-subtitle">Add files to your gallery</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Upload Form -->
+    <section class="upload-section">
+        <form th:action="@{/mobile/gallery/upload}" method="post" enctype="multipart/form-data" id="uploadForm" class="upload-form">
+
+            <!-- File Upload Area -->
+            <div class="upload-area-container">
+                <div class="upload-area" id="dropZone">
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                    </div>
+                    <div class="upload-content">
+                        <h3 class="upload-title">Choose files or drag here</h3>
+                        <p class="upload-description">PNG, JPG, PDF, DOC, MP4, MP3 up to 50MB</p>
+                        <label for="file" class="upload-button">
+                            <span>Browse Files</span>
+                            <input id="file" name="file" type="file" class="file-input" required multiple>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected Files Display -->
+            <div id="selectedFiles" class="selected-files" style="display: none;">
+                <h3 class="section-title">Selected Files</h3>
+                <div id="filesList" class="files-list"></div>
+            </div>
+
+            <!-- File Description -->
+            <div class="form-group">
+                <label for="description" class="form-label">Description (Optional)</label>
+                <textarea
+                        id="description"
+                        name="description"
+                        rows="3"
+                        class="form-textarea"
+                        placeholder="Add a description for your files..."></textarea>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="uploadProgress" class="upload-progress" style="display: none;">
+                <div class="progress-header">
+                    <span class="progress-label">Uploading...</span>
+                    <span id="progressText" class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button
+                        type="submit"
+                        id="uploadBtn"
+                        class="upload-submit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Upload Files
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <style>
+        .mobile-add-file {
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .alert {
+            margin: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            padding: 24px 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .back-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .upload-section {
+            padding: 24px 16px;
+        }
+
+        .upload-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .upload-area-container {
+            margin-bottom: 24px;
+        }
+
+        .upload-area {
+            background: white;
+            border: 2px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 48px 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: #2A2494;
+            background: rgba(42, 36, 148, 0.05);
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 24px;
+            color: #9ca3af;
+        }
+
+        .upload-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 8px 0;
+        }
+
+        .upload-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0 0 24px 0;
+            line-height: 1.5;
+        }
+
+        .upload-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .upload-button:hover {
+            background: linear-gradient(135deg, #1e1a7a, #2A2494);
+            transform: translateY(-1px);
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .selected-files {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 16px 0;
+        }
+
+        .files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .file-item.invalid {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .file-info-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .file-type-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .file-type-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .file-type-icon.image {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .file-type-icon.document {
+            background: rgba(42, 36, 148, 0.1);
+            color: #2A2494;
+        }
+
+        .file-type-icon.video {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
+        .file-type-icon.audio {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .file-type-icon.invalid {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .file-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 4px 0;
+            word-break: break-word;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .file-error {
+            font-size: 12px;
+            color: #dc2626;
+            margin: 4px 0 0 0;
+        }
+
+        .remove-file-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .remove-file-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .remove-file-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .form-group {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2A2494;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .upload-progress {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .progress-percentage {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2A2494;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2A2494, #3730a3);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        .upload-submit-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(42, 36, 148, 0.3);
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .upload-submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 36, 148, 0.4);
+        }
+
+        .upload-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upload-submit-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #10b981;
+        }
+
+        .notification.error {
+            background: #ef4444;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .upload-area {
+                padding: 32px 16px;
+            }
+
+            .upload-icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .upload-title {
+                font-size: 16px;
+            }
+
+            .upload-description {
+                font-size: 13px;
+            }
+
+            .file-item {
+                padding: 12px;
+            }
+
+            .file-info-container {
+                gap: 8px;
+            }
+
+            .file-type-icon {
+                width: 32px;
+                height: 32px;
+            }
+
+            .file-type-icon svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .upload-submit-btn {
+                padding: 14px 24px;
+                font-size: 15px;
+                min-width: 180px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file');
+            const dropZone = document.getElementById('dropZone');
+            const selectedFiles = document.getElementById('selectedFiles');
+            const filesList = document.getElementById('filesList');
+            const uploadForm = document.getElementById('uploadForm');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            const allowedTypes = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'video/mp4', 'video/avi', 'video/mov', 'video/wmv',
+                'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a'
+            ];
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function getFileType(file) {
+                if (file.type.startsWith('image/')) return 'image';
+                if (file.type.startsWith('video/')) return 'video';
+                if (file.type.startsWith('audio/')) return 'audio';
+                if (file.type === 'application/pdf' || file.type.includes('document') || file.type.includes('word')) return 'document';
+                return 'other';
+            }
+
+            function validateFileClient(file) {
+                const errors = [];
+
+                if (file.size > 50 * 1024 * 1024) {
+                    errors.push(`File size (${formatFileSize(file.size)}) exceeds the 50MB limit`);
+                }
+
+                let isValidType = allowedTypes.includes(file.type);
+
+                if (!isValidType && file.name) {
+                    const extension = file.name.toLowerCase();
+                    if (extension.endsWith('.mp3') && (file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.type === '')) {
+                        isValidType = true;
+                    } else if (extension.endsWith('.mp4') && (file.type === 'video/mp4' || file.type === '')) {
+                        isValidType = true;
+                    } else if (extension.endsWith('.pdf') && (file.type === 'application/pdf' || file.type === '')) {
+                        isValidType = true;
+                    }
+                }
+
+                if (!isValidType) {
+                    errors.push(`File type '${file.type || 'unknown'}' is not supported`);
+                }
+
+                return errors;
+            }
+
+            function displaySelectedFiles(files) {
+                filesList.innerHTML = '';
+                if (files.length > 0) {
+                    selectedFiles.style.display = 'block';
+                    Array.from(files).forEach((file, index) => {
+                        const fileDiv = document.createElement('div');
+                        const fileType = getFileType(file);
+                        const validationErrors = validateFileClient(file);
+                        const isValid = validationErrors.length === 0;
+
+                        fileDiv.className = `file-item ${!isValid ? 'invalid' : ''}`;
+                        fileDiv.innerHTML = `
+                            <div class="file-info-container">
+                                <div class="file-type-icon ${isValid ? fileType : 'invalid'}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div class="file-details">
+                                    <div class="file-name">${file.name}</div>
+                                    <div class="file-size">${formatFileSize(file.size)}</div>
+                                    ${!isValid ? '<div class="file-error">' + validationErrors.join(', ') + '</div>' : ''}
+                                </div>
+                            </div>
+                            <button type="button" class="remove-file-btn" onclick="removeFile(${index})">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        `;
+                        filesList.appendChild(fileDiv);
+                    });
+                } else {
+                    selectedFiles.style.display = 'none';
+                }
+            }
+
+            window.removeFile = function(index) {
+                const dt = new DataTransfer();
+                const files = fileInput.files;
+
+                for (let i = 0; i < files.length; i++) {
+                    if (i !== index) {
+                        dt.items.add(files[i]);
+                    }
+                }
+
+                fileInput.files = dt.files;
+                displaySelectedFiles(fileInput.files);
+            };
+
+            fileInput.addEventListener('change', function() {
+                displaySelectedFiles(this.files);
+            });
+
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+
+                const files = e.dataTransfer.files;
+                fileInput.files = files;
+                displaySelectedFiles(files);
+            });
+
+            dropZone.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (fileInput.files.length === 0) {
+                    showNotification('Please select at least one file to upload.', 'error');
+                    return;
+                }
+
+                let hasValidFiles = false;
+                let validationErrors = [];
+
+                for (let file of fileInput.files) {
+                    const errors = validateFileClient(file);
+                    if (errors.length === 0) {
+                        hasValidFiles = true;
+                    } else {
+                        validationErrors.push(`${file.name}: ${errors.join(', ')}`);
+                    }
+                }
+
+                if (!hasValidFiles) {
+                    showNotification('No valid files selected', 'error');
+                    return;
+                }
+
+                if (validationErrors.length > 0) {
+                    const proceed = confirm(`Some files have validation errors and will be skipped:\n${validationErrors.join('\n')}\n\nDo you want to proceed with the valid files?`);
+                    if (!proceed) {
+                        return;
+                    }
+                }
+
+                const formData = new FormData(this);
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<div class="loading-spinner"></div> Uploading...';
+                uploadProgress.style.display = 'block';
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                        progressText.textContent = Math.round(percentComplete) + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', function() {
+                    if (xhr.status === 200 || xhr.status === 302) {
+                        window.location.href = '/mobile/gallery';
+                    } else {
+                        showNotification('Upload failed. Please try again.', 'error');
+                        resetUploadForm();
+                    }
+                });
+
+                xhr.addEventListener('error', function() {
+                    showNotification('Network error during upload. Please check your connection and try again.', 'error');
+                    resetUploadForm();
+                });
+
+                xhr.addEventListener('timeout', function() {
+                    showNotification('Upload timed out. Please try again with smaller files.', 'error');
+                    resetUploadForm();
+                });
+
+                xhr.timeout = 300000;
+                xhr.open('POST', '/mobile/gallery/upload');
+                xhr.send(formData);
+            });
+
+            function resetUploadForm() {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Upload Files
+                `;
+                uploadProgress.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+            }
+
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        if (document.body.contains(notification)) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
+</main>
+</body>
+</html>

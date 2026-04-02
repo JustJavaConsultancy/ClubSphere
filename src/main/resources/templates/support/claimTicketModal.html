@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="p-6" th:fragment="ticketDetails">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-gray-800">Ticket Details</h3>
+        <button class="text-gray-400 hover:text-gray-600" id="close-ticket-modal"
+                _="on click
+                remove .active from #ticket-modal">
+            ✕
+        </button>
+    </div>
+
+    <!-- Ticket Info -->
+    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <h4 class="text-lg font-medium text-gray-800" id="modal-ticket-title" th:text="${ticket.subject}">Technical issue with video calls</h4>
+            <span class="ticket-status open" id="modal-ticket-status" th:text="${ticket.status}">Open</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div><span class="text-gray-500">Ticket ID:</span><span class="font-medium ml-2" id="modal-ticket-id" th:text="${ticket.id}">CON-2837</span></div>
+            <div><span class="text-gray-500">Category:</span><span class="font-medium ml-2" id="modal-ticket-category">Technical Issue</span></div>
+            <div><span class="text-gray-500">Priority:</span><span class="font-medium ml-2" id="modal-ticket-priority" th:text="${ticket.priority}">High</span></div>
+            <div><span class="text-gray-500">Assigned To:</span><span class="font-medium ml-2" id="assigned-agent">Unassigned</span></div>
+        </div>
+    </div>
+
+    <!-- Claim Ticket -->
+    <div id="claim-section" class="mb-6">
+        <button id="claim-ticket-btn"
+                class="claim-btn"
+                th:attr="hx-post=@{/support/submit-claim/{id}(id=${ticket.id})}"
+                hx-trigger="click">Claim This Ticket</button>
+    </div>
+
+    <!-- Conversation -->
+    <div class="mb-6">
+        <h4 class="font-medium text-gray-800 mb-4">Conversation</h4>
+        <div id="conversation" class="chat-box">
+            <div class="chat-msg chat-user">
+                <p th:text="${ticket.description}">I'm having trouble with video calls freezing during sessions. This has happened multiple times.</p>
+                <span class="text-xs text-gray-500" th:text="${username} + ' - ' + ${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">Alex Morgan • June 12, 2023</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reply Box -->
+    <div id="reply-section" class="hidden">
+        <h4 class="font-medium text-gray-800 mb-3">Add a Reply</h4>
+        <textarea id="reply-input"
+                  class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 chat-input" rows="3" placeholder="Type your message..."></textarea>
+        <div class="flex justify-end mt-3">
+            <button id="send-reply-btn"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                    type="button"
+            >Send Message</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Schedule New Meeting</title>
+    <style>
+        .participant-item {
+            animation: fadeIn 0.3s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .search-results {
+            position: absolute;
+            width: calc(100% - 110px);
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: none;
+        }
+        .search-result-item {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .search-result-item:hover {
+            background-color: #f3f4f6;
+        }
+        .search-result-item img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="bg-white p-8 rounded-2xl shadow-lg transform hover:scale-[1.01] transition-transform duration-500">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">Schedule New Meeting</h1>
+        <p class="text-gray-600 mt-2">Create a new meeting and invite participants</p>
+
+        <!-- Community Context Display -->
+        <div th:if="${selectedCommunityName != null}" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Creating meeting for community</h3>
+                    <p class="text-sm text-blue-600" th:text="${selectedCommunityName}">Community Name</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/create-meeting}" method="post" class="space-y-8">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="description">Meeting Title & Description</label>
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-4 text-gray-400">description</span>
+                <textarea class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="description" name="description" placeholder="Enter meeting title and agenda details..." rows="4" required></textarea>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="startDate">Meeting Date</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">event</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="startDate" name="startDate" type="date" required/>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="startTime">Meeting Time</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">schedule</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="startTime" name="startTime" type="time" required/>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="duration">Duration (minutes)</label>
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">hourglass_top</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="duration" min="15" name="duration" step="15" type="number" placeholder="60" required/>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Invite Participants</label>
+            <div class="flex gap-4 relative">
+                <div class="relative flex-grow">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">person_add</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 form-input" id="participants-input" placeholder="Search by name or email" type="text"/>
+                    <div id="search-results" class="search-results"></div>
+                </div>
+                <button class="px-6 py-3 bg-indigo-100 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-200 transition-colors flex items-center gap-2" id="add-participant-btn" type="button">
+                    <span class="material-icons">add</span> Add
+                </button>
+            </div>
+            <div class="mt-4 space-y-3" id="participants-list">
+                <!-- Participants will be added here dynamically -->
+            </div>
+            <input type="hidden" id="participants-hidden" name="users">
+        </div>
+
+        <div class="flex justify-end pt-6 border-t border-gray-200">
+            <a th:href="@{/meetings}">
+                <button class="px-8 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors mr-4" type="button">Cancel</button>
+            </a>
+            <button class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2" type="submit">
+                <span class="material-icons">event</span>
+                Schedule Meeting
+            </button>
+        </div>
+    </form>
+
+    <script>
+        let participants = [];
+        let selectedParticipants = [];
+
+        const participantsInput = document.getElementById('participants-input');
+        const searchResults = document.getElementById('search-results');
+        const addParticipantBtn = document.getElementById('add-participant-btn');
+        const participantsList = document.getElementById('participants-list');
+        const participantsHidden = document.getElementById('participants-hidden');
+
+        async function loadParticipants() {
+            try {
+                // Get mycommunity context from the page
+                const selectedCommunityId = /*[[${selectedCommunityId}]]*/ null;
+
+                // Build URL with mycommunity parameter if available
+                let url = "/api/meeting-participants";
+                if (selectedCommunityId) {
+                    url += `?communityId=${selectedCommunityId}`;
+                }
+
+                console.log("Loading participants from:", url);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Failed to fetch users");
+                const users = await response.json();
+
+                console.log("Loaded", users.length, "eligible participants");
+                participants = users.map(u => ({
+                    id: u.userId,
+                    name: `${u.firstName} ${u.lastName}`,
+                    email: u.email,
+                    avatar: u.avatar && u.avatar.length === 1
+                        ? `https://ui-avatars.com/api/?name=${u.avatar}&background=random`
+                        : (u.avatar || `https://ui-avatars.com/api/?name=${u.firstName}+${u.lastName}&background=random`)
+                }));
+            } catch (err) {
+                console.error("Error loading participants:", err);
+            }
+        }
+
+        function filterParticipants(searchTerm) {
+            return participants.filter(p =>
+                p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.email.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        function displaySearchResults(results) {
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            results.forEach(p => {
+                const isSelected = selectedParticipants.some(sp => sp.id === p.id);
+
+                const item = document.createElement('div');
+                item.className = `search-result-item ${isSelected ? 'opacity-50 cursor-not-allowed' : ''}`;
+                item.innerHTML = `
+                    <img src="${p.avatar}" alt="${p.name}">
+                    <div>
+                        <p class="font-medium">${p.name}</p>
+                        <p class="text-sm text-gray-500">${p.email}</p>
+                    </div>
+                `;
+
+                if (!isSelected) {
+                    item.addEventListener('click', () => {
+                        addParticipant(p);
+                        participantsInput.value = '';
+                        searchResults.style.display = 'none';
+                    });
+                }
+
+                searchResults.appendChild(item);
+            });
+
+            searchResults.style.display = 'block';
+        }
+
+        function addParticipant(participant) {
+            if (selectedParticipants.some(p => p.id === participant.id)) return;
+            selectedParticipants.push(participant);
+            renderParticipantsList();
+        }
+
+        function removeParticipant(id) {
+            selectedParticipants = selectedParticipants.filter(p => p.id !== id);
+            renderParticipantsList();
+        }
+
+        function renderParticipantsList() {
+            participantsList.innerHTML = '';
+            selectedParticipants.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg participant-item';
+                div.style.animationDelay = `${i * 0.1}s`;
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <img alt="${p.name}" class="w-10 h-10 rounded-full mr-3" src="${p.avatar}">
+                        <div>
+                            <p class="font-medium text-gray-800">${p.name}</p>
+                            <p class="text-sm text-gray-500">${p.email}</p>
+                        </div>
+                    </div>
+                    <button class="p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-500 transition-colors delete-btn" data-id="${p.id}">
+                        <span class="material-icons">close</span>
+                    </button>
+                `;
+                participantsList.appendChild(div);
+            });
+
+            participantsHidden.value = selectedParticipants.map(p => p.id);
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    removeParticipant(e.currentTarget.getAttribute('data-id'));
+                });
+            });
+        }
+
+        participantsInput.addEventListener('input', e => {
+            const term = e.target.value.trim();
+            if (term.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            displaySearchResults(filterParticipants(term));
+        });
+
+        participantsInput.addEventListener('focus', () => {
+            const term = participantsInput.value.trim();
+            if (term.length > 0) displaySearchResults(filterParticipants(term));
+        });
+
+        document.addEventListener('click', e => {
+            if (!participantsInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        addParticipantBtn.addEventListener('click', () => {
+            const term = participantsInput.value.trim();
+            if (!term) return;
+            const match = filterParticipants(term)[0];
+            if (match) addParticipant(match);
+            participantsInput.value = '';
+            searchResults.style.display = 'none';
+        });
+
+        document.addEventListener('DOMContentLoaded', loadParticipants);
+    </script>
+</div>
+</body>
+</html>

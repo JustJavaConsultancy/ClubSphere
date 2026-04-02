@@ -1,0 +1,26 @@
+<header th:fragment="header" class="glass-effect flex items-center justify-between px-4 py-3 sticky top-0 z-30 shadow-sm lg:ml-0" xmlns:th="http://www.thymeleaf.org">
+    <div class="flex items-center">
+        <button class="p-1 mr-3 rounded-md hover:bg-blue-50 lg:hidden" id="open-mobile-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <button class="mobile-header-btn rounded-lg bg-white shadow-sm hover:shadow-md btn-transition md:hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </button>
+
+        <a th:href="@{/mobile/settings}" title="Settings" class="mobile-header-btn rounded-lg bg-white shadow-sm hover:shadow-md btn-transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </a>
+
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full mobile-profile-image md:size-12 shadow-md cursor-pointer btn-transition" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVTJYkmJeXP9CMr48YxMfAjo22dGH1z1_ePNdqF3gPJt2S1OZvIzYmLbF1gxxqzYkM0Rb1UI0rQXNipMnYAHu7sTVxPfm2O_ZvDE-MMratIf4GP9IfMjT9joeWeib3U71__p8L8aZf5PBRkhWKjyjy6AZG0H2s4SRwuFktvatxiAUJKX1AbVeZitBZOHGgorTfHhlSWwUTqOEgkwJdXt94nk6-kVt7SxJKuOD6veLTJHMuG-J2BZP--a7CBnoMNmwokfd1McDQdI8");'></div>
+    </div>
+</header>

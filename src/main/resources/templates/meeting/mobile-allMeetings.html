@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meetings & Schedule</title>
+    <style>
+        .mobile-meetings {
+            padding: 16px;
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 16px;
+            margin: 0 0 20px 0;
+        }
+
+        .create-meeting-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .create-meeting-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(42, 36, 148, 0.4);
+        }
+
+        .search-filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 16px 16px 52px !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 16px;
+            background-color: #fafafa;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2A2494;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 20px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            background-color: #fafafa;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #2A2494;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(42, 36, 148, 0.1);
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .empty-description {
+            color: #64748b;
+            font-size: 16px;
+            margin: 0 0 24px 0;
+            line-height: 1.5;
+        }
+
+        .meetings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .meeting-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+            opacity: 0;
+            animation: slideInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .meeting-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .meeting-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .meeting-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .meeting-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .meeting-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+            line-height: 1.3;
+        }
+
+        .meeting-description {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .meeting-actions {
+            position: relative;
+        }
+
+        .actions-btn {
+            padding: 8px;
+            background: #f8fafc;
+            border: none;
+            border-radius: 8px;
+            color: #64748b;
+            transition: all 0.2s ease;
+        }
+
+        .actions-btn:active {
+            background: #e2e8f0;
+            transform: scale(0.95);
+        }
+
+        .actions-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e5e7eb;
+            min-width: 180px;
+            z-index: 10;
+            display: none;
+            overflow: hidden;
+        }
+
+        .actions-dropdown.show {
+            display: block;
+            animation: dropdownSlideIn 0.2s ease-out;
+        }
+
+        @keyframes dropdownSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            color: #374151;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:active {
+            background-color: #f8fafc;
+        }
+
+        .dropdown-item.disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .dropdown-item.disabled:active {
+            background-color: transparent;
+        }
+
+        .meeting-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-icon {
+            color: #9ca3af;
+            font-size: 18px;
+        }
+
+        .detail-text {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .meeting-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .participants-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .participants-count {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-upcoming {
+            background-color: #ede9fe;
+            color: #2A2494;
+        }
+
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-today {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 0;
+            height: 100%;
+            overflow-y: auto;
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .close-modal-btn {
+            padding: 8px;
+            background: #f8fafc;
+            border: none;
+            border-radius: 8px;
+            color: #64748b;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="mobile-meetings">
+    <header class="page-header">
+        <h1 class="page-title">Meetings</h1>
+        <p class="page-subtitle">View and manage your scheduled meetings</p>
+        <a th:href="@{/mobile/create-meeting}" class="create-meeting-btn">
+            <span class="material-icons">add</span>
+            Schedule New Meeting
+        </a>
+    </header>
+
+    <section class="search-filter-section">
+        <div class="search-input-wrapper">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" id="search-input" class="search-input" placeholder="Search meetings...">
+        </div>
+        <select id="status-filter" class="filter-select">
+            <option value="">All Statuses</option>
+            <option value="Upcoming">Upcoming</option>
+            <option value="Today">Today</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+    </section>
+
+    <div th:if="${#lists.isEmpty(meetings)}" class="empty-state">
+        <div class="empty-icon">
+            <span class="material-icons" style="font-size: 40px; color: #2A2494;">event</span>
+        </div>
+        <h3 class="empty-title">No meetings scheduled</h3>
+        <p class="empty-description">You don't have any meetings scheduled yet. Create your first meeting to get started.</p>
+        <a th:href="@{/mobile/create-meeting}" class="create-meeting-btn" style="max-width: 200px; margin: 0 auto;">
+            Schedule Your First Meeting
+        </a>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(meetings)}" class="meetings-list" id="meetings-list">
+        <article th:each="meeting, iterStat : ${meetings}" class="meeting-card" th:style="'animation-delay: ' + ${iterStat.index * 0.1} + 's;'">
+            <header class="meeting-header">
+                <div style="display: flex; align-items: flex-start;">
+                    <div class="meeting-icon">
+                        <span class="material-icons" style="color: white; font-size: 24px;">event</span>
+                    </div>
+                    <div class="meeting-info">
+                        <h2 class="meeting-title" th:text="${meeting.moduleName}">Team Meeting</h2>
+                        <p class="meeting-description" th:text="${meeting.description}">Meeting description</p>
+                    </div>
+                </div>
+                <div class="meeting-actions">
+                    <button class="actions-btn" th:data-meeting-id="${meeting.id}">
+                        <span class="material-icons">more_vert</span>
+                    </button>
+                    <nav class="actions-dropdown">
+                        <a href="#" class="dropdown-item view-meeting" th:data-meeting-id="${meeting.id}">
+                            <span class="material-icons">visibility</span>View Details
+                        </a>
+                        <a href="#" class="dropdown-item disabled" title="Edit functionality temporarily disabled">
+                            <span class="material-icons">edit</span>Edit Meeting
+                        </a>
+                        <a href="#" class="dropdown-item disabled" title="Delete functionality temporarily disabled">
+                            <span class="material-icons">delete</span>Cancel Meeting
+                        </a>
+                    </nav>
+                </div>
+            </header>
+
+            <div class="meeting-details">
+                <div class="detail-item">
+                    <span class="material-icons detail-icon">event</span>
+                    <span class="detail-text" th:text="${T(java.time.LocalDate).parse(meeting.startDate).format(T(java.time.format.DateTimeFormatter).ofPattern('MMM dd, yyyy'))}">Dec 15, 2023</span>
+                </div>
+                <div class="detail-item">
+                    <span class="material-icons detail-icon">schedule</span>
+                    <span class="detail-text" th:text="${meeting.startTime}">10:00 AM</span>
+                </div>
+                <div class="detail-item">
+                    <span class="material-icons detail-icon">timer</span>
+                    <span class="detail-text" th:text="${meeting.duration + ' min'}">30 min</span>
+                </div>
+                <div class="detail-item">
+                    <span class="material-icons detail-icon">group</span>
+                    <span class="detail-text" th:text="${meeting.numberOfParticipants}">5 participants</span>
+                </div>
+            </div>
+
+            <footer class="meeting-footer">
+                <div class="participants-info">
+                    <span class="material-icons detail-icon">group</span>
+                    <span class="participants-count" th:text="${meeting.numberOfParticipants} + ' people'">5 people</span>
+                </div>
+                <span th:if="${meeting.getStatus() == 'Completed'}" class="status-badge status-completed" th:text="${meeting.getStatus()}">Completed</span>
+                <span th:if="${meeting.getStatus() == 'Upcoming'}" class="status-badge status-upcoming" th:text="${meeting.getStatus()}">Upcoming</span>
+                <span th:if="${meeting.getStatus() == 'Today'}" class="status-badge status-today" th:text="${meeting.getStatus()}">Today</span>
+                <span th:if="${meeting.getStatus() == 'Cancelled'}" class="status-badge status-cancelled" th:text="${meeting.getStatus()}">Cancelled</span>
+            </footer>
+        </article>
+    </div>
+
+    <!-- View Meeting Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title">Meeting Details</h2>
+                <button class="close-modal-btn close-modal">
+                    <span class="material-icons">close</span>
+                </button>
+            </header>
+            <div class="modal-body">
+                <div id="meeting-details">
+                    <!-- Meeting details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dropdown functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.actions-btn')) {
+                e.preventDefault();
+                const dropdown = e.target.closest('.meeting-actions').querySelector('.actions-dropdown');
+                const isOpen = dropdown.classList.contains('show');
+
+                // Close all dropdowns
+                document.querySelectorAll('.actions-dropdown').forEach(d => d.classList.remove('show'));
+
+                // Toggle current dropdown
+                if (!isOpen) {
+                    dropdown.classList.add('show');
+                }
+            } else {
+                // Close all dropdowns when clicking outside
+                document.querySelectorAll('.actions-dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // View meeting functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-meeting')) {
+                e.preventDefault();
+                const meetingId = e.target.closest('.view-meeting').dataset.meetingId;
+                viewMeeting(meetingId);
+            }
+        });
+
+        async function viewMeeting(meetingId) {
+            try {
+                const response = await fetch(`/mobile/api/meetings/${meetingId}`);
+                const meeting = await response.json();
+
+                // Create participants HTML
+                let participantsHtml = '';
+                if (meeting.participantNames && meeting.participantNames.length > 0) {
+                    participantsHtml = `
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            ${meeting.participantNames.map(name => `
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2A2494, #3730a3); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">${name.split(' ').map(n => n[0]).join('').toUpperCase()}</div>
+                                    <span style="font-weight: 500; color: #1e293b; font-size: 14px;">${name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    participantsHtml = '<p style="color: #64748b; margin: 0; text-align: center; padding: 24px;">No participants added</p>';
+                }
+
+                // Format date for better display
+                const formatDate = (dateStr) => {
+                    try {
+                        const date = new Date(dateStr);
+                        return date.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    } catch (e) {
+                        return dateStr;
+                    }
+                };
+
+                // Format time for better display
+                const formatTime = (timeStr) => {
+                    try {
+                        const [hours, minutes] = timeStr.split(':');
+                        const date = new Date();
+                        date.setHours(parseInt(hours), parseInt(minutes));
+                        return date.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                    } catch (e) {
+                        return timeStr;
+                    }
+                };
+
+                // Calculate status for display
+                const getStatusClass = (status) => {
+                    switch(status?.toLowerCase()) {
+                        case 'completed': return 'status-completed';
+                        case 'today': return 'status-today';
+                        case 'upcoming': return 'status-upcoming';
+                        default: return 'status-upcoming';
+                    }
+                };
+
+                const detailsHtml = `
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <div>
+                            <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 8px 0;">${meeting.moduleName || 'Meeting'}</h3>
+                            <p style="color: #64748b; margin: 0; line-height: 1.5;">${meeting.description || 'No description available'}</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f8fafc; border-radius: 12px;">
+                                <span class="material-icons" style="color: #2A2494;">event</span>
+                                <div>
+                                    <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Date</p>
+                                    <p style="font-size: 16px; font-weight: 500; color: #1e293b; margin: 0;">${meeting.startDate ? formatDate(meeting.startDate) : 'Not specified'}</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f8fafc; border-radius: 12px;">
+                                <span class="material-icons" style="color: #2A2494;">schedule</span>
+                                <div>
+                                    <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Time</p>
+                                    <p style="font-size: 16px; font-weight: 500; color: #1e293b; margin: 0;">${meeting.startTime ? formatTime(meeting.startTime) : 'Not specified'}</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f8fafc; border-radius: 12px;">
+                                <span class="material-icons" style="color: #2A2494;">timer</span>
+                                <div>
+                                    <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Duration</p>
+                                    <p style="font-size: 16px; font-weight: 500; color: #1e293b; margin: 0;">${meeting.duration || 'Not specified'} minutes</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #f8fafc; border-radius: 12px;">
+                                <span class="material-icons" style="color: #2A2494;">info</span>
+                                <div>
+                                    <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Status</p>
+                                    <span class="status-badge ${getStatusClass(meeting.status)}">${meeting.status || 'Upcoming'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0 0 16px 0;">Participants (${meeting.numberOfParticipants || 0})</h4>
+                            ${participantsHtml}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('meeting-details').innerHTML = detailsHtml;
+                document.getElementById('viewModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading meeting details:', error);
+                alert('Error loading meeting details');
+            }
+        }
+
+        // Modal close functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal') || e.target.closest('.close-modal')) {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+
+        // Search and filter functionality
+        function filterMeetings() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            const meetingsList = document.getElementById('meetings-list');
+            const cards = meetingsList.querySelectorAll('.meeting-card');
+
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const titleElement = card.querySelector('.meeting-title');
+                const descriptionElement = card.querySelector('.meeting-description');
+                const statusElement = card.querySelector('.status-badge');
+
+                if (!titleElement) return;
+
+                const title = titleElement.textContent.toLowerCase();
+                const description = descriptionElement ? descriptionElement.textContent.toLowerCase() : '';
+                const status = statusElement ? statusElement.textContent.trim() : '';
+
+                // Check search term match
+                const matchesSearch = searchTerm === '' ||
+                    title.includes(searchTerm) ||
+                    description.includes(searchTerm);
+
+                // Check status filter match
+                const matchesStatus = statusFilter === '' || status === statusFilter;
+
+                // Show/hide card based on filters
+                if (matchesSearch && matchesStatus) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide empty state message
+            const emptyMessage = document.getElementById('no-results-message');
+            if (visibleCount === 0 && (searchTerm !== '' || statusFilter !== '')) {
+                if (!emptyMessage) {
+                    const meetingsList = document.getElementById('meetings-list');
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.id = 'no-results-message';
+                    emptyDiv.className = 'empty-state';
+                    emptyDiv.innerHTML = `
+                        <div class="empty-icon">
+                            <span class="material-icons" style="font-size: 40px; color: #9ca3af;">search_off</span>
+                        </div>
+                        <h3 class="empty-title">No meetings found</h3>
+                        <p class="empty-description">Try adjusting your search or filter criteria</p>
+                    `;
+                    meetingsList.appendChild(emptyDiv);
+                }
+            } else if (emptyMessage) {
+                emptyMessage.remove();
+            }
+        }
+
+        // Add event listeners for search and filter
+        document.getElementById('search-input').addEventListener('input', filterMeetings);
+        document.getElementById('status-filter').addEventListener('change', filterMeetings);
+    </script>
+</main>
+</body>
+</html>

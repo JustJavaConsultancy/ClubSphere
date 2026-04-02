@@ -1,0 +1,135 @@
+<div th:fragment="containers" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:hx-on="http://www.w3.org/1999/xhtml">
+  <div id="listed-Posts" class="space-y-6">
+    <!-- Post 1 -->
+    <div th:if="${#lists.isEmpty(allPosts)}" class="text-center py-16 px-6 bg-white rounded-lg shadow">
+      <div class="inline-block bg-indigo-100 p-4 rounded-full">
+        <span class="material-icons text-5xl text-indigo-500">dynamic_feed</span>
+      </div>
+      <h3 class="mt-6 text-xl font-semibold text-gray-800">No posts yet</h3>
+      <p class="mt-2 text-gray-500">Be the first one to share something with the community!</p>
+    </div>
+    <!--                    Posts-->
+    <div th:if="${!#lists.isEmpty(allPosts)}" th:each="posts : ${allPosts}" class="bg-white rounded-xl shadow-sm p-4 card-hover animate-fade-in" style="opacity: 1; transform: translateY(0px); transition: 0.3s;">
+      <div class="flex justify-between items-start">
+        <div class="flex">
+          <div th:text="${#strings.substring(posts.userFullName,0,2)}"
+               class="avatar">
+            AA
+          </div>
+          <div>
+            <h3 th:text="${posts.userFullName}" class="font-medium text-gray-800">Sophia Bennett</h3>
+            <p class="text-xs text-gray-500">
+              <span th:attr="data-time=${posts.dateCreated}" class="time-ago"></span> · <i class="fas fa-globe-americas"></i>
+            </p>
+          </div>
+        </div>
+        <button class="text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <p th:text="${posts.content}" class="mt-3 text-gray-700">
+        Just finished an amazing project using React and Tailwind CSS! The power of component-based architecture combined with utility-first CSS is incredible. 🚀
+      </p>
+
+      <!--                        <div class="mt-4 rounded-lg overflow-hidden">-->
+      <!--                            <img src="https://images.unsplash.com/photo-1643330683233-ff2ac89b002c?ixlib=rb-4.0.3&amp;ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;auto=format&amp;fit=crop&amp;w=800&amp;q=80" class="w-full h-60 object-cover">-->
+      <!--                        </div>-->
+
+      <!-- Comment + toggle buttons -->
+      <div class="flex justify-between mt-4 pt-4 border-t border-gray-100 text-gray-500">
+        <button class="flex items-center hover:text-blue-600 comment-btn"
+                th:attr="data-post=${posts.postID}">
+          <span th:text="${#lists.size(posts.comments)} + ' comments'">7 comments</span>
+        </button>
+      </div>
+
+      <div class="flex justify-between mt-3 pt-3 border border-gray-100">
+        <button class="flex items-center text-gray-500 hover:text-blue-600 flex-1 justify-center py-1 rounded-lg hover:bg-gray-100 comment-btn"
+                th:attr="data-post=${posts.postID}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0
+                     00-2-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4"></path>
+          </svg>
+          <span>Comment</span>
+        </button>
+      </div>
+
+      <!-- Comment section for each post -->
+      <div class="comment-section mt-4" th:id="'comments-' + ${posts.postID}">
+        <div th:id="${'comments' + posts.postID}" class="comment-container space-y-4">
+          <div th:each="comment : ${posts.comments}" class="flex comment">
+            <div th:text="${#strings.substring(comment.senderFullName,0,2)}"
+                 class="avatar">AA</div>
+            <div class="flex-1">
+              <h4 th:text="${comment.senderFullName}" class="font-medium text-gray-800">Michael Chen</h4>
+              <p th:text="${comment.comment}" class="text-sm text-gray-600">This looks amazing!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add comment input -->
+        <div class="flex mt-4 pt-4">
+          <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 shadow-md mr-3"
+               style="background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?...');"></div>
+          <div class="flex-1 relative">
+            <form hx-post="/post-comment"
+                  hx-target="#comments"
+                  hx-swap="outerHTML"
+                  hx-trigger="click"
+                  hx-on::after-request="this.reset();">
+              <input name="comment" type="text" placeholder="Write a comment..."
+                     class="w-full border border-gray-200 rounded-full py-2 px-4 pr-10
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                     required>
+              <input name="postId" type="hidden" th:value="${posts.postID}">
+              <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var commentButtons = document.querySelectorAll('.comment-btn');
+commentButtons.forEach(button => {
+button.addEventListener('click', function() {
+  const postId = this.getAttribute('data-post');
+  const commentSection = document.getElementById(`comments-${postId}`);
+  if (commentSection) {
+    commentSection.classList.toggle('expanded');
+  }
+});
+});
+
+  function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffSeconds = Math.floor((now - date) / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays === 0) {
+      if (diffHours > 0) return `${diffHours} hours ago`;
+      if (diffMinutes > 0) return `${diffMinutes} minutes ago`;
+      return `${diffSeconds} seconds ago`;
+    } else if (diffDays === 1) {
+      return `yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      return date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })
+             + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+
+  document.querySelectorAll('.time-ago').forEach(el => {
+    el.textContent = formatTimeAgo(el.dataset.time);
+  });
+
+    </script>
+</div>
+</div>
