@@ -1,8 +1,8 @@
 package com.justjava.mycommunity.userManagement;
 
+import com.justjava.mycommunity.chat.entity.User;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.justjava.mycommunity.chat.entity.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +31,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select u from User u join u.userGroup g where g.groupName = 'admin'")
     List<User> findAllAdminUsers();
+
+    List<User> findAllByRealm(String realm);
 }

@@ -2,12 +2,13 @@ package com.justjava.mycommunity.userManagement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.justjava.mycommunity.chat.entity.User;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,17 +26,19 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"realm", "groupName"}))
 public class UserGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String  groupId;
-    @Column(unique=true)
     private String groupName;
     private String description;
     @Builder.Default
     private Integer members = 0;
+
+    private String realm;
 
     @JsonIgnore
     @ManyToMany(mappedBy = "userGroup")

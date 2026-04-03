@@ -1,6 +1,8 @@
 package com.justjava.mycommunity.userManagement;
 
 
+import com.justjava.mycommunity.keycloak.KeycloakAdminService;
+import com.justjava.mycommunity.keycloak.KeycloakResource;
 import com.justjava.mycommunity.keycloak.KeycloakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -8,7 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +25,8 @@ import java.util.Map;
 public class UserManagementController {
     private final UserService userService;
     private final KeycloakService keycloakService;
+    private final KeycloakAdminService keycloakAdminService;
+
     @GetMapping
     public String getUsers(Model model){
         List<UserDTO> users = userService.getUsers();
@@ -65,14 +73,17 @@ public class UserManagementController {
 
     @PostMapping("/createUser")
     public String createUser(@RequestParam Map<String, String> params ,Model model){
-        keycloakService.createUserInGroup(params);
+        keycloakAdminService.createUser(KeycloakResource.COMMUNITY_REALM, params);
+//        keycloakService.createUserInGroup(params);
         model.addAttribute("status","added");
         return "userManagement/userStatus";
     }
 
     @PostMapping("/createGroup")
     public ResponseEntity<Void> createGroup(@RequestParam Map<String, String> params){
-        keycloakService.createGroup(params.get("groupName"), params.get("groupDescription"));
+
+        keycloakAdminService.createGroup(KeycloakResource.COMMUNITY_REALM, params.get("groupName"), params.get("groupDescription"));
+//        keycloakService.createGroup(params.get("groupName"), params.get("groupDescription"));
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users/groups");
         return ResponseEntity.status(HttpStatus.OK).headers(headers).build();
@@ -80,20 +91,33 @@ public class UserManagementController {
 
     @PostMapping("/editGroup")
     public ResponseEntity<Void> editGroup(@RequestParam Map<String, String> params){
-        keycloakService.updateGroup(params);
+        keycloakAdminService.updateGroup(KeycloakResource.COMMUNITY_REALM,
+                params.get("groupId"),
+                params.get("groupName"),
+                params.get("groupDescription"));
+//        keycloakService.updateGroup(params);
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users/groups");
         return ResponseEntity.status(HttpStatus.OK).headers(headers).build();
     }
     @PostMapping("/editUser")
     public String editUser(@RequestParam Map<String, String> params, Model model){
-        keycloakService.updateUser(params.get("id"), params);
+        keycloakAdminService.updateUser(KeycloakResource.COMMUNITY_REALM,
+                params.get("id"),
+                params.get("username"),
+                params.get("email"),
+                params.get("firstName"),
+                params.get("lastName"),
+                Boolean.parseBoolean(params.get("enabled")),
+                params.get("groups"));
+//        keycloakService.updateUser(params.get("id"), params);
         model.addAttribute("status","edited");
         return "userManagement/userStatus";
     }
     @GetMapping("/deleteUser/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId){
-        keycloakService.deleteUser(userId);
+        keycloakAdminService.deleteUser(KeycloakResource.COMMUNITY_REALM, userId);
+//        keycloakService.deleteUser(userId);
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users");
         return ResponseEntity.status(HttpStatus.OK).headers(headers).build();
@@ -101,7 +125,8 @@ public class UserManagementController {
 
     @GetMapping("/deleteGroup/{groupId}")
     public ResponseEntity<Void> deleteGroup(@PathVariable String groupId){
-        keycloakService.deleteClientGroup(groupId);
+        keycloakAdminService.deleteGroup(KeycloakResource.COMMUNITY_REALM, groupId);
+//        keycloakService.deleteClientGroup(groupId);
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users/groups");
         return ResponseEntity.status(HttpStatus.OK).headers(headers).build();

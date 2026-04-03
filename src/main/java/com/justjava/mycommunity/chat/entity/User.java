@@ -5,6 +5,7 @@ import com.justjava.mycommunity.community.Community;
 import com.justjava.mycommunity.community.CommunityGroup;
 import com.justjava.mycommunity.network.ChatGroup;
 import com.justjava.mycommunity.organization.Organization;
+import com.justjava.mycommunity.userManagement.UserGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,7 +20,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
-import com.justjava.mycommunity.userManagement.UserGroup;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -54,6 +54,8 @@ public class User {
     private String level = "1";
 
     private Boolean privacy = false;
+
+    private String realm;
 
     @JsonManagedReference
     @ManyToOne(fetch = FetchType.LAZY)

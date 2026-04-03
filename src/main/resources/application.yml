@@ -119,9 +119,11 @@ cloudinary:
 
 keycloak:
   base-url: ${KEYCLOAK_BASE_URI:https://ngcloak-production.up.railway.app}
-  client-id: ${KEYCLOAK_CLIENT_ID:mycommunity}
+  admin-id: ${KEYCLOAK_ADMIN_ID:admin-cli-client}
+  admin-secret: ${KEYCLOAK_ADMIN_SECRET:i4nLD8kmJbJvtXhcLeUJGPY5xyw5y5FA}
+  client-id: ${KEYCLOAK_CLIENT_ID:community}
   client-secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
-  realm-name: ${KEYCLOAK_REALM_NAME:mycommunity}
+  realm-name: ${KEYCLOAK_REALM_NAME:community}
 sendgrid:
   api-key: ${SENDGRID_API_KEY:}
   from-email: ${SENDGRID_FROM_EMAIL:boluwatifeomotoshofresh.2006@gmail.com}

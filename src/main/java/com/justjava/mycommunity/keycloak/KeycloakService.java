@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -467,7 +466,7 @@ public class KeycloakService {
         System.out.println("\nDone Syncing Users");
     }
 
-    @Scheduled(cron = "0 0 0/6 * * *")
+//    @Scheduled(cron = "0 0 0/6 * * *")
     @Transactional
     public void syncKeycloak(){
         syncGroups();
@@ -512,4 +511,6 @@ public class KeycloakService {
         }
 
     }
+
+
 }
