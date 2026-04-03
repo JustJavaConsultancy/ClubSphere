@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class StartupRunner implements ApplicationRunner {
-    private final KeycloakAdminService keycloakAdminService;
+    private final KeycloakService keycloakService;
     private final OrganizationService organizationService;
 
     @Override
     public void run(ApplicationArguments args) {
         //Temporary: current error - realm does not exist
-        keycloakAdminService.syncKeycloak();
+        keycloakService.syncKeycloak();
 //        organizationService.createDefaultOrgAndCommunity();
     }
 }
