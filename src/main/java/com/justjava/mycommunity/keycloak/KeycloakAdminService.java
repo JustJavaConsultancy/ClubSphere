@@ -398,7 +398,7 @@ public class KeycloakAdminService {
         List<UserGroup> d = userGroupRepository.findAllByRealm(KeycloakResource.COMMUNITY_REALM);
 
         Map<String, UserGroup> existingGroupsMap = userGroupRepository.findAllByRealm(KeycloakResource.COMMUNITY_REALM).stream()
-                .collect(Collectors.toMap(UserGroup::getGroupName, g -> g));
+                .collect(Collectors.toMap(g -> g.getGroupName().toLowerCase(), g -> g));
 
         List<UserGroup> groupsToSave = new ArrayList<>();
         Set<String> realmGroupNames = new HashSet<>();
@@ -410,6 +410,7 @@ public class KeycloakAdminService {
             realmGroupNames.add(groupName);
             UserGroup userGroup = existingGroupsMap.get(groupName);
             if (userGroup != null){
+                userGroup.setGroupId(groupId);
                 userGroup.setGroupName(groupName);
                 userGroup.setDescription(description);
                 userGroup.setRealm(KeycloakResource.COMMUNITY_REALM);
