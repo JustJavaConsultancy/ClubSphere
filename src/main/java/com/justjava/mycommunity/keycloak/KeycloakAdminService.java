@@ -211,7 +211,8 @@ public class KeycloakAdminService {
         user.setLastName(lastName);
         user.setEmail(email);
         user.setEnabled(status);
-        if (groupName != null) user.setGroups(List.of(groupName));
+        if (groupName != null)
+            user.setGroups(List.of(groupName));
         user(realmName, userId).update(user);
 
     }
@@ -479,6 +480,7 @@ public class KeycloakAdminService {
         user.setLastName(rep.getLastName());
         user.setEmail(rep.getEmail());
         user.setStatus(rep.isEnabled());
+        user.setRealm("community");
         user.getUserGroup().addAll(group);
     }
     private List<UserGroup> getUserGroups(UserRepresentation rep, Map<String, UserGroup> userGroup){

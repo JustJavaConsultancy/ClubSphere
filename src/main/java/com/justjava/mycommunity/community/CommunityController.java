@@ -5,6 +5,7 @@ import com.justjava.mycommunity.chat.dto.CreateChatDTO;
 import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.service.ChatService;
 import com.justjava.mycommunity.userManagement.UserDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -164,9 +165,22 @@ public class CommunityController {
             model.addAttribute("errorMessage", "Error loading mycommunity data: " + e.getMessage());
             return "redirect:/my-community/select";
         }
+        model.addAttribute("communityMembers",communityService.getCommunityMembers(communityId));
 
         model.addAttribute("currentPath", "/my-mycommunity");
         return "community";
+    }
+    @PostMapping("assignAdmin/{userId}/{communityId}")
+    public String assignAdmin(
+            @PathVariable("userId") String userId,
+            @PathVariable("communityId") Long communityId,
+            HttpServletRequest request
+    ) {
+        String currentUser = (String) authenticationManager.get("sub");
+        communityService.assignCommunityAdmin(currentUser, userId, communityId);
+
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
     }
 
     private Map<String, Object> extractCommunityData(Object communityResponse) {

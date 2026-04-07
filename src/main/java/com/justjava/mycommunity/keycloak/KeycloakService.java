@@ -395,6 +395,8 @@ public class KeycloakService {
             String groupId = (String) realmGroup.get("id");
             String groupDescription = (String) realmGroup.get("description");
 
+            System.out.println(" realmGroup==="+realmGroup);
+            System.out.println();
             realmGroupNames.add(lowerCaseGroupName);
             UserGroup userGroup = existingGroupsMap.get(lowerCaseGroupName);
             if (userGroup!=null) {
@@ -411,6 +413,9 @@ public class KeycloakService {
             }
         }
         if (!groupsToSave.isEmpty()) {
+            groupsToSave.forEach(g->{
+                System.out.println(" group===="+g.getGroupName());
+            });
             userGroupRepository.saveAll(groupsToSave);
         }
         List<UserGroup> groupsToDelete = existingGroupsMap.values().stream()
@@ -439,7 +444,8 @@ public class KeycloakService {
             usersToSave.put(userId, mapped);
         }
         for (UserGroup group : userGroup) {
-            List<Map<String, Object>> clientUsersInGroup = keycloakClient.getAllUserInGroup(getAccessToken(),realmName, group.getGroupId());
+            List<Map<String, Object>> clientUsersInGroup = keycloakClient
+                    .getAllUserInGroup(getAccessToken(),realmName, group.getGroupId());
             group.setMembers(clientUsersInGroup.size());
             for (Map<String, Object> user : clientUsersInGroup) {
                 String userId = (String) user.get("id");

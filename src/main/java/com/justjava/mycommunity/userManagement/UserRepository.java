@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -33,4 +34,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllAdminUsers();
 
     List<User> findAllByRealm(String realm);
+
+    // ✅ ADD THIS
+    List<User> findByUserIdIn(List<String> userIds);
 }

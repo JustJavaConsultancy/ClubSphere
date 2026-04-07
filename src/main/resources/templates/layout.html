@@ -172,6 +172,14 @@
                     My Community
                 </a>
 
+                <!-- ✦ Membership Approvals — admin action directly tied to My Community ✦ -->
+                <a th:if="${session.isAdmin}" th:href="@{/admin/approvals}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/admin/approvals'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-user-check w-5"></i>
+                    Approvals
+                </a>
+
                 <a th:href="@{/organizations}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/organizations'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
@@ -195,9 +203,9 @@
                 </a>
 
                 <!-- Groups -->
-                <a  th:href="@{/my-groups}"
-                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                    th:classappend="${currentPath == '/my-groups'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                <a th:href="@{/my-groups}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/my-groups'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-layer-group w-5"></i>
                     My Groups
                 </a>
@@ -240,10 +248,11 @@
                 </a>
                 <a th:if="${!session.isSupportAdmin}" th:href="@{/certificate}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/certificate' or currentPath == '/certificate'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                   th:classappend="${currentPath == '/certificate'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-award w-5"></i>
                     My Certificates
                 </a>
+
                 <!-- Content Management -->
                 <a th:if="${session.isAdmin}" th:href="@{/modules}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
@@ -304,7 +313,6 @@
                     Settings
                 </a>
             </nav>
-
             <!-- My Communities Section -->
             <div class="mt-8">
                 <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">

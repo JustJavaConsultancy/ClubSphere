@@ -348,6 +348,397 @@
             align-items: center;
             gap: 8px;
         }
+
+        /* ── Community Members Section ── */
+        .member-row {
+            transition: background-color 0.15s ease;
+        }
+
+        .member-row.hidden-row {
+            display: none;
+        }
+
+        .member-avatar {
+            height: 36px;
+            width: 36px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #60a5fa, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .status-dot-online {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 10px;
+            width: 10px;
+            border-radius: 9999px;
+            background-color: #4ade80;
+            border: 2px solid white;
+        }
+
+        .status-dot-offline {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 10px;
+            width: 10px;
+            border-radius: 9999px;
+            background-color: #d1d5db;
+            border: 2px solid white;
+        }
+
+        .role-badge-admin {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #dbeafe;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .role-badge-moderator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .role-badge-member {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #e9d5ff;
+        }
+
+        .status-badge-online {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-badge-offline {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .members-table-header th {
+            background-color: #f8fafc;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            color: #64748b;
+            padding: 10px 16px;
+        }
+
+        .members-search-bar {
+            position: relative;
+        }
+
+        .members-search-bar svg.search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+        .members-search-bar input {
+            padding-left: 36px;
+        }
+
+        /* ── Make Admin Button & Modal ── */
+        .make-admin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid #e0e7ff;
+            background: #f0f4ff;
+            color: #4338ca;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .make-admin-btn:hover {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .make-admin-btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .make-admin-btn svg {
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .make-admin-btn:hover svg {
+            transform: rotate(-8deg) scale(1.15);
+        }
+
+        /* Already admin label */
+        .already-admin-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            cursor: default;
+        }
+
+        /* Confirm Admin Modal */
+        #assignAdminModal .modal-content {
+            max-width: 420px;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .admin-modal-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 28px 24px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .admin-modal-crown-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            margin-bottom: 12px;
+            animation: crownPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes crownPop {
+            from { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+            to   { transform: scale(1) rotate(0deg);    opacity: 1; }
+        }
+
+        .admin-modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 4px;
+        }
+
+        .admin-modal-header p {
+            font-size: 13px;
+            opacity: 0.85;
+            margin: 0;
+        }
+
+        .admin-modal-body {
+            padding: 24px;
+        }
+
+        .admin-modal-member-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #f8faff;
+            border: 1.5px solid #e0e7ff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+
+        .admin-modal-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .admin-modal-member-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e1b4b;
+        }
+
+        .admin-modal-member-email {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .admin-modal-warning {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.5;
+        }
+
+        .admin-modal-warning svg {
+            flex-shrink: 0;
+            margin-top: 1px;
+            color: #f59e0b;
+        }
+
+        .admin-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .admin-modal-cancel-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .admin-modal-cancel-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .admin-modal-confirm-btn {
+            flex: 1.4;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.18s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .admin-modal-confirm-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
+        }
+
+        .admin-modal-confirm-btn:active {
+            transform: translateY(0);
+        }
+
+        .admin-modal-confirm-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Spinner inside confirm button */
+        .btn-spinner {
+            display: none;
+            width: 15px;
+            height: 15px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 9999px;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .admin-modal-confirm-btn.loading .btn-spinner   { display: inline-block; }
+        .admin-modal-confirm-btn.loading .btn-label-text { display: none; }
+
+        /* Success flash on promoted row */
+        @keyframes rowSuccessFlash {
+            0%   { background-color: #eef2ff; }
+            60%  { background-color: #c7d2fe; }
+            100% { background-color: transparent; }
+        }
+
+        .row-admin-flash {
+            animation: rowSuccessFlash 1.4s ease forwards;
+        }
     </style>
 </head>
 <body>
@@ -556,6 +947,224 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════
+         COMMUNITY MEMBERS SECTION
+         Model: List<UserDTO> communityMembers
+         Fields: userId, firstName, lastName, email,
+                 level, privacy, online, role
+    ══════════════════════════════════════════════ -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+
+        <!-- Section Header -->
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Community Members
+            </h2>
+            <span class="members-badge">
+                <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                <span th:text="${communityMembers != null and !#lists.isEmpty(communityMembers)} ? ${#lists.size(communityMembers)} + ' members' : '0 members'">0 members</span>
+            </span>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="flex flex-col sm:flex-row gap-3 mb-5">
+
+            <!-- Name / Email Search -->
+            <div class="members-search-bar relative flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+                </svg>
+                <input type="text"
+                       id="memberSearchFilter"
+                       placeholder="Search by name or email…"
+                       oninput="filterCommunityMembers()"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
+            <!-- Role Filter -->
+            <select id="memberRoleFilter"
+                    onchange="filterCommunityMembers()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">All Roles</option>
+                <option value="ADMIN">Admin</option>
+                <option value="MODERATOR">Moderator</option>
+                <option value="MEMBER">Member</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select id="memberStatusFilter"
+                    onchange="filterCommunityMembers()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">All Status</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+            </select>
+        </div>
+
+        <!-- Members Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-100">
+            <table class="w-full" id="communityMembersTable">
+                <thead>
+                <tr class="members-table-header border-b border-gray-200">
+                    <th class="text-left py-3 px-4 rounded-tl-lg">Member</th>
+                    <th class="text-left py-3 px-4">Email</th>
+                    <th class="text-left py-3 px-4">Role</th>
+                    <th th:if="${isAdmin}" class="text-left py-3 px-4 rounded-tr-lg">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="communityMembersTableBody">
+
+                <!-- Empty State -->
+                <tr th:if="${communityMembers == null or #lists.isEmpty(communityMembers)}"
+                    id="membersEmptyState">
+                    <td th:colspan="${isAdmin} ? 6 : 5" class="py-14 text-center">
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                            <p class="font-semibold text-gray-500">No members yet</p>
+                            <p class="text-sm text-gray-400">Invite members to grow your community.</p>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- No-results row shown by JS when search yields nothing -->
+                <tr id="membersNoResults" style="display:none;">
+                    <td th:colspan="${isAdmin} ? 6 : 5" class="py-10 text-center text-gray-400 text-sm">
+                        No members match your search criteria.
+                    </td>
+                </tr>
+
+                <!-- Member Rows -->
+                <tr th:each="member : ${communityMembers}"
+                    class="border-b border-gray-100 hover:bg-blue-50 member-row transition-colors duration-150"
+                    th:attr="data-name=${member.firstName != null ? member.firstName : ''} + ' ' + ${member.lastName != null ? member.lastName : ''},
+                                 data-email=${member.email != null ? member.email : ''},
+                                 data-role=${member.role != null ? member.role.name() : 'MEMBER'},
+                                 data-status=${member.online != null and member.online ? 'online' : 'offline'}">
+
+                    <!-- Avatar + Name + ID -->
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <div class="member-avatar"
+                                     th:text="${member.firstName != null ? #strings.substring(member.firstName, 0, 1) : '?'} + ${member.lastName != null ? #strings.substring(member.lastName, 0, 1) : ''}">
+                                    JD
+                                </div>
+                                <span th:if="${member.online != null and member.online}"  class="status-dot-online"  title="Online"></span>
+                                <span th:if="${member.online == null or !member.online}" class="status-dot-offline" title="Offline"></span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800 text-sm leading-tight"
+                                   th:text="${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')}">
+                                    John Doe
+                                </p>
+                                <!-- Show ID only if profile is not private -->
+                                <p class="text-xs text-gray-400 mt-0.5"
+                                   th:if="${member.privacy == null or !member.privacy}"
+                                   th:text="${member.userId != null ? '#' + member.userId : ''}">
+                                    #001
+                                </p>
+                                <p class="text-xs text-gray-400 italic mt-0.5"
+                                   th:if="${member.privacy != null and member.privacy}">
+                                    Private profile
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Email -->
+                    <td class="py-3 px-4">
+                            <span class="text-sm text-gray-600"
+                                  th:text="${member.email != null ? member.email : '—'}">
+                                <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="563c393e3816332e373b263a337835393b">[email&#160;protected]</a>
+                            </span>
+                    </td>
+
+                    <!-- Role -->
+                    <td class="py-3 px-4">
+                        <!-- ADMIN -->
+                        <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
+                              class="role-badge-admin">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                </svg>
+                                Admin
+                            </span>
+                        <!-- MODERATOR -->
+                        <span th:if="${member.role != null and member.role.name() == 'MODERATOR'}"
+                              class="role-badge-moderator">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Moderator
+                            </span>
+                        <!-- MEMBER / fallback -->
+                        <span th:if="${member.role == null or (member.role.name() != 'ADMIN' and member.role.name() != 'MODERATOR')}"
+                              class="role-badge-member">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                                Member
+                            </span>
+                    </td>
+
+
+                    <!-- Actions (Admin only) -->
+                    <td th:if="${isAdmin}" class="py-3 px-4">
+                        <!-- Non-admin member: show Make Admin button -->
+                        <button th:if="${member.role == null or member.role.name() != 'ADMIN'}"
+                                class="make-admin-btn"
+                                th:attr="
+            data-user-id=${member.userId},
+            data-full-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+            data-email=${member.email != null ? member.email : ''},
+            data-initials=${(member.firstName != null ? #strings.substring(member.firstName,0,1) : '?') + (member.lastName != null ? #strings.substring(member.lastName,0,1) : '')}
+        ">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M5 3l1.5 4.5L10 5l1 4 3.5-2L13 11h6l-2.5 3.5L19 18H5l2.5-3.5L5 11h6L9.5 7 13 9l1-4-3.5 2.5L9 3H5z"/>
+                            </svg>
+
+                            Make Admin
+                        </button>
+                        <!-- Already admin: greyed label -->
+                        <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
+                              class="already-admin-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                </svg>
+                                Admin
+                            </span>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer: count + legend -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500 border-t border-gray-100 pt-4">
+            <p>
+                Showing
+                <span id="visibleMemberCount"
+                      th:text="${communityMembers != null ? #lists.size(communityMembers) : 0}">0</span>
+                of
+                <span th:text="${communityMembers != null ? #lists.size(communityMembers) : 0}">0</span>
+                members
+            </p>
+        </div>
+    </div>
+    <!-- ══════════════════ END Community Members ══════════════════ -->
+
     <!-- Invite Members -->
     <div th:if="${isAdmin or (community != null and !community.isPrivate)}" class="bg-white rounded-xl shadow-sm p-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -578,7 +1187,7 @@
                     <option th:each="user : ${availableUsersToInvite}"
                             th:value="${user.userId}"
                             th:text="${user.firstName != null && user.lastName != null ? user.firstName + ' ' + user.lastName + ' (' + user.email + ')' : user.email}">
-                        John Doe (john@example.com)
+                        John Doe (<template class="__cf_email__" data-cfemail="2b414443456b4e534a465b474e05484446">[email&#160;protected]</template>)
                     </option>
                 </select>
             </div>
@@ -729,360 +1338,237 @@
         </div>
     </div>
 
-    <script th:if="${isAdmin}">
-        // Global variables
-        let selectedMembersArray = [];
-        let currentEditingGroupId = null;
-        let currentDeletingGroupId = null;
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script th:if="${isAdmin}">
+    // Global variables
+    let selectedMembersArray = [];
+    let currentEditingGroupId = null;
+    let currentDeletingGroupId = null;
 
-        // HTMX Event Handlers
-        function handleAddGroupResponse(event) {
-            if (event.detail.xhr.status === 200) {
-                closeAddGroupModal();
-                // Clear the "no groups" message if it exists
-                const noGroupsRow = document.querySelector('tbody tr td[colspan="4"]');
-                if (noGroupsRow) {
-                    noGroupsRow.closest('tr').remove();
+    // HTMX Event Handlers
+    function handleAddGroupResponse(event) {
+        if (event.detail.xhr.status === 200) {
+            closeAddGroupModal();
+            const noGroupsRow = document.querySelector('tbody tr td[colspan="4"]');
+            if (noGroupsRow) {
+                noGroupsRow.closest('tr').remove();
+            }
+            showMessage('Group created successfully!', 'success');
+        } else {
+            showMessage('Error creating group', 'error');
+        }
+    }
+
+    function handleEditGroupResponse(event) {
+        if (event.detail.xhr.status === 200) {
+            closeEditGroupModal();
+            showMessage('Group updated successfully!', 'success');
+        } else {
+            showMessage('Error updating group', 'error');
+        }
+    }
+
+    function handleDeleteGroupResponse(event) {
+        if (event.detail.xhr.status === 200) {
+            closeDeleteModal();
+            showMessage('Group deleted successfully!', 'success');
+            setTimeout(() => {
+                const remainingRows = document.querySelectorAll('#groups-table-body .group-row');
+                if (remainingRows.length === 0) {
+                    htmx.ajax('GET', '/my-community/groups/empty-state', {
+                        target: '#groups-table-body',
+                        swap: 'innerHTML'
+                    });
                 }
-                showMessage('Group created successfully!', 'success');
-            } else {
-                showMessage('Error creating group', 'error');
-            }
+            }, 100);
+        } else {
+            showMessage('Error deleting group', 'error');
         }
+    }
 
-        function handleEditGroupResponse(event) {
-            if (event.detail.xhr.status === 200) {
-                closeEditGroupModal();
-                showMessage('Group updated successfully!', 'success');
-                // The row will be updated automatically by HTMX target
-            } else {
-                showMessage('Error updating group', 'error');
-            }
-        }
-
-        function handleDeleteGroupResponse(event) {
-            if (event.detail.xhr.status === 200) {
-                closeDeleteModal();
-                showMessage('Group deleted successfully!', 'success');
-
-                // Check if no groups left and show empty state
-                setTimeout(() => {
-                    const remainingRows = document.querySelectorAll('#groups-table-body .group-row');
-                    if (remainingRows.length === 0) {
-                        htmx.ajax('GET', '/my-community/groups/empty-state', {
-                            target: '#groups-table-body',
-                            swap: 'innerHTML'
-                        });
-                    }
-                }, 100);
-            } else {
-                showMessage('Error deleting group', 'error');
-            }
-        }
-
-        // Utility function to show messages
-        function showMessage(message, type) {
-            const messagesContainer = document.getElementById('messages-container');
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-            messagesContainer.innerHTML = `
+    function showMessage(message, type) {
+        const messagesContainer = document.getElementById('messages-container');
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        messagesContainer.innerHTML = `
                 <div class="alert ${alertClass}">
                     <span>${message}</span>
                 </div>
             `;
+        setTimeout(() => {
+            const alert = messagesContainer.querySelector('.alert');
+            if (alert) {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s';
+                setTimeout(() => alert.remove(), 500);
+            }
+        }, 5000);
+    }
 
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                const alert = messagesContainer.querySelector('.alert');
-                if (alert) {
-                    alert.style.opacity = '0';
-                    alert.style.transition = 'opacity 0.5s';
-                    setTimeout(() => alert.remove(), 500);
-                }
-            }, 5000);
+    function toggleDropdown(groupId) {
+        if (groupId === 'unknown' || !groupId) return;
+        const dropdown = document.getElementById('dropdown-' + groupId);
+        if (!dropdown) return;
+        document.querySelectorAll('.dropdown-menu').forEach(d => {
+            if (d !== dropdown) d.classList.remove('show');
+        });
+        dropdown.classList.toggle('show');
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.relative')) {
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
         }
+    });
 
-        // Dropdown functionality
-        function toggleDropdown(groupId) {
-            if (groupId === 'unknown' || !groupId) {
-                console.warn('Cannot toggle dropdown for unknown group ID');
-                return;
-            }
+    function initializeSearchableDropdown() {
+        const searchInput = document.getElementById('memberSearch');
+        const optionsContainer = document.getElementById('memberOptions');
 
-            const dropdown = document.getElementById('dropdown-' + groupId);
-            if (!dropdown) {
-                console.warn('Dropdown not found for group ID:', groupId);
-                return;
-            }
+        if (!searchInput || !optionsContainer) return;
 
-            const allDropdowns = document.querySelectorAll('.dropdown-menu');
-
-            // Close all other dropdowns
-            allDropdowns.forEach(d => {
-                if (d !== dropdown) {
-                    d.classList.remove('show');
-                }
+        searchInput.addEventListener('focus', function() {
+            optionsContainer.classList.add('show');
+            optionsContainer.querySelectorAll('.dropdown-option').forEach(option => {
+                option.style.display = option.classList.contains('selected') ? 'none' : 'flex';
             });
+        });
 
-            dropdown.classList.toggle('show');
-        }
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            optionsContainer.querySelectorAll('.dropdown-option').forEach(option => {
+                const memberName = option.textContent.toLowerCase();
+                option.style.display = (memberName.includes(searchTerm) && !option.classList.contains('selected')) ? 'flex' : 'none';
+            });
+        });
 
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.relative')) {
-                document.querySelectorAll('.dropdown-menu').forEach(d => {
-                    d.classList.remove('show');
-                });
+        optionsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('dropdown-option')) {
+                const memberId = e.target.getAttribute('data-member');
+                if (!selectedMembersArray.includes(memberId)) {
+                    selectedMembersArray.push(memberId);
+                    updateSelectedMembers();
+                    e.target.classList.add('selected');
+                    e.target.style.display = 'none';
+                }
+                searchInput.value = '';
+                optionsContainer.classList.remove('show');
             }
         });
 
-        // Searchable dropdown functionality
-        function initializeSearchableDropdown() {
-            const searchInput = document.getElementById('memberSearch');
-            const optionsContainer = document.getElementById('memberOptions');
-            const selectedContainer = document.getElementById('selectedMembers');
-            const hiddenInput = document.getElementById('selectedMembersInput');
-
-            if (!searchInput || !optionsContainer) {
-                console.warn('Search dropdown elements not found');
-                return;
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.searchable-dropdown')) {
+                optionsContainer.classList.remove('show');
             }
+        });
+    }
 
-            searchInput.addEventListener('focus', function() {
-                optionsContainer.classList.add('show');
-                // Reset all options to be visible when focusing
-                const options = optionsContainer.querySelectorAll('.dropdown-option');
-                options.forEach(option => {
-                    // Show all unselected options, hide selected ones
-                    if (option.classList.contains('selected')) {
-                        option.style.display = 'none';
-                    } else {
-                        option.style.display = 'flex';
-                    }
-                });
-            });
-
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const options = optionsContainer.querySelectorAll('.dropdown-option');
-
-                options.forEach(option => {
-                    const memberName = option.textContent.toLowerCase();
-
-                    // Only show options that match search term AND are not selected
-                    if (memberName.includes(searchTerm) && !option.classList.contains('selected')) {
-                        option.style.display = 'flex';
-                    } else {
-                        option.style.display = 'none';
-                    }
-                });
-            });
-
-            // Handle option selection
-            optionsContainer.addEventListener('click', function(e) {
-                if (e.target.classList.contains('dropdown-option')) {
-                    const memberId = e.target.getAttribute('data-member');
-                    const memberName = e.target.textContent;
-
-                    if (!selectedMembersArray.includes(memberId)) {
-                        selectedMembersArray.push(memberId);
-                        updateSelectedMembers();
-                        e.target.classList.add('selected');
-                        e.target.style.display = 'none'; // Hide the selected option immediately
-                    }
-
-                    searchInput.value = '';
-                    optionsContainer.classList.remove('show');
-                }
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.searchable-dropdown')) {
-                    optionsContainer.classList.remove('show');
-                }
-            });
-        }
-
-        function updateSelectedMembers() {
-            const selectedContainer = document.getElementById('selectedMembers');
-            const hiddenInput = document.getElementById('selectedMembersInput');
-
-            if (!selectedContainer || !hiddenInput) {
-                console.warn('Selected members elements not found');
-                return;
-            }
-
-            selectedContainer.innerHTML = '';
-
-            selectedMembersArray.forEach(memberId => {
-                // Find the member name from the option
-                const option = document.querySelector(`[data-member="${memberId}"]`);
-                const memberName = option ? option.textContent.trim() : memberId;
-
-                const tag = document.createElement('div');
-                tag.className = 'member-tag';
-                tag.innerHTML = `
-                    <span>${memberName}</span>
-                    <span class="remove" onclick="removeMember('${memberId}')">&times;</span>
-                `;
-                selectedContainer.appendChild(tag);
-            });
-
-            hiddenInput.value = selectedMembersArray.join(',');
-        }
-
-        function removeMember(memberId) {
-            selectedMembersArray = selectedMembersArray.filter(m => m !== memberId);
-            updateSelectedMembers();
-
-            // Remove selected class from option and make it available again
+    function updateSelectedMembers() {
+        const selectedContainer = document.getElementById('selectedMembers');
+        const hiddenInput = document.getElementById('selectedMembersInput');
+        if (!selectedContainer || !hiddenInput) return;
+        selectedContainer.innerHTML = '';
+        selectedMembersArray.forEach(memberId => {
             const option = document.querySelector(`[data-member="${memberId}"]`);
-            if (option) {
-                option.classList.remove('selected');
-                // Don't automatically show it - let the focus/input handlers manage visibility
-            }
-        }
-
-        // Add Group Modal
-        function openAddGroupModal() {
-            document.getElementById('addGroupModal').classList.add('show');
-            initializeSearchableDropdown();
-        }
-
-        function closeAddGroupModal() {
-            document.getElementById('addGroupModal').classList.remove('show');
-            document.getElementById('groupName').value = '';
-            document.getElementById('groupDescription').value = '';
-            selectedMembersArray = [];
-            updateSelectedMembers();
-
-            // Reset all options
-            document.querySelectorAll('.dropdown-option').forEach(option => {
-                option.classList.remove('selected');
-                option.style.display = 'flex'; // Reset visibility
-            });
-        }
-
-        // Edit Group Modal
-        function editGroup(groupId) {
-            if (groupId === 'unknown' || !groupId || groupId.toString().startsWith('no-id-')) {
-                alert('Cannot edit this group - group was created without a proper ID. Please contact administrator.');
-                return;
-            }
-
-            currentEditingGroupId = groupId;
-            const communityId = document.querySelector('input[name="communityId"]').value;
-
-            fetch('/my-community/groups/' + groupId + '?communityId=' + communityId)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(group => {
-                    document.getElementById('editGroupName').value = group.groupName || '';
-                    document.getElementById('editGroupDescription').value = group.groupDescription || '';
-
-                    // Set up HTMX attributes for the form
-                    const form = document.getElementById('editGroupForm');
-                    form.setAttribute('hx-post', `/my-community/groups/${groupId}/edit`);
-                    form.setAttribute('hx-target', `#group-row-${groupId}`);
-                    form.setAttribute('hx-swap', 'outerHTML');
-
-                    // Re-process the form with HTMX
-                    htmx.process(form);
-
-                    document.getElementById('editGroupModal').classList.add('show');
-                })
-                .catch(error => {
-                    console.error('Error fetching group details:', error);
-                    showMessage('Error loading group details: ' + error.message, 'error');
-                });
-
-            // Close dropdown
-            const dropdown = document.getElementById('dropdown-' + groupId);
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
-        }
-
-        function closeEditGroupModal() {
-            document.getElementById('editGroupModal').classList.remove('show');
-            currentEditingGroupId = null;
-        }
-
-        // Delete Group with Modal
-        function deleteGroup(groupId, groupName) {
-            if (groupId === 'unknown' || !groupId || groupId.toString().startsWith('no-id-')) {
-                alert('Cannot delete this group - group was created without a proper ID. Please contact administrator.');
-                return;
-            }
-
-            currentDeletingGroupId = groupId;
-
-            document.getElementById('deleteGroupName').textContent = groupName || 'Unknown Group';
-
-            // Set up HTMX attributes for the form to target the specific group row
-            const form = document.getElementById('deleteGroupForm');
-            form.setAttribute('hx-post', `/my-community/groups/${groupId}/delete`);
-            form.setAttribute('hx-target', `#group-row-${groupId}`);
-            form.setAttribute('hx-swap', 'delete');
-
-            // Re-process the form with HTMX
-            htmx.process(form);
-
-            document.getElementById('deleteConfirmModal').classList.add('show');
-
-            // Close dropdown
-            const dropdown = document.getElementById('dropdown-' + groupId);
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteConfirmModal').classList.remove('show');
-            currentDeletingGroupId = null;
-        }
-
-        // Close modals when clicking outside
-        document.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('show');
-            }
+            const memberName = option ? option.textContent.trim() : memberId;
+            const tag = document.createElement('div');
+            tag.className = 'member-tag';
+            tag.innerHTML = `<span>${memberName}</span><span class="remove" onclick="removeMember('${memberId}')">&times;</span>`;
+            selectedContainer.appendChild(tag);
         });
+        hiddenInput.value = selectedMembersArray.join(',');
+    }
 
-        // HTMX event listeners
-        document.addEventListener('htmx:afterRequest', function(event) {
-            // Clear form inputs after successful requests
-            if (event.detail.xhr.status === 200 && event.detail.elt.tagName === 'FORM') {
-                // Reset forms after successful submission
-                const form = event.detail.elt;
-                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) {
-                    form.reset();
-                }
-            }
-        });
+    function removeMember(memberId) {
+        selectedMembersArray = selectedMembersArray.filter(m => m !== memberId);
+        updateSelectedMembers();
+        const option = document.querySelector(`[data-member="${memberId}"]`);
+        if (option) option.classList.remove('selected');
+    }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Any initialization code can go here
+    function openAddGroupModal() {
+        document.getElementById('addGroupModal').classList.add('show');
+        initializeSearchableDropdown();
+    }
+
+    function closeAddGroupModal() {
+        document.getElementById('addGroupModal').classList.remove('show');
+        document.getElementById('groupName').value = '';
+        document.getElementById('groupDescription').value = '';
+        selectedMembersArray = [];
+        updateSelectedMembers();
+        document.querySelectorAll('.dropdown-option').forEach(option => {
+            option.classList.remove('selected');
+            option.style.display = 'flex';
         });
-    </script>
+    }
+
+    function editGroup(groupId) {
+        if (groupId === 'unknown' || !groupId || groupId.toString().startsWith('no-id-')) {
+            alert('Cannot edit this group - group was created without a proper ID.');
+            return;
+        }
+        currentEditingGroupId = groupId;
+        const communityId = document.querySelector('input[name="communityId"]').value;
+        fetch('/my-community/groups/' + groupId + '?communityId=' + communityId)
+            .then(response => { if (!response.ok) throw new Error('Network response was not ok'); return response.json(); })
+            .then(group => {
+                document.getElementById('editGroupName').value = group.groupName || '';
+                document.getElementById('editGroupDescription').value = group.groupDescription || '';
+                const form = document.getElementById('editGroupForm');
+                form.setAttribute('hx-post', `/my-community/groups/${groupId}/edit`);
+                form.setAttribute('hx-target', `#group-row-${groupId}`);
+                form.setAttribute('hx-swap', 'outerHTML');
+                htmx.process(form);
+                document.getElementById('editGroupModal').classList.add('show');
+            })
+            .catch(error => showMessage('Error loading group details: ' + error.message, 'error'));
+        const dropdown = document.getElementById('dropdown-' + groupId);
+        if (dropdown) dropdown.classList.remove('show');
+    }
+
+    function closeEditGroupModal() {
+        document.getElementById('editGroupModal').classList.remove('show');
+        currentEditingGroupId = null;
+    }
+
+    function deleteGroup(groupId, groupName) {
+        if (groupId === 'unknown' || !groupId || groupId.toString().startsWith('no-id-')) {
+            alert('Cannot delete this group - group was created without a proper ID.');
+            return;
+        }
+        currentDeletingGroupId = groupId;
+        document.getElementById('deleteGroupName').textContent = groupName || 'Unknown Group';
+        const form = document.getElementById('deleteGroupForm');
+        form.setAttribute('hx-post', `/my-community/groups/${groupId}/delete`);
+        form.setAttribute('hx-target', `#group-row-${groupId}`);
+        form.setAttribute('hx-swap', 'delete');
+        htmx.process(form);
+        document.getElementById('deleteConfirmModal').classList.add('show');
+        const dropdown = document.getElementById('dropdown-' + groupId);
+        if (dropdown) dropdown.classList.remove('show');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteConfirmModal').classList.remove('show');
+        currentDeletingGroupId = null;
+    }
+
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) event.target.classList.remove('show');
+    });
+
+    document.addEventListener('htmx:afterRequest', function(event) {
+        if (event.detail.xhr.status === 200 && event.detail.elt.tagName === 'FORM') {
+            const form = event.detail.elt;
+            if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) form.reset();
+        }
+    });
+</script>
 
     <script th:if="${!isAdmin}">
-        // Utility function to show messages for non-admin users
         function showMessage(message, type) {
             const messagesContainer = document.getElementById('messages-container');
             const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-            messagesContainer.innerHTML = `
-                <div class="alert ${alertClass}">
-                    <span>${message}</span>
-                </div>
-            `;
-
-            // Auto-hide after 5 seconds
+            messagesContainer.innerHTML = `<div class="alert ${alertClass}"><span>${message}</span></div>`;
             setTimeout(() => {
                 const alert = messagesContainer.querySelector('.alert');
                 if (alert) {
@@ -1093,18 +1579,200 @@
             }, 5000);
         }
 
-        // HTMX event listeners for non-admin users
         document.addEventListener('htmx:afterRequest', function(event) {
-            // Clear form inputs after successful requests
             if (event.detail.xhr.status === 200 && event.detail.elt.tagName === 'FORM') {
-                // Reset forms after successful submission
                 const form = event.detail.elt;
-                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) {
-                    form.reset();
-                }
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) form.reset();
             }
         });
     </script>
+
+    <!-- ── Community Members Filter Script ── -->
+    <script>
+        function filterCommunityMembers() {
+            const searchTerm   = (document.getElementById('memberSearchFilter').value || '').toLowerCase();
+            const roleFilter   = (document.getElementById('memberRoleFilter').value   || '').toUpperCase();
+            const statusFilter = (document.getElementById('memberStatusFilter').value || '').toLowerCase();
+
+            const rows       = document.querySelectorAll('#communityMembersTableBody .member-row');
+            const noResults  = document.getElementById('membersNoResults');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name   = (row.getAttribute('data-name')   || '').toLowerCase();
+                const email  = (row.getAttribute('data-email')  || '').toLowerCase();
+                const role   = (row.getAttribute('data-role')   || '').toUpperCase();
+                const status = (row.getAttribute('data-status') || '').toLowerCase();
+
+                const matchSearch = !searchTerm || name.includes(searchTerm) || email.includes(searchTerm);
+                const matchRole   = !roleFilter   || role   === roleFilter;
+                const matchStatus = !statusFilter || status === statusFilter;
+
+                if (matchSearch && matchRole && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update visible count label
+            co
+            // Update visible count label
+            const countEl = document.getElementById('visibleMemberCount');
+            if (countEl) countEl.textContent = visibleCount;
+
+            // Show / hide no-results message
+            if (noResults) noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+    </script>
+
+    <!-- ASSIGN ADMIN CONFIRMATION MODAL -->
+    <div th:if="${isAdmin}" id="assignAdminModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="assignAdminTitle">
+        <div class="modal-content">
+            <div class="admin-modal-header">
+                <div class="admin-modal-crown-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l3-9 4 5 2-8 2 8 4-5 3 9H3z"/>
+                    </svg>
+                </div>
+                <h3 id="assignAdminTitle">Assign Admin Role</h3>
+                <p>This will grant full administrative privileges</p>
+            </div>
+            <div class="admin-modal-body">
+                <div class="admin-modal-member-card">
+                    <div class="admin-modal-avatar" id="adminModalAvatar">JD</div>
+                    <div>
+                        <div class="admin-modal-member-name" id="adminModalMemberName">John Doe</div>
+                        <div class="admin-modal-member-email" id="adminModalMemberEmail">john@example.com</div>
+                        <div style="margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+                            <span class="role-badge-member" style="font-size:11px;">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                                Member
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#818cf8" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span class="role-badge-admin" style="font-size:11px;">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/></svg>
+                                Admin
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-modal-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    </svg>
+                    <span>Admins can manage community settings, groups, and promote other members. This action can only be reversed by another admin.</span>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="admin-modal-cancel-btn" onclick="closeAssignAdminModal()">Cancel</button>
+                    <button type="button" class="admin-modal-confirm-btn" id="confirmAssignAdminBtn" onclick="submitAssignAdmin()">
+                        <span class="btn-spinner"></span>
+                        <span class="btn-label-text" style="display:inline-flex;align-items:center;gap:6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l3-9 4 5 2-8 2 8 4-5 3 9H3z"/>
+                            </svg>
+                            Yes, Make Admin
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:if="${isAdmin}">
+        let _assignUserId      = null;
+        let _assignCommunityId = null;
+
+        document.addEventListener("click", function (e) {
+            const btn = e.target.closest(".make-admin-btn");
+            if (!btn) return;
+
+            const userId = btn.dataset.userId;
+            const fullName = btn.dataset.fullName;
+            const email = btn.dataset.email;
+            const initials = btn.dataset.initials;
+
+            openAssignAdminModal(userId, fullName, email, initials);
+        });
+        function openAssignAdminModal(userId, fullName, email, initials) {
+            _assignUserId      = userId;
+            _assignCommunityId = document.querySelector('input[name="communityId"]')?.value || '';
+            document.getElementById('adminModalAvatar').textContent      = initials || '?';
+            document.getElementById('adminModalMemberName').textContent  = (fullName || 'Unknown').trim();
+            document.getElementById('adminModalMemberEmail').textContent = email    || '';
+            const btn = document.getElementById('confirmAssignAdminBtn');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            document.getElementById('assignAdminModal').classList.add('show');
+        }
+
+        function closeAssignAdminModal() {
+            document.getElementById('assignAdminModal').classList.remove('show');
+            _assignUserId      = null;
+            _assignCommunityId = null;
+        }
+
+        function submitAssignAdmin() {
+            if (!_assignUserId || !_assignCommunityId) return;
+            const btn = document.getElementById('confirmAssignAdminBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            const savedUserId = _assignUserId;
+            fetch('/my-community/assignAdmin/' + _assignUserId + '/' + _assignCommunityId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Status ' + response.status);
+                    return response;
+                }).then(() => {
+                closeAssignAdminModal();
+                promoteRowToAdmin(savedUserId);
+                showMessage('Admin role assigned successfully!', 'success');
+
+                // Reload page
+                window.location.reload();
+            })
+                .catch(err => {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    showMessage('Failed to assign admin role. Please try again.', 'error');
+                    console.error('Assign admin error:', err);
+                    window.location.reload();
+                });
+        }
+
+        function promoteRowToAdmin(userId) {
+            const allBtns = document.querySelectorAll('.make-admin-btn');
+            let targetRow = null;
+            allBtns.forEach(btn => {
+                const oc = btn.getAttribute('onclick') || '';
+                if (oc.includes('openAssignAdminModal(' + userId + ',')) {
+                    targetRow = btn.closest('tr');
+                }
+            });
+            if (!targetRow) return;
+            targetRow.setAttribute('data-role', 'ADMIN');
+            const tds = targetRow.querySelectorAll('td');
+            if (tds[3]) {
+                tds[3].innerHTML = '<span class="role-badge-admin"><svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/></svg>Admin</span>';
+            }
+            const actionTd = tds[tds.length - 1];
+            if (actionTd) {
+                actionTd.innerHTML = '<span class="already-admin-label"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/></svg>Admin</span>';
+            }
+            targetRow.classList.add('row-admin-flash');
+            targetRow.addEventListener('animationend', () => targetRow.classList.remove('row-admin-flash'), { once: true });
+        }
+
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'assignAdminModal') closeAssignAdminModal();
+        });
+    </script>
+
 </div>
 </body>
 </html>

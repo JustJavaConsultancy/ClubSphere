@@ -42,10 +42,10 @@ public class Community extends AuditableEntity {
 
     private Boolean isPrivate = false;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne
     private Channel channel;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne
     private TownHall townHall;
 
     @JsonBackReference
@@ -54,9 +54,12 @@ public class Community extends AuditableEntity {
     private Organization organization;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "community",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommunityGroup> communityGroups;
 
+
+
+    // TODO: Replace with Membership entity for scalability and role support
     @ManyToMany(mappedBy = "communities", fetch = FetchType.LAZY)
     private Set<User> users = new HashSet<>();
 

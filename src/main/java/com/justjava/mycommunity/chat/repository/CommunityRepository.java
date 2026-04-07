@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CommunityRepository extends JpaRepository<Community, Long> {
     boolean existsByOrganization_Id(Long organizationId);
@@ -13,4 +14,8 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     @Query("SELECT c FROM Community c JOIN c.users u WHERE u.userId = :userId ORDER BY c.name")
     List<Community> findCommunitiesByUserId(@Param("userId") String userId);
+    @Query("SELECT c FROM Community c JOIN FETCH c.users WHERE c.id = :id")
+    Optional<Community> findByIdWithUsers(Long id);
+
+    List<Community> findByIsPrivateFalse();
 }

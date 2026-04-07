@@ -17,6 +17,6 @@ public class StartupRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         //Temporary: current error - realm does not exist
         keycloakAdminService.syncKeycloak();
-        organizationService.createDefaultOrgAndCommunity();
+       organizationService.createDefaultOrgAndCommunity();
     }
 }

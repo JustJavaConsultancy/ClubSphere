@@ -51,4 +51,5 @@ public interface CommunityInvitationRepository extends JpaRepository<CommunityIn
      */
     @Query("DELETE FROM CommunityInvitation ci WHERE ci.user.userId = :userId AND ci.community.id = :communityId")
     void deleteByUser_UserIdAndCommunity_Id(@Param("userId") String userId, @Param("communityId") Long communityId);
+    List<CommunityInvitation> findByCommunity_IdAndStatus(Long communityId, String status);
 }

@@ -28,7 +28,10 @@ public class UserService {
 
     public UserService(final UserRepository userRepository, UserGroupRepository userGroupRepository,
                        AuthenticationManager authenticationManager,
-                       CommunityRepository communityRepository, KeycloakService keycloakService, CommunityService communityService, NetworkService networkService){
+                       CommunityRepository communityRepository,
+                       KeycloakService keycloakService,
+                       CommunityService communityService,
+                       NetworkService networkService){
         this.userRepository = userRepository;
         this.userGroupRepository = userGroupRepository;
         this.authenticationManager = authenticationManager;
@@ -128,9 +131,11 @@ public class UserService {
     public void saveAuthenticatedUser(){
         String userId = (String) authenticationManager.get("sub");
         User user = userRepository.findByUserId(userId);
+
         if (user == null){
             user = keycloakService.getUser(userId);
             user = userRepository.save(user);
+            user.setRealm("community");
             networkService.createChatGroupForUsers(Collections.singletonList(user));
         }
         keycloakService.updateUserGroupOfUser(user);

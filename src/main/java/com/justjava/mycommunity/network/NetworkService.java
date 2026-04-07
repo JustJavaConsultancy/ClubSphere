@@ -118,8 +118,8 @@ public class NetworkService {
         for (User user : users) {
             if (!chatGroupRepository.existsByAdminUser(user)){
                 ChatGroup chatGroup = new ChatGroup();
-                Channel channel = townHallChannelService.createChannel("Default","Default Desc");
-                TownHall townHall = townHallChannelService.createTownHall("Default", "Default Desc");
+                Channel channel = townHallChannelService.createChannel(user.getFirstName()+"- Default",user.getFullName()+"- Channel");
+                TownHall townHall = townHallChannelService.createTownHall(user.getFirstName()+"- Default", user.getFullName()+"- Town Hall");
                 //TODO: Set Community
                 chatGroup.setName(user.getFullName() + " Chat Group");
                 chatGroup.setChannel(channel);

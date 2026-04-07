@@ -8,6 +8,7 @@ import com.justjava.mycommunity.chat.repository.CommunityRepository;
 import com.justjava.mycommunity.chat.repository.CommunityRequestRepository;
 import com.justjava.mycommunity.chat.repository.CommunityInvitationRepository;
 import com.justjava.mycommunity.chat.repository.OrganizationRepository;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.organization.Channel;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.organization.TownHall;
@@ -16,6 +17,7 @@ import com.justjava.mycommunity.userManagement.UserRepository;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.flowable.engine.RuntimeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.justjava.mycommunity.util.MappingUtils.mapUsersToDTO;
 
@@ -39,31 +42,15 @@ public class CommunityService {
     private final CommunityRequestRepository communityRequestRepository;
     private final CommunityInvitationRepository communityInvitationRepository;
     private final OrganizationRepository organizationRepository;
+    private final CommunityMembershipRepository communityMembershipRepository;
+    private final RuntimeService runtimeService;
 
     public Community createCommunity(CreateCommunityVO dto) {
-        User user;
-        if (dto.getUserEmail() == null || dto.getUserEmail().isEmpty()) {
-            String userId = (String) authenticationManager.get("sub");
-            if (userId == null) {
-                // Fallback when no authenticated user is present (e.g., during startup)
-                user = userRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new EntityNotFoundException("No users found to assign as mycommunity owner"));
-            } else {
-                user = userRepository.findByUserId(userId);
-            }
-            if (user == null) {
-                throw new EntityNotFoundException("User not found with ID: " + userId);
-            }
-        }else {
-            user = Optional.ofNullable(userRepository.findByEmail(dto.getUserEmail()))
-                    .orElseThrow(() -> new EntityNotFoundException("User not found "));
-        }
-
+        User user = resolveUser(dto.getUserEmail());
         Channel channel = townHallChannelService.createChannel(dto.getChannelName(), dto.getChannelDescription());
 
         TownHall townHall = townHallChannelService.createTownHall(dto.getTownHallName(), dto.getTownHallDescription());
-        Organization organization = organizationRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("No organizations found to assign as mycommunity owner"));
+        Organization organization = resolveOrganization(user);
         Community community = new Community();
         community.setName(dto.getCommunityName());
         community.setDescription(dto.getCommunityDescription());
@@ -72,9 +59,41 @@ public class CommunityService {
         community.setTownHall(townHall);
         community.setPrivate(dto.getIsPrivate() != null ? dto.getIsPrivate() : false);
         community = communityRepository.save(community);
+        linkUserToCommunity(user, community, Role.CREATOR);
+
+/*        CommunityMembership membership = new CommunityMembership();
+        membership.setUserId(user.getUserId());
+        membership.setCommunityId(community.getId());
+        membership.setRole(Role.ADMIN);
+        membership.setStatsus(MembershipStatus.APPROVED);
+
+        communityMembershipRepository.save(membership);*/
         return community;
     }
+    private User resolveUser(String email) {
+        if (email != null && !email.isEmpty()) {
+            return Optional.ofNullable(userRepository.findByEmail(email))
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        }
 
+        String userId = (String) authenticationManager.get("sub");
+
+        if (userId != null) {
+            return Optional.ofNullable(userRepository.findByUserId(userId))
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        }
+
+        return userRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("No users found"));
+    }
+    private Organization resolveOrganization(User user) {
+        if (user.getOrganization() != null) {
+            return user.getOrganization();
+        }
+
+        return organizationRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("No organizations found"));
+    }
     public Community getCommunity(){
         // Try to get the selected mycommunity ID from authentication context
         String selectedCommunityIdStr = (String) authenticationManager.get("selectedCommunityId");
@@ -88,8 +107,11 @@ public class CommunityService {
             }
         }
 
+        List<Community> communities = communityRepository.findAll();
+        if(communities.isEmpty())
+            return new Community();
         // Fallback to first mycommunity if no selection
-        Community community = Optional.ofNullable(communityRepository.findAll().getFirst())
+        Community community = Optional.ofNullable(communities.getFirst())
                 .orElseThrow(() -> new EntityNotFoundException("Community not found"));
         return community;
     }
@@ -176,8 +198,7 @@ public class CommunityService {
     }
 
     public Object getAllCommunityUsers(Long communityId) {
-
-        Community community = communityRepository.findById(communityId)
+        Community community = communityRepository.findByIdWithUsers(communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
         Set<User> users = community.getUsers();
         return mapUsersToDTO(users);
@@ -185,45 +206,130 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public List<UserDTO> getCommunityMembers(Long communityId) {
+
         List<UserDTO> communityMembers = new ArrayList<>();
+
         try {
-            Community community = communityRepository.findById(communityId)
-                    .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
+            // 🔹 Step 1: Get approved memberships
+            List<CommunityMembership> memberships =
+                    communityMembershipRepository.findByCommunityIdAndStatus(
+                            communityId,
+                            MembershipStatus.APPROVED
+                    );
 
-            Set<User> members = community.getUsers();
-
-            for (User user : members) {
-                UserDTO userDTO = new UserDTO();
-                userDTO.setUserId(user.getUserId());
-                userDTO.setEmail(user.getEmail());
-                userDTO.setFirstName(user.getFirstName());
-                userDTO.setLastName(user.getLastName());
-                communityMembers.add(userDTO);
+            if (memberships.isEmpty()) {
+                return communityMembers;
             }
+
+            // 🔹 Step 2: Extract userIds
+            List<String> userIds = memberships.stream()
+                    .map(CommunityMembership::getUserId)
+                    .distinct()
+                    .toList();
+
+            // 🔹 Step 3: Fetch users in ONE query
+            List<User> users = userRepository.findByUserIdIn(userIds);
+
+            // 🔹 Step 4: Map role (optional but powerful)
+            Map<String, Role> roleMap = memberships.stream()
+                    .collect(Collectors.toMap(
+                            CommunityMembership::getUserId,
+                            CommunityMembership::getRole
+                    ));
+
+            // 🔹 Step 5: Convert to DTO
+            for (User user : users) {
+
+                UserDTO dto = new UserDTO();
+                dto.setUserId(user.getUserId());
+                dto.setEmail(user.getEmail());
+                dto.setFirstName(user.getFirstName());
+                dto.setLastName(user.getLastName());
+
+                // 🔥 Optional: include role
+                dto.setRole(roleMap.get(user.getUserId()));
+                communityMembers.add(dto);
+            }
+
         } catch (Exception e) {
-            System.err.println("Error getting mycommunity members: " + e.getMessage());
+            System.err.println("Error getting community members: " + e.getMessage());
             e.printStackTrace();
         }
+
         return communityMembers;
     }
 
+    @Transactional
     public void requestToJoinCommunity(String requestingUserId, Long communityId) {
 
+        // 🔹 Step 1: Validate user
         User user = Optional.ofNullable(userRepository.findByUserId(requestingUserId))
                 .orElseThrow(() -> new EntityNotFoundException("User does not exist"));
+
+        // 🔹 Step 2: Validate community
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
 
-        CommunityRequest existingRequest = communityRequestRepository.findByUser_UserIdAndCommunity_Id(user.getUserId(), communityId);
-        if (existingRequest != null) return;
+        // 🔹 Step 3: Check existing membership
+        Optional<CommunityMembership> existingOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(
+                        requestingUserId,
+                        communityId
+                );
 
-        CommunityRequest communityRequest = new CommunityRequest();
-        communityRequest.setCommunity(community);
-        communityRequest.setUser(user);
-        communityRequest.setStatus("P"); //P = PENDING, A = APPROVED...will use Enums later
-        communityRequestRepository.save(communityRequest);
+        if (existingOpt.isPresent()) {
+
+            CommunityMembership existing = existingOpt.get();
+
+            // ✅ Already approved → no need to request
+            if (existing.getStatus() == MembershipStatus.APPROVED) {
+                throw new IllegalStateException("User is already a member of this community");
+            }
+
+            // ✅ Already pending → avoid duplicate workflow
+            if (existing.getStatus() == MembershipStatus.PENDING) {
+                throw new IllegalStateException("Join request already pending");
+            }
+
+            // 🔥 If previously rejected → allow re-request
+            if (existing.getStatus() == MembershipStatus.REJECTED) {
+                existing.setStatus(MembershipStatus.PENDING);
+                communityMembershipRepository.save(existing);
+            }
+
+        } else {
+            // 🔹 Create new membership request
+            CommunityMembership membership = new CommunityMembership();
+            membership.setUserId(requestingUserId);
+            membership.setCommunityId(communityId);
+            membership.setRole(Role.MEMBER);
+            membership.setStatus(MembershipStatus.PENDING);
+
+            communityMembershipRepository.save(membership);
+        }
+
+        // 🔹 Step 4: Resolve admin (fail fast if none)
+        String adminUserId = resolveCommunityAdmin(communityId);
+
+        // 🔹 Step 5: Start Flowable process
+        runtimeService.startProcessInstanceByKey(
+                "communityMembershipApproval",
+                Map.of(
+                        "userId", requestingUserId,
+                        "communityId", communityId,
+                        "adminUserId", adminUserId
+                )
+        );
+
+        // 🔹 Step 6: Logging (replace System.out)
+/*        log.info("User {} requested to join community {}. Approval sent to admin {}",
+                requestingUserId, communityId, adminUserId);*/
     }
-
+    private String resolveCommunityAdmin(Long communityId) {
+        return communityMembershipRepository
+                .findFirstAdmin(communityId)
+                .orElse("");
+    }
     @Transactional
     public void approveCommunityRequest(Long communityRequestId) {
         CommunityRequest communityRequest = communityRequestRepository.findById(communityRequestId)
@@ -233,17 +339,20 @@ public class CommunityService {
         User user = communityRequest.getUser();
 
         // Add user to mycommunity and mycommunity to user (bidirectional many-to-many)
+
         if (!user.getCommunities().contains(community)) {
-            user.getCommunities().add(community);
-            community.getUsers().add(user);
+            approveMembership(user,community);
             userRepository.save(user);
             communityRepository.save(community);
         }
 
+
         // Remove the request after approval
         communityRequestRepository.delete(communityRequest);
     }
-
+    private void approveMembership(User user, Community community) {
+        linkUserToCommunity(user, community, Role.MEMBER);
+    }
     @Transactional
     public List<CommunityRequestDTO> getChatGroupRequests(String userId) {
 
@@ -254,72 +363,62 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getUserCommunities(String userId) {
+
         List<Map<String, Object>> userCommunities = new ArrayList<>();
+
         try {
             System.out.println("CommunityService - Getting communities for user: " + userId);
 
-            // Check if user is admin
             boolean isAdmin = false;
             try {
                 isAdmin = authenticationManager.isAdmin();
                 System.out.println("CommunityService - User " + userId + " is admin: " + isAdmin);
             } catch (Exception e) {
-                System.out.println("CommunityService - Error checking admin status, assuming not admin: " + e.getMessage());
+                System.out.println("Error checking admin status: " + e.getMessage());
             }
 
+            // 🔹 ADMIN → return all communities
             if (isAdmin) {
-                // For admins, return ALL communities as they are automatic members of every mycommunity
                 List<Community> allCommunities = communityRepository.findAll();
-                System.out.println("CommunityService - Admin user, returning all " + allCommunities.size() + " communities");
+
                 for (Community community : allCommunities) {
-                    Map<String, Object> communityData = new HashMap<>();
-                    communityData.put("id", community.getId());
-                    communityData.put("communityName", community.getName());
-                    communityData.put("communityDescription", community.getDescription());
-                    communityData.put("isPrivate", community.isPrivate());
-                    userCommunities.add(communityData);
-                    System.out.println("CommunityService - Added mycommunity for admin: " + community.getName() + " (ID: " + community.getId() + ")");
+                    userCommunities.add(mapCommunity(community));
                 }
-            } else {
-                // For regular users, return only the communities they are actually members of
-                try {
-                    List<Community> userCommunitiesList = communityRepository.findCommunitiesByUserId(userId);
-                    System.out.println("CommunityService - Regular user, found " + userCommunitiesList.size() + " communities via query");
-                    for (Community community : userCommunitiesList) {
-                        Map<String, Object> communityData = new HashMap<>();
-                        communityData.put("id", community.getId());
-                        communityData.put("communityName", community.getName());
-                        communityData.put("communityDescription", community.getDescription());
-                        communityData.put("isPrivate", community.isPrivate());
-                        userCommunities.add(communityData);
-                        System.out.println("CommunityService - Added mycommunity: " + community.getName() + " (ID: " + community.getId() + ")");
-                    }
-                } catch (Exception queryException) {
-                    // Fallback to the original method if the new query method doesn't exist yet
-                    System.err.println("Query method not available, using fallback: " + queryException.getMessage());
-                    User user = userRepository.findByUserId(userId);
-                    if (user != null) {
-                        Set<Community> userCommunitiesSet = user.getCommunities();
-                        System.out.println("CommunityService - Found " + userCommunitiesSet.size() + " communities via user entity");
-                        for (Community community : userCommunitiesSet) {
-                            Map<String, Object> communityData = new HashMap<>();
-                            communityData.put("id", community.getId());
-                            communityData.put("communityName", community.getName());
-                            communityData.put("communityDescription", community.getDescription());
-                            communityData.put("isPrivate", community.isPrivate());
-                            userCommunities.add(communityData);
-                            System.out.println("CommunityService - Added mycommunity: " + community.getName() + " (ID: " + community.getId() + ")");
-                        }
-                    }
-                }
+
+                return userCommunities;
             }
+
+            // 🔹 NORMAL USER → use membership
+            List<CommunityMembership> memberships =
+                    communityMembershipRepository.findByUserIdAndStatus(
+                            userId,
+                            MembershipStatus.APPROVED
+                    );
+
+            if (memberships.isEmpty()) {
+                return userCommunities;
+            }
+
+            // 🔹 Extract community IDs
+            List<Long> communityIds = memberships.stream()
+                    .map(CommunityMembership::getCommunityId)
+                    .distinct()
+                    .toList();
+
+            // 🔹 Fetch communities in one query
+            List<Community> communities = communityRepository.findAllById(communityIds);
+
+            for (Community community : communities) {
+                userCommunities.add(mapCommunity(community));
+            }
+
         } catch (Exception e) {
             System.err.println("Error getting user communities: " + e.getMessage());
             e.printStackTrace();
         }
+
         return userCommunities;
     }
-
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getAllCommunitiesForAdmin(String userId) {
         List<Map<String, Object>> allCommunities = new ArrayList<>();
@@ -349,19 +448,33 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getSuggestedCommunities(String userId) {
+
         List<Map<String, Object>> suggestedCommunities = new ArrayList<>();
+
         try {
-            User user = userRepository.findByUserId(userId);
-            List<Community> allCommunities = communityRepository.findAll();
+            // 🔹 Get all memberships of user (single query)
+            List<CommunityMembership> memberships =
+                    communityMembershipRepository.findByUserId(userId);
 
-            for (Community community : allCommunities) {
-                // Skip if user is already a member using the many-to-many relationship
-                if (user != null && user.getCommunities().contains(community)) {
-                    continue;
-                }
+            // 🔹 Convert to lookup map (communityId → membership)
+            Map<Long, CommunityMembership> membershipMap = memberships.stream()
+                    .collect(Collectors.toMap(
+                            CommunityMembership::getCommunityId,
+                            m -> m
+                    ));
 
-                // Skip private communities - they should not appear in suggestions
-                if (community.isPrivate()) {
+            // 🔹 Fetch only public communities
+            List<Community> publicCommunities =
+                    communityRepository.findByIsPrivateFalse();
+
+            for (Community community : publicCommunities) {
+
+                CommunityMembership membership =
+                        membershipMap.get(community.getId());
+
+                // ❌ Skip if already approved member
+                if (membership != null &&
+                        membership.getStatus() == MembershipStatus.APPROVED) {
                     continue;
                 }
 
@@ -371,29 +484,26 @@ public class CommunityService {
                 communityData.put("communityDescription", community.getDescription());
                 communityData.put("isPrivate", community.isPrivate());
 
-                // Check if user has pending request for this mycommunity
-                CommunityRequest existingRequest = communityRequestRepository
-                        .findByUser_UserIdAndCommunity_Id(userId, community.getId());
+                // 🔹 Determine request status using membership
+                if (membership != null &&
+                        membership.getStatus() == MembershipStatus.PENDING) {
 
-                if (existingRequest != null) {
-                    if ("P".equals(existingRequest.getStatus())) {
-                        communityData.put("requestStatus", "PENDING");
-                    } else if ("R".equals(existingRequest.getStatus())) {
-                        communityData.put("requestStatus", "NONE"); // Rejected requests show as available again
-                    }
+                    communityData.put("requestStatus", "PENDING");
+
                 } else {
                     communityData.put("requestStatus", "NONE");
                 }
 
                 suggestedCommunities.add(communityData);
             }
+
         } catch (Exception e) {
             System.err.println("Error getting suggested communities: " + e.getMessage());
             e.printStackTrace();
         }
+
         return suggestedCommunities;
     }
-
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPendingRequests() {
         List<Map<String, Object>> requests = new ArrayList<>();
@@ -437,29 +547,65 @@ public class CommunityService {
 
     @Transactional
     public void inviteUserToCommunity(String userId, Long communityId) {
+
+        // 🔹 Step 1: Validate user
         User user = Optional.ofNullable(userRepository.findByUserId(userId))
                 .orElseThrow(() -> new EntityNotFoundException("User does not exist"));
+
+        // 🔹 Step 2: Validate community
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
 
-        // Check if user is already a member using the many-to-many relationship
-        if (user.getCommunities().contains(community)) {
-            throw new IllegalStateException("User is already a member of this mycommunity");
+        // 🔹 Step 3: Check membership (SOURCE OF TRUTH)
+        Optional<CommunityMembership> membershipOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
+
+        if (membershipOpt.isPresent()) {
+
+            CommunityMembership membership = membershipOpt.get();
+
+            // ❌ Already member
+            if (membership.getStatus() == MembershipStatus.APPROVED) {
+                throw new IllegalStateException("User is already a member of this community");
+            }
+
+            // ❌ Already pending (either request or invite)
+            if (membership.getStatus() == MembershipStatus.PENDING) {
+                throw new IllegalStateException("User already has a pending request/invitation");
+            }
+
+            // 🔁 Previously rejected → reuse record
+            if (membership.getStatus() == MembershipStatus.REJECTED) {
+                membership.setStatus(MembershipStatus.PENDING);
+                membership.setRole(Role.MEMBER);
+                communityMembershipRepository.save(membership);
+            }
+
+        } else {
+            // 🔹 Create new membership (invitation)
+            CommunityMembership membership = new CommunityMembership();
+            membership.setUserId(userId);
+            membership.setCommunityId(communityId);
+            membership.setRole(Role.MEMBER);
+            membership.setStatus(MembershipStatus.PENDING);
+
+            communityMembershipRepository.save(membership);
         }
 
-        // Check if invitation already exists
-        CommunityInvitation existingInvitation = communityInvitationRepository
-                .findByUser_UserIdAndCommunity_Id(userId, communityId);
-        if (existingInvitation != null && "P".equals(existingInvitation.getStatus())) {
-            throw new IllegalStateException("User already has a pending invitation to this mycommunity");
+        // 🔹 Step 4: (Optional - keep backward compatibility)
+        CommunityInvitation existingInvitation =
+                communityInvitationRepository.findByUser_UserIdAndCommunity_Id(userId, communityId);
+
+        if (existingInvitation == null) {
+            CommunityInvitation invitation = new CommunityInvitation();
+            invitation.setUser(user);
+            invitation.setCommunity(community);
+            invitation.setStatus("P");
+            communityInvitationRepository.save(invitation);
         }
 
-        // Create new invitation
-        CommunityInvitation invitation = new CommunityInvitation();
-        invitation.setUser(user);
-        invitation.setCommunity(community);
-        invitation.setStatus("P"); // P = PENDING
-        communityInvitationRepository.save(invitation);
+        // 🔹 Step 5: Logging
+        //log.info("User {} invited to community {}", userId, communityId);
     }
 
     @Transactional(readOnly = true)
@@ -486,30 +632,55 @@ public class CommunityService {
 
     @Transactional
     public void acceptCommunityInvitation(String userId, Long invitationId) {
+
+        // 🔹 Step 1: Validate invitation
         CommunityInvitation invitation = communityInvitationRepository.findById(invitationId)
                 .orElseThrow(() -> new EntityNotFoundException("Community invitation does not exist"));
 
-        // Verify the invitation belongs to the user
+        // 🔹 Step 2: Validate ownership
         if (!invitation.getUser().getUserId().equals(userId)) {
             throw new IllegalStateException("Invitation does not belong to this user");
         }
 
-        // Add user to mycommunity
-        User user = invitation.getUser();
-        Community community = invitation.getCommunity();
+        Long communityId = invitation.getCommunity().getId();
 
-        // Add user to mycommunity and mycommunity to user (bidirectional many-to-many)
-        if (!user.getCommunities().contains(community)) {
-            user.getCommunities().add(community);
-            community.getUsers().add(user);
-            userRepository.save(user);
-            communityRepository.save(community);
+        // 🔹 Step 3: Check membership (SOURCE OF TRUTH)
+        Optional<CommunityMembership> membershipOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
+
+        if (membershipOpt.isPresent()) {
+
+            CommunityMembership membership = membershipOpt.get();
+
+            // ✅ Already approved → nothing to do
+            if (membership.getStatus() == MembershipStatus.APPROVED) {
+                communityInvitationRepository.delete(invitation);
+                return;
+            }
+
+            // 🔥 Accept invitation → approve membership
+            membership.setStatus(MembershipStatus.APPROVED);
+            membership.setRole(Role.MEMBER);
+
+            communityMembershipRepository.save(membership);
+
+        } else {
+            // 🔹 Create membership if not exists (edge case safety)
+            CommunityMembership membership = new CommunityMembership();
+            membership.setUserId(userId);
+            membership.setCommunityId(communityId);
+            membership.setRole(Role.MEMBER);
+            membership.setStatus(MembershipStatus.APPROVED);
+
+            communityMembershipRepository.save(membership);
         }
 
-        // Remove the invitation
+        // 🔹 Step 4: Remove invitation
         communityInvitationRepository.delete(invitation);
-    }
 
+        // 🔹 Step 5: Logging
+        //log.info("User {} accepted invitation to community {}", userId, communityId);
+    }
     @Transactional
     public void declineCommunityInvitation(String userId, Long invitationId) {
         CommunityInvitation invitation = communityInvitationRepository.findById(invitationId)
@@ -526,50 +697,71 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public List<UserDTO> getAvailableUsersToInvite(Long communityId) {
+
         List<UserDTO> availableUsers = new ArrayList<>();
+
         try {
-            Community community = communityRepository.findById(communityId)
+            // 🔹 Validate community
+            communityRepository.findById(communityId)
                     .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
 
+            // 🔹 Step 1: Fetch all users
             List<User> allUsers = userRepository.findAll();
 
+            // 🔹 Step 2: Fetch memberships (single query)
+            List<CommunityMembership> memberships =
+                    communityMembershipRepository.findByCommunityId(communityId);
+
+            // 🔹 Step 3: Build membership map
+            Map<String, MembershipStatus> membershipMap = memberships.stream()
+                    .collect(Collectors.toMap(
+                            CommunityMembership::getUserId,
+                            CommunityMembership::getStatus,
+                            (a, b) -> a // resolve duplicates safely
+                    ));
+
+            // 🔹 Step 4: Fetch pending invitations (single query)
+            List<CommunityInvitation> invitations =
+                    communityInvitationRepository.findByCommunity_IdAndStatus(communityId, "P");
+
+            Set<String> invitedUserIds = invitations.stream()
+                    .map(inv -> inv.getUser().getUserId())
+                    .collect(Collectors.toSet());
+
+            // 🔹 Step 5: Filter users
             for (User user : allUsers) {
-                // Skip if user is already a member of this mycommunity
-                // Use ID comparison instead of object equality to avoid issues with Hibernate proxies
-                boolean isAlreadyMember = user.getCommunities().stream()
-                        .anyMatch(userCommunity -> userCommunity.getId().equals(communityId));
 
-                if (isAlreadyMember) {
-                    System.out.println("User " + user.getEmail() + " is already a member of mycommunity " + communityId);
+                String userId = user.getUserId();
+
+                // ❌ Skip if already APPROVED member
+                if (membershipMap.containsKey(userId) &&
+                        membershipMap.get(userId) == MembershipStatus.APPROVED) {
                     continue;
                 }
 
-                // Skip if user already has a pending invitation
-                CommunityInvitation existingInvitation = communityInvitationRepository
-                        .findByUser_UserIdAndCommunity_Id(user.getUserId(), communityId);
-                if (existingInvitation != null && "P".equals(existingInvitation.getStatus())) {
-                    System.out.println("User " + user.getEmail() + " already has pending invitation to mycommunity " + communityId);
+                // ❌ Skip if already invited
+                if (invitedUserIds.contains(userId)) {
                     continue;
                 }
 
-                // Add to available users
-                UserDTO userDTO = new UserDTO();
-                userDTO.setUserId(user.getUserId());
-                userDTO.setEmail(user.getEmail());
-                userDTO.setFirstName(user.getFirstName());
-                userDTO.setLastName(user.getLastName());
-                availableUsers.add(userDTO);
-                System.out.println("User " + user.getEmail() + " is available to invite to mycommunity " + communityId);
+                // 🔹 Add to result
+                UserDTO dto = new UserDTO();
+                dto.setUserId(user.getUserId());
+                dto.setEmail(user.getEmail());
+                dto.setFirstName(user.getFirstName());
+                dto.setLastName(user.getLastName());
+
+                availableUsers.add(dto);
             }
 
-            System.out.println("Total available users to invite: " + availableUsers.size());
+            //log.info("Total available users to invite: {}", availableUsers.size());
+
         } catch (Exception e) {
-            System.err.println("Error getting available users to invite: " + e.getMessage());
-            e.printStackTrace();
+            //log.error("Error getting available users to invite", e);
         }
+
         return availableUsers;
     }
-
     @Transactional(readOnly = true)
     public List<UserDTO> getEligibleMeetingParticipants(Long communityId) {
         List<UserDTO> eligibleUsers = new ArrayList<>();
@@ -607,7 +799,45 @@ public class CommunityService {
         return eligibleUsers;
     }
 
-    private List<CommunityRequestDTO> mapCommunityRequestToDto(List<CommunityRequest> communityRequests){
+    private Map<String, Object> mapCommunity(Community c) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", c.getId());
+        data.put("communityName", c.getName());
+        data.put("communityDescription", c.getDescription());
+        data.put("isPrivate", c.isPrivate());
+        return data;
+    }
+    private void linkUserToCommunity(User user, Community community, Role role) {
+
+        Optional<CommunityMembership> existingOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(
+                        user.getUserId(),
+                        community.getId()
+                );
+
+        if (existingOpt.isPresent()) {
+
+            CommunityMembership existing = existingOpt.get();
+
+            // 🔥 Upgrade role if needed (e.g., MEMBER → ADMIN)
+            if (role == Role.ADMIN && existing.getRole() != Role.ADMIN) {
+                existing.setRole(Role.ADMIN);
+                existing.setStatus(MembershipStatus.APPROVED);
+                communityMembershipRepository.save(existing);
+            }
+
+            return;
+        }
+
+        // ✅ Create new membership
+        CommunityMembership membership = new CommunityMembership();
+        membership.setUserId(user.getUserId());
+        membership.setCommunityId(community.getId());
+        membership.setRole(role);
+        membership.setStatus(MembershipStatus.APPROVED);
+
+        communityMembershipRepository.save(membership);
+    }    private List<CommunityRequestDTO> mapCommunityRequestToDto(List<CommunityRequest> communityRequests){
         List<CommunityRequestDTO> dtos = new ArrayList<>();
         for (CommunityRequest request : communityRequests) {
             CommunityRequestDTO dto = new CommunityRequestDTO();
@@ -619,5 +849,60 @@ public class CommunityService {
         }
         return dtos;
     }
+    @Transactional
+    public void assignCommunityAdmin(String currentUserId, String targetUserId, Long communityId) {
 
+        // 🔐 Step 1: Validate current user is admin
+        boolean isAdmin = communityMembershipRepository
+                .existsByUserIdAndCommunityIdAndRoleAndStatus(
+                        currentUserId,
+                        communityId,
+                        Role.ADMIN,
+                        MembershipStatus.APPROVED
+                );
+
+        if (!isAdmin) {
+            throw new SecurityException("Only community admin can assign admin role");
+        }
+
+        // 🔹 Step 2: Validate community exists
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+
+        // 🔹 Step 3: Validate target user exists
+        User targetUser = userRepository.findByUserId(targetUserId);
+        if (targetUser == null) {
+            throw new EntityNotFoundException("Target user not found");
+        }
+
+        // 🔹 Step 4: Check existing membership
+        Optional<CommunityMembership> existingOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(
+                        targetUserId,
+                        communityId
+                );
+
+        if (existingOpt.isPresent()) {
+
+            CommunityMembership membership = existingOpt.get();
+
+            // 🔥 Upgrade role if needed
+            if (membership.getRole() != Role.ADMIN) {
+                membership.setRole(Role.ADMIN);
+                membership.setStatus(MembershipStatus.APPROVED);
+                communityMembershipRepository.save(membership);
+            }
+
+        } else {
+
+            // 🔹 Create new ADMIN membership
+            CommunityMembership membership = new CommunityMembership();
+            membership.setUserId(targetUserId);
+            membership.setCommunityId(communityId);
+            membership.setRole(Role.ADMIN);
+            membership.setStatus(MembershipStatus.APPROVED);
+
+            communityMembershipRepository.save(membership);
+        }
+    }
 }
