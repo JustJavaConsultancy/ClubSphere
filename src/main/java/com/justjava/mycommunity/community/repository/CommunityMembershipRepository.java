@@ -15,21 +15,20 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
 
     boolean existsByUserIdAndCommunityId(String userId, Long communityId);
 
-    boolean existsByUserIdAndCommunityIdAndStatus(
-            String userId, Long communityId, MembershipStatus status
+    boolean existsByUserIdAndCommunityIdAndStatus(String userId, Long communityId, MembershipStatus status);
 
-    );
-
-    boolean existsByUserIdAndCommunityIdAndRoleAndStatus(
-            String userId, Long communityId, Role role, MembershipStatus status
-    );
+    boolean existsByUserIdAndCommunityIdAndRoleAndStatus(String userId, Long communityId, Role role, MembershipStatus status);
 
     List<CommunityMembership> findByCommunityIdAndStatus(Long communityId, MembershipStatus status);
 
     List<CommunityMembership> findByUserIdAndStatus(String userId, MembershipStatus status);
 
+    List<CommunityMembership> findByUserId(String userId);
+
+    List<CommunityMembership> findByCommunityId(Long communityId);
+
     @Query("""
-        SELECT cm.userId 
+        SELECT cm.userId
         FROM CommunityMembership cm
         WHERE cm.communityId = :communityId
         AND cm.role = 'ADMIN'
@@ -41,6 +40,4 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
         List<String> admins = findAdminsByCommunityId(communityId);
         return admins.isEmpty() ? Optional.empty() : Optional.of(admins.get(0));
     }
-    List<CommunityMembership> findByUserId(String userId);
-    List<CommunityMembership> findByCommunityId(Long communityId);
 }

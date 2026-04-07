@@ -1,13 +1,19 @@
 package com.justjava.mycommunity.userManagement;
 
 import com.justjava.mycommunity.account.AuthenticationManager;
+import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.chat.repository.CommunityRepository;
 import com.justjava.mycommunity.community.Community;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.MembershipStatus;
+import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.keycloak.KeycloakService;
 import com.justjava.mycommunity.network.NetworkService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,21 +29,21 @@ public class UserService {
     public final AuthenticationManager authenticationManager;
     private final CommunityRepository communityRepository;
     private final KeycloakService keycloakService;
-    private final CommunityService communityService;
+    private final CommunityMembershipRepository communityMembershipRepository;
     private final NetworkService networkService;
 
     public UserService(final UserRepository userRepository, UserGroupRepository userGroupRepository,
                        AuthenticationManager authenticationManager,
                        CommunityRepository communityRepository,
                        KeycloakService keycloakService,
-                       CommunityService communityService,
+                       CommunityMembershipRepository communityMembershipRepository,
                        NetworkService networkService){
         this.userRepository = userRepository;
         this.userGroupRepository = userGroupRepository;
         this.authenticationManager = authenticationManager;
         this.communityRepository = communityRepository;
         this.keycloakService = keycloakService;
-        this.communityService = communityService;
+        this.communityMembershipRepository = communityMembershipRepository;
         this.networkService = networkService;
     }
 
@@ -80,35 +86,26 @@ public class UserService {
         userRepository.save(currentUser);
     }
 
-    public void updateCommunityStatus(String status){
-        String loginUser = (String) authenticationManager.get("sub");
-        Community community = communityService.getCommunity();
-        List<User> users = new ArrayList<>();
+    @Transactional
+    public void updateCommunity(CreateCommunityVO vo, Long communityId) {
+        String userId = (String) authenticationManager.get("sub");
 
-        boolean communityPrivacyBool = false;
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
 
-        if (authenticationManager.isAdmin()){
-            if("private".equalsIgnoreCase(status)){
-                communityPrivacyBool = true;
+        boolean isAdmin = authenticationManager.isAdmin();
+        boolean isMember = isAdmin || communityMembershipRepository.existsByUserIdAndCommunityIdAndStatus(
+                userId, communityId, MembershipStatus.APPROVED
+        );
 
-                // Get all users in the current mycommunity using the new many-to-many relationship
-                if (community != null && community.getId() != null) {
-                    List<User> allCommunityUsers = userRepository.findByCommunityId(community.getId());
-
-                    for (User user: allCommunityUsers){
-                        user.setPrivacy(true);
-                        users.add(user);
-                    }
-                    System.out.println("This is the mycommunity privacy:::" + communityPrivacyBool);
-                    userRepository.saveAll(users);
-                }
-            }
-
-            community.setCommunityPrivacy(communityPrivacyBool);
-            communityRepository.save(community);
+        if (!isAdmin && !isMember) {
+            throw new SecurityException("User does not have permission to update this community");
         }
-    }
 
+        community.setName(vo.getCommunityName());
+        community.setDescription(vo.getCommunityDescription());
+        communityRepository.save(community);
+    }
     public List<UserGroup> getUserGroups(){
         return userGroupRepository.findAll();
     }

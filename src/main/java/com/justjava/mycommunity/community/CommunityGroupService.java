@@ -7,6 +7,7 @@ import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.chat.repository.CommunityGroupRepository;
 import com.justjava.mycommunity.chat.repository.CommunityGroupRequestRepository;
 import com.justjava.mycommunity.chat.repository.CommunityRepository;
+import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -253,7 +254,9 @@ public class CommunityGroupService {
             System.out.println("Using specified mycommunity: " + community.getName() + " (ID: " + community.getId() + ")");
         } else {
             // Fallback to default mycommunity if no ID specified
-            community = communityService.getCommunity();
+            CommunityDTO communityDTO = communityService.getCommunity();
+            community = communityRepository.findById(communityDTO.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Community not found with ID: " + communityDTO.getId()));
             System.out.println("Using default mycommunity: " + community.getName() + " (ID: " + community.getId() + ")");
         }
 

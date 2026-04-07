@@ -4,6 +4,7 @@ import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.CreateChatDTO;
 import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.service.ChatService;
+import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,74 +76,32 @@ public class CommunityController {
                 return "redirect:/my-community/select";
             }
 
-            // Get current user info
             String currentUserId = (String) authenticationManager.get("sub");
             boolean isAdmin = authenticationManager.isAdmin();
 
-            // Get specific mycommunity by ID
-            Object communityResponse = communityService.getCommunityById(communityId);
-            System.out.println("=== COMMUNITY DEBUG INFO ===");
-            System.out.println("Community Response Type: " + (communityResponse != null ? communityResponse.getClass().getName() : "null"));
-            System.out.println("Community Response: " + communityResponse);
+            CommunityDTO community = communityService.getCommunityById(communityId);
 
-            if (communityResponse == null) {
+            if (community == null) {
                 model.addAttribute("errorMessage", "Community not found or access denied.");
                 return "redirect:/my-community/select";
             }
 
-            // Extract mycommunity data from the entity
-            Map<String, Object> normalizedCommunity = extractCommunityData(communityResponse);
-            Long actualCommunityId = (Long) normalizedCommunity.get("id");
+            List<UserDTO> communityMembers = communityService.getCommunityMembers(communityId);
+            List<UserDTO> availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
 
-            if (actualCommunityId == null || !actualCommunityId.equals(communityId)) {
-                model.addAttribute("errorMessage", "Invalid mycommunity data or access denied");
-                return "redirect:/my-community/select";
-            }
-
-            System.out.println("Final communityId: " + actualCommunityId);
-            System.out.println("Final normalized mycommunity: " + normalizedCommunity);
-
-            // Get mycommunity members for group creation (only members of this mycommunity)
-            List<UserDTO> communityMembers = new ArrayList<>();
-            List<UserDTO> availableUsersToInvite = new ArrayList<>();
-
-            try {
-                // Get all users in the mycommunity for group member selection
-                communityMembers = communityService.getCommunityMembers(actualCommunityId);
-                System.out.println("Community members count: " + communityMembers.size());
-
-                // Get users who are not already in the mycommunity for invitations
-                availableUsersToInvite = communityService.getAvailableUsersToInvite(actualCommunityId);
-                System.out.println("Available users to invite count: " + availableUsersToInvite.size());
-            } catch (Exception e) {
-                System.out.println("Error getting mycommunity members or available users: " + e.getMessage());
-            }
-
-            // Get mycommunity groups - this should return List<CreateChatDTO>
             List<Map<String, Object>> processedGroups = new ArrayList<>();
             try {
-                List<CreateChatDTO> groupsResponse;
-                if (isAdmin) {
-                    // Admins see all groups in the mycommunity
-                    groupsResponse = communityGroupService.getCommunityGroupsByCommunityId(actualCommunityId);
-                } else {
-                    // Regular users see only their groups
-                    groupsResponse = communityGroupService.getUserCommunityGroups(currentUserId, actualCommunityId);
-                }
-
-                System.out.println("Groups response: " + groupsResponse);
-                System.out.println("Groups response type: " + (groupsResponse != null ? groupsResponse.getClass().getName() : "null"));
+                List<CreateChatDTO> groupsResponse = isAdmin
+                        ? communityGroupService.getCommunityGroupsByCommunityId(communityId)
+                        : communityGroupService.getUserCommunityGroups(currentUserId, communityId);
 
                 if (groupsResponse != null) {
                     for (CreateChatDTO group : groupsResponse) {
                         Map<String, Object> processedGroup = new HashMap<>();
-
-                        // Use the actual database ID from the DTO
                         processedGroup.put("id", group.getId() != null ? group.getId() : 0L);
                         processedGroup.put("groupName", group.getGroupName() != null ? group.getGroupName() : "Unknown Group");
                         processedGroup.put("groupDescription", group.getGroupDescription() != null ? group.getGroupDescription() : "No description");
                         processedGroup.put("memberCount", group.getMemberCount() != null ? group.getMemberCount() : 0);
-
                         processedGroups.add(processedGroup);
                     }
                 }
@@ -150,23 +109,21 @@ public class CommunityController {
                 System.out.println("Error getting groups: " + e.getMessage());
                 e.printStackTrace();
             }
-            System.out.println("This is the total number of mycommunity " + normalizedCommunity.size());
-            System.out.println("This is the total number of groups " + processedGroups.size());
 
-            model.addAttribute("community", normalizedCommunity);
+            model.addAttribute("community", community);
             model.addAttribute("groups", processedGroups);
-            model.addAttribute("availableMembers", communityMembers); // Only mycommunity members for group creation
-            model.addAttribute("availableUsersToInvite", availableUsersToInvite); // Users not in mycommunity for invitations
-            model.addAttribute("communityId", actualCommunityId);
+            model.addAttribute("availableMembers", communityMembers);
+            model.addAttribute("availableUsersToInvite", availableUsersToInvite);
+            model.addAttribute("communityId", communityId);
             model.addAttribute("isAdmin", isAdmin);
 
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("errorMessage", "Error loading mycommunity data: " + e.getMessage());
+            model.addAttribute("errorMessage", "Error loading community data: " + e.getMessage());
             return "redirect:/my-community/select";
         }
-        model.addAttribute("communityMembers",communityService.getCommunityMembers(communityId));
 
+        model.addAttribute("communityMembers", communityService.getCommunityMembers(communityId));
         model.addAttribute("currentPath", "/my-mycommunity");
         return "community";
     }

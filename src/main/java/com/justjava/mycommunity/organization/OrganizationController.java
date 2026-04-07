@@ -4,6 +4,7 @@ import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.community.Community;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.dto.CommunityDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -150,7 +151,7 @@ public class OrganizationController {
 
             System.out.println("CreateCommunityVO created: " + createCommunityVO);
 
-            Community createdCommunity = communityService.createCommunity(createCommunityVO);
+            CommunityDTO createdCommunity = communityService.createCommunity(createCommunityVO);
 
             System.out.println("Community created successfully with ID: " + createdCommunity.getId());
 
@@ -217,7 +218,7 @@ public class OrganizationController {
             request.getSession().setAttribute("selectedCommunityId", communityId);
 
             // Get mycommunity details and set name in session
-            Community community = communityService.getCommunityById(communityId);
+            CommunityDTO community = communityService.getCommunityById(communityId);
             if (community != null) {
                 request.getSession().setAttribute("selectedCommunityName", community.getName());
                 System.out.println("Selected mycommunity: " + community.getName() + " (ID: " + communityId + ")");

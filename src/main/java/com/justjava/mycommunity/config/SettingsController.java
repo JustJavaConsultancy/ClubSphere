@@ -3,6 +3,7 @@ package com.justjava.mycommunity.config;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.community.Community;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.keycloak.KeycloakService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.userManagement.UserService;
@@ -38,7 +39,7 @@ public class SettingsController {
         // Preload any data if needed later (e.g., current level)
         String loginUser = (String) authenticationManager.get("sub");
         UserDTO currentUser = userService.getSingleUser(loginUser);
-        Community myCommunity = communityService.getCommunity();
+        CommunityDTO myCommunity = communityService.getCommunity();
 
         System.out.println("This is the current mycommunity " + myCommunity.getCommunityPrivacy());
         model.addAttribute("isAdmin", authenticationManager.isAdmin());
@@ -91,7 +92,7 @@ public class SettingsController {
     @PostMapping("/update-communityStatus")
     public ResponseEntity<String> updateCommunityStatus(@RequestParam("status") String status){
 
-        userService.updateCommunityStatus(status);
+        System.out.println("This is the community status: " + status);
         System.out.println("This is the mycommunity status" + status);
 
         if ("public".equalsIgnoreCase(status)) {
