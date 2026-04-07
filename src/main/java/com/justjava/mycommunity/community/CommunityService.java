@@ -116,28 +116,14 @@ public class CommunityService {
         return community;
     }
 
-    public List<Community> getAllCommunities(){
-        return communityRepository.findAll();
-    }
 
     public Community getCommunityById(Long id){
         return communityRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Community not found"));
     }
 
-    public Community getSelectedCommunity(Long selectedCommunityId) {
-        if (selectedCommunityId != null) {
-            return getCommunityById(selectedCommunityId);
-        }
-        return getCommunity();
-    }
-
     @Transactional
     public void updateCommunity(CreateCommunityVO vo) {
-        String userId = (String) authenticationManager.get("sub");
-        User user = Optional.ofNullable(userRepository.findByUserId(userId))
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
         Community community = communityRepository.findAll().getFirst();
         community.setName(vo.getCommunityName());
         community.setDescription(vo.getCommunityDescription());
@@ -147,9 +133,6 @@ public class CommunityService {
     @Transactional
     public void updateCommunity(CreateCommunityVO vo, Long communityId) {
         String userId = (String) authenticationManager.get("sub");
-        User user = Optional.ofNullable(userRepository.findByUserId(userId))
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Community not found"));
 
