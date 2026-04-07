@@ -1,8 +1,6 @@
 package com.justjava.mycommunity.chat.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.justjava.mycommunity.community.Community;
-import com.justjava.mycommunity.community.CommunityGroup;
 import com.justjava.mycommunity.network.ChatGroup;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.userManagement.UserGroup;
@@ -62,19 +60,8 @@ public class User {
     @JoinColumn(name = "ORG_ID")
     private Organization organization;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_communities",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "community_id")
-    )
-    private Set<Community> communities = new HashSet<>();
-
     @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
     private Set<ChatGroup> chatGroup = new HashSet<>();
-
-    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
-    private Set<CommunityGroup> communityGroup = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "USER_USERGROUPS",

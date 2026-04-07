@@ -3,57 +3,39 @@ package com.justjava.mycommunity.community.mapper;
 import com.justjava.mycommunity.community.Community;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
-@Component
-@RequiredArgsConstructor
-public class CommunityMapper {
+@Mapper(componentModel = "spring")
+public interface CommunityMapper {
 
-    private final CommunityMembershipRepository communityMembershipRepository;
+    @Mapping(target = "isPrivate", source = "private")
+    @Mapping(target = "channelId", source = "channel.id")
+    @Mapping(target = "townHallId", source = "townHall.id")
+    @Mapping(target = "organizationId", source = "organization.id")
+    @Mapping(target = "adminUserId", ignore = true)
+    CommunityDTO toDto(Community community, @Context CommunityMembershipRepository communityMembershipRepository);
 
-    public CommunityDTO toDto(Community community) {
-        if (community == null) {
-            return null;
-        }
-
-        CommunityDTO dto = new CommunityDTO();
-        dto.setId(community.getId());
-        dto.setName(community.getName());
-        dto.setDescription(community.getDescription());
-        dto.setCommunityPrivacy(community.getCommunityPrivacy());
-        dto.setIsPrivate(community.isPrivate());
-        dto.setChannelId(community.getChannel() != null ? community.getChannel().getId() : null);
-        dto.setTownHallId(community.getTownHall() != null ? community.getTownHall().getId() : null);
-        dto.setOrganizationId(community.getOrganization() != null ? community.getOrganization().getId() : null);
-        dto.setAdminUserId(communityMembershipRepository.findFirstAdmin(community.getId()).orElse(null));
-        return dto;
-    }
-
-    public Community toEntity(CommunityDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-
-        Community community = new Community();
-        community.setId(dto.getId());
-        community.setName(dto.getName());
-        community.setDescription(dto.getDescription());
-        community.setCommunityPrivacy(dto.getCommunityPrivacy());
-        community.setPrivate(dto.getIsPrivate() != null ? dto.getIsPrivate() : false);
-        return community;
-    }
-
-    public void updateEntity(Community community, CommunityDTO dto) {
-        if (community == null || dto == null) {
-            return;
-        }
-
-        community.setName(dto.getName());
-        community.setDescription(dto.getDescription());
-        community.setCommunityPrivacy(dto.getCommunityPrivacy());
-        if (dto.getIsPrivate() != null) {
-            community.setPrivate(dto.getIsPrivate());
+    @AfterMapping
+    default void setAdminUserId(@MappingTarget CommunityDTO dto, Community community, @Context CommunityMembershipRepository communityMembershipRepository) {
+        if (community != null && community.getId() != null) {
+            dto.setAdminUserId(communityMembershipRepository.findFirstAdmin(community.getId()).orElse(null));
         }
     }
+
+    @Mapping(target = "private", source = "isPrivate", defaultValue = "false")
+    @Mapping(target = "channel", ignore = true)
+    @Mapping(target = "townHall", ignore = true)
+    @Mapping(target = "organization", ignore = true)
+    Community toEntity(CommunityDTO dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "private", source = "isPrivate")
+    @Mapping(target = "channel", ignore = true)
+    @Mapping(target = "townHall", ignore = true)
+    @Mapping(target = "organization", ignore = true)
+    void updateEntity(@MappingTarget Community community, CommunityDTO dto);
 }

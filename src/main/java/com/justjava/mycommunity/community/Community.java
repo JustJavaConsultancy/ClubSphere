@@ -3,7 +3,6 @@ package com.justjava.mycommunity.community;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.justjava.mycommunity.chat.entity.AuditableEntity;
-import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.organization.Channel;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.organization.TownHall;
@@ -14,12 +13,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +26,7 @@ import java.util.Set;
 
 @Getter
 @Setter
+@ToString(exclude = {"communityGroups", "organization", "channel", "townHall"})
 @Entity
 public class Community extends AuditableEntity {
 
@@ -54,14 +54,18 @@ public class Community extends AuditableEntity {
     private Organization organization;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "community",cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CommunityGroup> communityGroups;
+    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CommunityGroup> communityGroups = new HashSet<>();
 
+    public void addCommunityGroup(CommunityGroup communityGroup) {
+        communityGroups.add(communityGroup);
+        communityGroup.setCommunity(this);
+    }
 
-
-    // TODO: Replace with Membership entity for scalability and role support
-    @ManyToMany(mappedBy = "communities", fetch = FetchType.LAZY)
-    private Set<User> users = new HashSet<>();
+    public void removeCommunityGroup(CommunityGroup communityGroup) {
+        communityGroups.remove(communityGroup);
+        communityGroup.setCommunity(null);
+    }
 
     // Custom methods for isPrivate field
     public Boolean isPrivate() {

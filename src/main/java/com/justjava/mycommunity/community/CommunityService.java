@@ -60,7 +60,7 @@ public class CommunityService {
         community = communityRepository.save(community);
         linkUserToCommunity(user, community, Role.CREATOR);
 
-        return communityMapper.toDto(community);
+        return communityMapper.toDto(community,communityMembershipRepository);
     }
 
     private User resolveUser(String userEmail) {
@@ -96,7 +96,7 @@ public class CommunityService {
                 Long selectedCommunityId = Long.parseLong(selectedCommunityIdStr);
                 Community community = communityRepository.findById(selectedCommunityId)
                         .orElseThrow(() -> new EntityNotFoundException("Selected mycommunity not found"));
-                return communityMapper.toDto(community);
+                return communityMapper.toDto(community,communityMembershipRepository);
             } catch (NumberFormatException e) {
                 System.err.println("Invalid mycommunity ID format: " + selectedCommunityIdStr);
             }
@@ -108,13 +108,13 @@ public class CommunityService {
         }
 
         return communityMapper.toDto(Optional.ofNullable(communities.getFirst())
-                .orElseThrow(() -> new EntityNotFoundException("Community not found")));
+                .orElseThrow(() -> new EntityNotFoundException("Community not found")),communityMembershipRepository);
     }
 
     public CommunityDTO getCommunityById(Long id) {
         return communityRepository.findById(id)
-                .map(communityMapper::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+            .map(community -> communityMapper.toDto(community, communityMembershipRepository))
+            .orElseThrow(() -> new EntityNotFoundException("Community not found"));
     }
 
 
@@ -138,8 +138,11 @@ public class CommunityService {
         // Use a query to check membership instead of accessing lazy collection
         boolean isMember = false;
         if (!isAdmin) {
-            // Check if user is a member of this mycommunity using a direct query
-            isMember = communityRepository.existsByIdAndUsers_UserId(communityId, userId);
+            isMember = communityMembershipRepository.existsByUserIdAndCommunityIdAndStatus(
+                    userId,
+                    communityId,
+                    MembershipStatus.APPROVED
+            );
         }
 
         if (!isAdmin && !isMember) {
@@ -187,9 +190,9 @@ public class CommunityService {
 }
 
     public Object getAllCommunityUsers(Long communityId) {
-        Community community = communityRepository.findByIdWithUsers(communityId)
+        communityRepository.findById(communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
-        Set<User> users = community.getUsers();
+        List<User> users = userRepository.findByCommunityId(communityId);
         return mapUsersToDTO(users);
     }
 
@@ -329,14 +332,7 @@ public class CommunityService {
         Community community = communityRequest.getCommunity();
         User user = communityRequest.getUser();
 
-        // Add user to mycommunity and mycommunity to user (bidirectional many-to-many)
-
-        if (!user.getCommunities().contains(community)) {
-            approveMembership(user, community);
-            userRepository.save(user);
-            communityRepository.save(community);
-        }
-
+        approveMembership(user, community);
 
         // Remove the request after approval
         communityRequestRepository.delete(communityRequest);
@@ -770,21 +766,20 @@ public class CommunityService {
             } else {
                 // General meeting - get users who belong to at least one mycommunity
                 System.out.println("Getting participants for general meeting - users with at least one mycommunity");
-                List<User> allUsers = userRepository.findAll();
+                List<String> approvedUserIds = communityMembershipRepository.findApprovedUserIds();
+                if (approvedUserIds.isEmpty()) {
+                    return eligibleUsers;
+                }
 
-                for (User user : allUsers) {
-                    // Check if user belongs to at least one mycommunity
-                    if (user.getCommunities() != null && !user.getCommunities().isEmpty()) {
-                        UserDTO userDTO = new UserDTO();
-                        userDTO.setUserId(user.getUserId());
-                        userDTO.setEmail(user.getEmail());
-                        userDTO.setFirstName(user.getFirstName());
-                        userDTO.setLastName(user.getLastName());
-                        eligibleUsers.add(userDTO);
-                        System.out.println("User " + user.getEmail() + " is eligible for general meeting (belongs to " + user.getCommunities().size() + " communities)");
-                    } else {
-                        System.out.println("User " + user.getEmail() + " is NOT eligible for general meeting (belongs to no communities)");
-                    }
+                List<User> users = userRepository.findByUserIdIn(approvedUserIds);
+                for (User user : users) {
+                    UserDTO userDTO = new UserDTO();
+                    userDTO.setUserId(user.getUserId());
+                    userDTO.setEmail(user.getEmail());
+                    userDTO.setFirstName(user.getFirstName());
+                    userDTO.setLastName(user.getLastName());
+                    eligibleUsers.add(userDTO);
+                    System.out.println("User " + user.getEmail() + " is eligible for general meeting (approved membership found)");
                 }
 
                 System.out.println("Total eligible users for general meeting: " + eligibleUsers.size());

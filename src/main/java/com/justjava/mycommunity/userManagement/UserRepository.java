@@ -25,7 +25,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmail(String email);
 
-    @Query("SELECT u FROM User u JOIN u.communities c WHERE c.id = :communityId")
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE u.userId IN (
+            SELECT cm.userId
+            FROM CommunityMembership cm
+            WHERE cm.communityId = :communityId
+            AND cm.status = 'APPROVED'
+        )
+    """)
     List<User> findByCommunityId(@Param("communityId") Long communityId);
 
     List<User> findAllByUserIdNotIn(Collection<String> userIds);

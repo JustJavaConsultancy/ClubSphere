@@ -13,6 +13,7 @@ import com.justjava.mycommunity.chat.repository.ModuleRepository;
 import com.justjava.mycommunity.chat.repository.OrganizationRepository;
 import com.justjava.mycommunity.chat.repository.ParticipantRepository;
 import com.justjava.mycommunity.community.Community;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.module.Module;
 import com.justjava.mycommunity.network.ChatGroup;
 import com.justjava.mycommunity.organization.Organization;
@@ -50,6 +51,7 @@ public class EventService {
     private final PostService postService;
     private final AuthenticationManager authenticationManager;
     private final ModuleRepository moduleRepository;
+    private final CommunityMembershipRepository communityMembershipRepository;
 
     /**
      * Robust admin check that handles various failure scenarios
@@ -89,6 +91,10 @@ public class EventService {
             System.out.println("All admin checks failed, treating user as regular user");
             return false;
         }
+    }
+
+    private Set<Long> getApprovedCommunityIds(String userId) {
+        return new HashSet<>(communityMembershipRepository.findApprovedCommunityIdsByUserId(userId));
     }
 
     public Event createEvent(EventDTO dto) {
@@ -278,8 +284,7 @@ public class EventService {
                 throw new EntityNotFoundException("User does not exist");
             }
 
-            // Force initialization of communities collection
-            user.getCommunities().size();
+            Set<Long> approvedCommunityIds = getApprovedCommunityIds(userId);
 
             List<Event> events = new ArrayList<>();
 
@@ -291,8 +296,7 @@ public class EventService {
                         .toList();
 
                 // Check if user is member of this mycommunity or is admin
-                boolean isMemberOfCommunity = isUserAdmin || user.getCommunities().stream()
-                        .anyMatch(community -> community.getId().equals(selectedCommunityId));
+                boolean isMemberOfCommunity = isUserAdmin || approvedCommunityIds.contains(selectedCommunityId);
 
                 System.out.println("User is member of mycommunity " + selectedCommunityId + ": " + isMemberOfCommunity);
                 System.out.println("Found " + communityEvents.size() + " sessions in mycommunity " + selectedCommunityId);
@@ -317,12 +321,12 @@ public class EventService {
                     System.out.println("Admin: Added " + allCoachingSessions.size() + " sessions from all communities");
                 } else {
                     // Regular user sees only sessions from their communities
-                    for (var community : user.getCommunities()) {
-                        List<Event> communityEvents = eventRepository.findAllByCommunity_Id(community.getId()).stream()
+                    for (Long communityId : approvedCommunityIds) {
+                        List<Event> communityEvents = eventRepository.findAllByCommunity_Id(communityId).stream()
                                 .filter(event -> event.getModule() != null) // Only coaching sessions
                                 .toList();
                         events.addAll(communityEvents);
-                        System.out.println("Added " + communityEvents.size() + " sessions from mycommunity " + community.getName());
+                        System.out.println("Added " + communityEvents.size() + " sessions from mycommunity ID " + communityId);
                     }
 
                     // Also include general sessions (not tied to any specific mycommunity)
@@ -367,8 +371,7 @@ public class EventService {
                 throw new EntityNotFoundException("User does not exist");
             }
 
-            // Force initialization of communities collection
-            user.getCommunities().size();
+            Set<Long> approvedCommunityIds = getApprovedCommunityIds(userId);
 
             List<Event> events = new ArrayList<>();
 
@@ -380,8 +383,7 @@ public class EventService {
                         .toList();
 
                 // Check if user is member of this mycommunity or is admin
-                boolean isMemberOfCommunity = isUserAdmin || user.getCommunities().stream()
-                        .anyMatch(community -> community.getId().equals(selectedCommunityId));
+                boolean isMemberOfCommunity = isUserAdmin || approvedCommunityIds.contains(selectedCommunityId);
 
                 System.out.println("User is member of mycommunity " + selectedCommunityId + ": " + isMemberOfCommunity);
                 System.out.println("Found " + communityEvents.size() + " meetings in mycommunity " + selectedCommunityId);
@@ -406,12 +408,12 @@ public class EventService {
                     System.out.println("Admin: Added " + allMeetings.size() + " meetings from all communities");
                 } else {
                     // Regular user sees only meetings from their communities
-                    for (var community : user.getCommunities()) {
-                        List<Event> communityEvents = eventRepository.findAllByCommunity_Id(community.getId()).stream()
+                    for (Long communityId : approvedCommunityIds) {
+                        List<Event> communityEvents = eventRepository.findAllByCommunity_Id(communityId).stream()
                                 .filter(event -> event.getModule() == null) // Only meetings
                                 .toList();
                         events.addAll(communityEvents);
-                        System.out.println("Added " + communityEvents.size() + " meetings from mycommunity " + community.getName());
+                        System.out.println("Added " + communityEvents.size() + " meetings from mycommunity ID " + communityId);
                     }
 
                     // Also include general meetings (not tied to any specific mycommunity)

@@ -1,11 +1,15 @@
 package com.justjava.mycommunity.mobile;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.SessionDTO;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.posts.PostService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,330 +21,233 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/mobile")
 public class MobileHomeController {
+
+    private static final Logger log = LoggerFactory.getLogger(MobileHomeController.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
+    private static final ZoneId APP_ZONE = ZoneId.of("Africa/Lagos");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final String UPCOMING = "Upcoming";
+    private static final long READY_WINDOW_MINUTES = 120L;
+    private static final long DEFAULT_DURATION_MINUTES = 60L;
 
     private final AuthenticationManager authenticationManager;
     private final PostService postService;
     private final EventService eventService;
 
     public MobileHomeController(AuthenticationManager authenticationManager,
-                                PostService postService, EventService eventService) {
+                                PostService postService,
+                                EventService eventService) {
         this.authenticationManager = authenticationManager;
         this.postService = postService;
         this.eventService = eventService;
     }
 
+    /**
+     * Renders the mobile home view for a selected community context.
+     * Preserves all existing Thymeleaf model keys and session keys for compatibility.
+     */
     @GetMapping("/home")
     public String home(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession();
         String currentUserId = (String) authenticationManager.get("sub");
         boolean isAdmin = authenticationManager.isAdmin();
+        boolean isSupportAdmin = authenticationManager.isSupportAdmin();
 
-        // Check if user has selected a mycommunity, if not redirect to organizations
-        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        Long selectedCommunityId = (Long) session.getAttribute("selectedCommunityId");
         if (selectedCommunityId == null) {
             return "redirect:/mobile/organizations";
         }
 
-        // Get user events (where user is participant)
-        List<SessionDTO> userEvents = eventService.getUserCoachingSessions(currentUserId);
-        System.out.println("Total user events retrieved: " + userEvents.size());
-
-        // If admin, also get events they created
-        List<SessionDTO> allEvents = userEvents;
-        if (isAdmin) {
-            Object sessionsObj = eventService.getSessions();
-            List<SessionDTO> allSessions;
-            if (sessionsObj instanceof List) {
-                allSessions = (List<SessionDTO>) sessionsObj;
-            } else {
-                allSessions = new java.util.ArrayList<>();
-            }
-
-            List<SessionDTO> adminCreatedEvents = allSessions.stream()
-                    .filter(session -> !userEvents.stream()
-                            .anyMatch(userEvent -> userEvent.getId().equals(session.getId())))
-                    .toList();
-
-            allEvents = Stream.concat(userEvents.stream(), adminCreatedEvents.stream()).toList();
-            System.out.println("Admin created events added: " + adminCreatedEvents.size());
-        }
-
-        // Debug: Print all events with their statuses
-        allEvents.forEach(event -> {
-            System.out.println("Event: " + event.getModuleName() + ", Status: " + event.getStatus() + ", Date: " + event.getStartDate());
-        });
-
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        List<SessionDTO> upcomingEvents = allEvents.stream()
-                .filter(event -> {
-                    String status = event.getStatus();
-                    boolean isUpcoming = "Upcoming".equalsIgnoreCase(status);
-                    System.out.println("Event " + event.getModuleName() + " status: " + status + ", isUpcoming: " + isUpcoming);
-                    return isUpcoming;
-                })
-                .sorted((e1, e2) -> {
-                    try {
-                        // First, compare by date
-                        LocalDate date1 = LocalDate.parse(e1.getStartDate(), dateFormatter);
-                        LocalDate date2 = LocalDate.parse(e2.getStartDate(), dateFormatter);
-
-                        // Compare dates first
-                        int dateComparison = date2.compareTo(date1); // Descending order
-                        if (dateComparison != 0) {
-                            return dateComparison;
-                        }
-
-                        // If dates are equal, compare by time
-                        String time1Str = e1.getStartTime();
-                        String time2Str = e2.getStartTime();
-
-                        if (time1Str != null && time2Str != null &&
-                                !time1Str.trim().isEmpty() && !time2Str.trim().isEmpty()) {
-                            try {
-                                LocalTime time1 = LocalTime.parse(time1Str.trim());
-                                LocalTime time2 = LocalTime.parse(time2Str.trim());
-                                int timeComparison = time2.compareTo(time1); // Descending order
-                                if (timeComparison != 0) {
-                                    return timeComparison;
-                                }
-                            } catch (Exception timeEx) {
-                                System.err.println("Error parsing times for events " + e1.getId() + " and " + e2.getId());
-                            }
-                        }
-
-                        // If dates and times are equal, sort by ID descending (newest created first)
-                        return Long.compare(e2.getId(), e1.getId());
-
-                    } catch (Exception e) {
-                        System.err.println("Error comparing events " + e1.getId() + " and " + e2.getId() + ": " + e.getMessage());
-                        // Fallback to ID comparison
-                        return Long.compare(e2.getId(), e1.getId());
-                    }
-                })
-                .toList();
-
-        // Get user's meetings (where user is participant)
-        List<SessionDTO> userMeetings = eventService.getUserMeetings(currentUserId);
-        System.out.println("Total user meetings retrieved: " + userMeetings.size());
-
-        // If admin, also get meetings they created
-        List<SessionDTO> allMeetings = userMeetings;
-        if (isAdmin) {
-            Object meetingsObj = eventService.getMeetings();
-            List<SessionDTO> allMeetingsList;
-            if (meetingsObj instanceof List) {
-                allMeetingsList = (List<SessionDTO>) meetingsObj;
-            } else {
-                allMeetingsList = new java.util.ArrayList<>();
-            }
-
-            List<SessionDTO> adminCreatedMeetings = allMeetingsList.stream()
-                    .filter(meeting -> !userMeetings.stream()
-                            .anyMatch(userMeeting -> userMeeting.getId().equals(meeting.getId())))
-                    .toList();
-
-            allMeetings = Stream.concat(userMeetings.stream(), adminCreatedMeetings.stream()).toList();
-            System.out.println("Admin created meetings added: " + adminCreatedMeetings.size());
-        }
-
-        // Debug: Print all meetings with their statuses
-        allMeetings.forEach(meeting -> {
-            System.out.println("Meeting: " + meeting.getModuleName() + ", Status: " + meeting.getStatus() + ", Date: " + meeting.getStartDate());
-        });
-
-        List<SessionDTO> upcomingMeetings = allMeetings.stream()
-                .filter(meeting -> {
-                    String status = meeting.getStatus();
-                    boolean isUpcoming = "Upcoming".equalsIgnoreCase(status);
-                    System.out.println("Meeting " + meeting.getModuleName() + " status: " + status + ", isUpcoming: " + isUpcoming);
-                    return isUpcoming;
-                })
-                .sorted((m1, m2) -> {
-                    try {
-                        // First, compare by date
-                        LocalDate date1 = LocalDate.parse(m1.getStartDate(), dateFormatter);
-                        LocalDate date2 = LocalDate.parse(m2.getStartDate(), dateFormatter);
-
-                        // Compare dates first
-                        int dateComparison = date2.compareTo(date1); // Descending order
-                        if (dateComparison != 0) {
-                            return dateComparison;
-                        }
-
-                        // If dates and times are equal, compare by time
-                        String time1Str = m1.getStartTime();
-                        String time2Str = m2.getStartTime();
-
-                        if (time1Str != null && time2Str != null &&
-                                !time1Str.trim().isEmpty() && !time2Str.trim().isEmpty()) {
-                            try {
-                                LocalTime time1 = LocalTime.parse(time1Str.trim());
-                                LocalTime time2 = LocalTime.parse(time2Str.trim());
-                                int timeComparison = time2.compareTo(time1); // Descending order
-                                if (timeComparison != 0) {
-                                    return timeComparison;
-                                }
-                            } catch (Exception timeEx) {
-                                System.err.println("Error parsing times for meetings " + m1.getId() + " and " + m2.getId());
-                            }
-                        }
-
-                        // If dates and times are equal, sort by ID descending (newest created first)
-                        return Long.compare(m2.getId(), m1.getId());
-
-                    } catch (Exception e) {
-                        System.err.println("Error comparing meetings " + m1.getId() + " and " + m2.getId() + ": " + e.getMessage());
-                        // Fallback to ID comparison
-                        return Long.compare(m2.getId(), m1.getId());
-                    }
-                })
-                .toList();
-
-        System.out.println("Filtered upcoming events: " + upcomingEvents.size());
-        System.out.println("Filtered upcoming meetings: " + upcomingMeetings.size());
-
-        ObjectMapper mapper = new ObjectMapper();
-        ZoneId zoneId = ZoneId.of("Africa/Lagos");
-        ZonedDateTime currentTime = ZonedDateTime.now(zoneId);
-
-        // Format to a readable string
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String formattedCurrentTime = currentTime.format(formatter);
-
-        LocalTime localTimeNow = LocalTime.parse(formattedCurrentTime, formatter);
-
-        String currentDate = currentTime.format(dateFormatter);
-        LocalDate localDateNow = LocalDate.parse(currentDate, dateFormatter);
-
-        List<Map<String, Object>> newUpcomingEvents = upcomingEvents.stream()
-                .map(event -> {
-                    Map<String, Object> newEvent = mapper.convertValue(event, Map.class);
-                    System.out.println("\nProcessing event: " + event.getModuleName() + " with start time: " + event.getStartTime());
-                    try {
-                        if (event.getStartTime() != null && !event.getStartTime().equals("null")) {
-                            LocalTime eventStartTime = LocalTime.parse(event.getStartTime(), formatter);
-                            Duration diff = Duration.between(localTimeNow, eventStartTime);
-                            long minutes = Math.abs(diff.toMinutes());
-                            LocalTime eventEndTime = eventStartTime.plusMinutes(event.getDuration() != null ? event.getDuration() : 60);
-
-                            LocalDate eventStartDate = LocalDate.parse(event.getStartDate(), dateFormatter);
-
-                            System.out.println("Event " + event.getModuleName() + " - Start: " + eventStartTime + ", End: " + eventEndTime + ", Minutes diff: " + minutes);
-
-                            // More lenient ready condition - allow joining if it's today or within 2 hours
-                            if(eventStartDate.isEqual(localDateNow) || eventStartDate.isAfter(localDateNow.minusDays(1))){
-                                if(minutes < 120 || eventStartDate.isAfter(localDateNow)){
-                                    newEvent.put("isReady", true);
-                                    System.out.println("Event " + event.getModuleName() + " is READY for joining");
-                                } else {
-                                    newEvent.put("isReady", false);
-                                    System.out.println("Event " + event.getModuleName() + " is NOT ready - too early");
-                                }
-                            } else {
-                                newEvent.put("isReady", false);
-                                System.out.println("Event " + event.getModuleName() + " is NOT ready - wrong date");
-                            }
-
-                            newEvent.put("eventEndTime", eventEndTime);
-                            newEvent.put("startTime", eventStartTime);
-                        } else {
-                            System.out.println("Event " + event.getModuleName() + " has invalid start time");
-                            newEvent.put("isReady", true); // Default to ready if time is invalid
-                            newEvent.put("startTime", "TBD");
-                            newEvent.put("eventEndTime", "TBD");
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error processing event time for " + event.getModuleName() + ": " + e.getMessage());
-                        newEvent.put("isReady", true); // Default to ready if there's an error
-                        newEvent.put("startTime", "TBD");
-                        newEvent.put("eventEndTime", "TBD");
-                    }
-                    return newEvent;
-                }).toList();
-
-        // Process upcoming meetings similar to events
-        List<Map<String, Object>> newUpcomingMeetings = upcomingMeetings.stream()
-                .map(meeting -> {
-                    Map<String, Object> newMeeting = mapper.convertValue(meeting, Map.class);
-                    System.out.println("\nProcessing meeting: " + meeting.getModuleName() + " with start time: " + meeting.getStartTime());
-                    try {
-                        if (meeting.getStartTime() != null && !meeting.getStartTime().equals("null")) {
-                            LocalTime meetingStartTime = LocalTime.parse(meeting.getStartTime(), formatter);
-                            Duration diff = Duration.between(localTimeNow, meetingStartTime);
-                            long minutes = Math.abs(diff.toMinutes());
-                            LocalTime meetingEndTime = meetingStartTime.plusMinutes(meeting.getDuration() != null ? meeting.getDuration() : 60);
-
-                            LocalDate meetingStartDate = LocalDate.parse(meeting.getStartDate(), dateFormatter);
-
-                            System.out.println("Meeting " + meeting.getModuleName() + " - Start: " + meetingStartTime + ", End: " + meetingEndTime + ", Minutes diff: " + minutes);
-
-                            // More lenient ready condition - allow joining if it's today or within 2 hours
-                            if(meetingStartDate.isEqual(localDateNow) || meetingStartDate.isAfter(localDateNow.minusDays(1))){
-                                if(minutes < 120 || meetingStartDate.isAfter(localDateNow)){
-                                    newMeeting.put("isReady", true);
-                                    System.out.println("Meeting " + meeting.getModuleName() + " is READY for joining");
-                                } else {
-                                    newMeeting.put("isReady", false);
-                                    System.out.println("Meeting " + meeting.getModuleName() + " is NOT ready - too early");
-                                }
-                            } else {
-                                newMeeting.put("isReady", false);
-                                System.out.println("Meeting " + meeting.getModuleName() + " is NOT ready - wrong date");
-                            }
-
-                            newMeeting.put("eventEndTime", meetingEndTime);
-                            newMeeting.put("startTime", meetingStartTime);
-                        } else {
-                            System.out.println("Meeting " + meeting.getModuleName() + " has invalid start time");
-                            newMeeting.put("isReady", true); // Default to ready if time is invalid
-                            newMeeting.put("startTime", "TBD");
-                            newMeeting.put("eventEndTime", "TBD");
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error processing meeting time for " + meeting.getModuleName() + ": " + e.getMessage());
-                        newMeeting.put("isReady", true); // Default to ready if there's an error
-                        newMeeting.put("startTime", "TBD");
-                        newMeeting.put("eventEndTime", "TBD");
-                    }
-                    return newMeeting;
-                }).toList();
-
-        // Get mycommunity-specific posts
-        model.addAttribute("allPosts", postService.getPostsFromUserCommunities(currentUserId, selectedCommunityId));
-
-        // Add selected mycommunity information to model
-        String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
-        model.addAttribute("selectedCommunityId", selectedCommunityId);
-        model.addAttribute("selectedCommunityName", selectedCommunityName);
-
-        if(authenticationManager.isSupportAdmin()){
+        if (isSupportAdmin) {
             return "redirect:/support/dashboard";
         }
 
-        request.getSession(true).setAttribute("isAdmin", authenticationManager.isAdmin());
-        request.getSession(true).setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
-        request.getSession().setAttribute("userId", authenticationManager.get("sub"));
+        List<SessionDTO> allEvents = mergeUserAndAdminSessions(
+                eventService.getUserCoachingSessions(currentUserId),
+                isAdmin ? eventService.getSessions() : List.of()
+        );
+        List<SessionDTO> allMeetings = mergeUserAndAdminSessions(
+                eventService.getUserMeetings(currentUserId),
+                isAdmin ? eventService.getMeetings() : List.of()
+        );
 
-        // Add attributes to the model
-        model.addAttribute("userId",authenticationManager.get("sub"));
+        List<SessionDTO> upcomingEvents = filterAndSortUpcoming(allEvents);
+        List<SessionDTO> upcomingMeetings = filterAndSortUpcoming(allMeetings);
+
+        ZonedDateTime currentTime = ZonedDateTime.now(APP_ZONE);
+        LocalDate currentDate = currentTime.toLocalDate();
+        LocalTime currentLocalTime = LocalTime.parse(currentTime.format(TIME_FORMATTER), TIME_FORMATTER);
+
+        List<Map<String, Object>> processedUpcomingEvents =
+                toScheduleCards(upcomingEvents, currentDate, currentLocalTime);
+        List<Map<String, Object>> processedUpcomingMeetings =
+                toScheduleCards(upcomingMeetings, currentDate, currentLocalTime);
+
+        String selectedCommunityName = (String) session.getAttribute("selectedCommunityName");
+
+        model.addAttribute("allPosts", postService.getPostsFromUserCommunities(currentUserId, selectedCommunityId));
+        model.addAttribute("selectedCommunityId", selectedCommunityId);
+        model.addAttribute("selectedCommunityName", selectedCommunityName);
+
+        setSessionAttributes(session, currentUserId, isAdmin, isSupportAdmin);
+
+        model.addAttribute("userId", currentUserId);
         model.addAttribute("usersName", authenticationManager.get("name"));
         model.addAttribute("upcomingEventNum", upcomingEvents.size());
-        model.addAttribute("upcomingEvents", newUpcomingEvents);
+        model.addAttribute("upcomingEvents", processedUpcomingEvents);
         model.addAttribute("upcomingMeetingNum", upcomingMeetings.size());
-        model.addAttribute("upcomingMeetings", newUpcomingMeetings);
+        model.addAttribute("upcomingMeetings", processedUpcomingMeetings);
         model.addAttribute("currentTime", currentTime);
-        model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
-        model.addAttribute("isAdmin",authenticationManager.isAdmin());
+        model.addAttribute("isSupportAdmin", isSupportAdmin);
+        model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("currentPath", "/home");
-        request.getSession(true).setAttribute("loggedInUser", authenticationManager.get("name"));
 
         return "mobile-home";
+    }
+
+    private void setSessionAttributes(HttpSession session, String currentUserId, boolean isAdmin, boolean isSupportAdmin) {
+        session.setAttribute("isAdmin", isAdmin);
+        session.setAttribute("isSupportAdmin", isSupportAdmin);
+        session.setAttribute("userId", currentUserId);
+        session.setAttribute("loggedInUser", authenticationManager.get("name"));
+    }
+
+    private List<SessionDTO> mergeUserAndAdminSessions(List<SessionDTO> userSessions, List<SessionDTO> adminSessions) {
+        if (adminSessions == null || adminSessions.isEmpty()) {
+            return userSessions != null ? userSessions : List.of();
+        }
+
+        Map<Long, SessionDTO> mergedById = new LinkedHashMap<>();
+        if (userSessions != null) {
+            for (SessionDTO session : userSessions) {
+                if (session != null && session.getId() != null) {
+                    mergedById.put(session.getId(), session);
+                }
+            }
+        }
+        for (SessionDTO session : adminSessions) {
+            if (session != null && session.getId() != null) {
+                mergedById.putIfAbsent(session.getId(), session);
+            }
+        }
+        return new ArrayList<>(mergedById.values());
+    }
+
+    private List<SessionDTO> filterAndSortUpcoming(List<SessionDTO> sessions) {
+        if (sessions == null || sessions.isEmpty()) {
+            return List.of();
+        }
+
+        return sessions.stream()
+                .filter(Objects::nonNull)
+                .filter(session -> UPCOMING.equalsIgnoreCase(session.getStatus()))
+                .sorted(this::compareByDateTimeThenIdDesc)
+                .toList();
+    }
+
+    private int compareByDateTimeThenIdDesc(SessionDTO left, SessionDTO right) {
+        try {
+            LocalDate leftDate = safeParseDate(left.getStartDate());
+            LocalDate rightDate = safeParseDate(right.getStartDate());
+            int dateComparison = rightDate.compareTo(leftDate);
+            if (dateComparison != 0) {
+                return dateComparison;
+            }
+
+            LocalTime leftTime = safeParseTime(left.getStartTime());
+            LocalTime rightTime = safeParseTime(right.getStartTime());
+            if (leftTime != null && rightTime != null) {
+                int timeComparison = rightTime.compareTo(leftTime);
+                if (timeComparison != 0) {
+                    return timeComparison;
+                }
+            }
+
+            Long leftId = left.getId() == null ? 0L : left.getId();
+            Long rightId = right.getId() == null ? 0L : right.getId();
+            return Comparator.<Long>naturalOrder().reversed().compare(leftId, rightId);
+        } catch (Exception ex) {
+            log.warn("Failed sorting sessions {} and {}: {}", left.getId(), right.getId(), ex.getMessage());
+            Long leftId = left.getId() == null ? 0L : left.getId();
+            Long rightId = right.getId() == null ? 0L : right.getId();
+            return Comparator.<Long>naturalOrder().reversed().compare(leftId, rightId);
+        }
+    }
+
+    private List<Map<String, Object>> toScheduleCards(List<SessionDTO> sessions, LocalDate currentDate, LocalTime currentLocalTime) {
+        if (sessions == null || sessions.isEmpty()) {
+            return List.of();
+        }
+
+        return sessions.stream()
+                .map(session -> toScheduleCard(session, currentDate, currentLocalTime))
+                .toList();
+    }
+
+    private Map<String, Object> toScheduleCard(SessionDTO session, LocalDate currentDate, LocalTime currentLocalTime) {
+        Map<String, Object> card = OBJECT_MAPPER.convertValue(session, MAP_TYPE);
+        try {
+            LocalTime startTime = safeParseTime(session.getStartTime());
+            LocalDate startDate = safeParseDate(session.getStartDate());
+            if (startTime == null || startDate == null) {
+                card.put("isReady", true);
+                card.put("startTime", "TBD");
+                card.put("eventEndTime", "TBD");
+                return card;
+            }
+
+            long minutes = Math.abs(Duration.between(currentLocalTime, startTime).toMinutes());
+            long duration = session.getDuration() != null ? session.getDuration() : DEFAULT_DURATION_MINUTES;
+            LocalTime endTime = startTime.plusMinutes(duration);
+
+            boolean isReady = isSessionReady(startDate, currentDate, minutes);
+            card.put("isReady", isReady);
+            card.put("startTime", startTime);
+            card.put("eventEndTime", endTime);
+            return card;
+        } catch (Exception ex) {
+            log.warn("Failed to map schedule card for session {}: {}", session.getId(), ex.getMessage());
+            card.put("isReady", true);
+            card.put("startTime", "TBD");
+            card.put("eventEndTime", "TBD");
+            return card;
+        }
+    }
+
+    /**
+     * Keeps existing readiness semantics for backward compatibility with the current UI flow.
+     */
+    private boolean isSessionReady(LocalDate sessionDate, LocalDate currentDate, long minutesDifference) {
+        boolean isRelevantDate = sessionDate.isEqual(currentDate) || sessionDate.isAfter(currentDate.minusDays(1));
+        if (!isRelevantDate) {
+            return false;
+        }
+        return minutesDifference < READY_WINDOW_MINUTES || sessionDate.isAfter(currentDate);
+    }
+
+    private LocalDate safeParseDate(String value) {
+        if (value == null || value.trim().isEmpty() || "null".equalsIgnoreCase(value.trim())) {
+            return null;
+        }
+        return LocalDate.parse(value.trim(), DATE_FORMATTER);
+    }
+
+    private LocalTime safeParseTime(String value) {
+        if (value == null || value.trim().isEmpty() || "null".equalsIgnoreCase(value.trim())) {
+            return null;
+        }
+        return LocalTime.parse(value.trim(), TIME_FORMATTER);
     }
 }

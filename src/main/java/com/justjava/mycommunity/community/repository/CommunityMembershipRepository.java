@@ -36,6 +36,23 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
     """)
     List<String> findAdminsByCommunityId(Long communityId);
 
+    @Query("""
+        SELECT DISTINCT cm.communityId
+        FROM CommunityMembership cm
+        WHERE cm.userId = :userId
+        AND cm.status = 'APPROVED'
+    """)
+    List<Long> findApprovedCommunityIdsByUserId(String userId);
+
+    @Query("""
+        SELECT DISTINCT cm.userId
+        FROM CommunityMembership cm
+        WHERE cm.status = 'APPROVED'
+    """)
+    List<String> findApprovedUserIds();
+
+    boolean existsByUserIdAndStatus(String userId, MembershipStatus status);
+
     default Optional<String> findFirstAdmin(Long communityId) {
         List<String> admins = findAdminsByCommunityId(communityId);
         return admins.isEmpty() ? Optional.empty() : Optional.of(admins.get(0));

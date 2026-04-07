@@ -6,7 +6,9 @@ import com.justjava.mycommunity.chat.dto.PostDTO;
 import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.chat.model.PostMessage;
 import com.justjava.mycommunity.chat.repository.PostRepository;
+import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import com.justjava.mycommunity.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,7 +21,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.justjava.mycommunity.util.MappingUtils.mapPosts;
 
@@ -32,6 +36,11 @@ public class PostService {
     private final SimpMessagingTemplate messagingTemplate;
     private final CommunityService communityService;
     private final AuthenticationManager authenticationManager;
+    private final CommunityMembershipRepository communityMembershipRepository;
+
+    private Set<Long> getApprovedCommunityIds(String userId) {
+        return new HashSet<>(communityMembershipRepository.findApprovedCommunityIdsByUserId(userId));
+    }
 
     /**
      * Robust admin check that handles various failure scenarios
@@ -107,11 +116,10 @@ public class PostService {
                 throw new EntityNotFoundException("User does not exist with userId: " + dto.getUserId());
             }
 
-            // Force initialization of communities collection within transaction
-            user.getCommunities().size(); // This will trigger lazy loading within transaction
+            Set<Long> approvedCommunityIds = getApprovedCommunityIds(dto.getUserId());
 
             System.out.println("Found user: " + user.getFullName() + " with communities: " +
-                    (user.getCommunities() != null ? user.getCommunities().size() : "null"));
+                    approvedCommunityIds.size());
 
             // Check if user is admin using robust method
             boolean isUserAdmin = isUserAdmin(dto.getUserId());
@@ -161,8 +169,8 @@ public class PostService {
                     post.setPostLevelId(dto.getPostLevelId());
                 } else {
                     // Use user's first mycommunity as fallback
-                    if (user.getCommunities() != null && !user.getCommunities().isEmpty()) {
-                        Long firstCommunityId = user.getCommunities().iterator().next().getId();
+                    if (!approvedCommunityIds.isEmpty()) {
+                        Long firstCommunityId = approvedCommunityIds.iterator().next();
                         post.setPostLevelId(firstCommunityId);
                         System.out.println("Using user's first mycommunity: " + firstCommunityId);
                     } else if (!isUserAdmin) {
@@ -277,8 +285,7 @@ public class PostService {
                 throw new EntityNotFoundException("User does not exist");
             }
 
-            // Force initialization of communities collection
-            user.getCommunities().size();
+            Set<Long> approvedCommunityIds = getApprovedCommunityIds(userId);
 
             List<Post> posts = new ArrayList<>();
 
@@ -289,8 +296,7 @@ public class PostService {
                         PostLevel.COMMUNITY, selectedCommunityId);
 
                 // Check if user is member of this mycommunity or is admin
-                boolean isMemberOfCommunity = isUserAdmin || user.getCommunities().stream()
-                        .anyMatch(community -> community.getId().equals(selectedCommunityId));
+                boolean isMemberOfCommunity = isUserAdmin || approvedCommunityIds.contains(selectedCommunityId);
 
                 System.out.println("User is member of mycommunity " + selectedCommunityId + ": " + isMemberOfCommunity);
                 System.out.println("Found " + communityPosts.size() + " posts in mycommunity " + selectedCommunityId);
@@ -329,9 +335,9 @@ public class PostService {
                     System.out.println("Admin: Added " + posts.size() + " posts from all communities and general posts");
                 } else {
                     // Regular user sees only posts from their communities
-                    for (var community : user.getCommunities()) {
+                    for (Long communityId : approvedCommunityIds) {
                         List<Post> communityPosts = postRepository.findAllByPostLevelAndPostLevelIdOrderByDateCreatedDesc(
-                                PostLevel.COMMUNITY, community.getId());
+                                PostLevel.COMMUNITY, communityId);
 
                         // Add all posts from user's communities (both public and private)
                         for (Post post : communityPosts) {
@@ -432,9 +438,6 @@ public class PostService {
                 return false;
             }
 
-            // Force initialization of communities collection
-            user.getCommunities().size();
-
             // Admin check using robust method
             if (isUserAdmin(userId)) {
                 System.out.println("User " + userId + " is admin - can post");
@@ -442,18 +445,13 @@ public class PostService {
             }
 
             // Check if user belongs to at least one mycommunity
-            boolean hasCommunities = user.getCommunities() != null && !user.getCommunities().isEmpty();
+            boolean hasCommunities = communityMembershipRepository.existsByUserIdAndStatus(
+                    userId,
+                    MembershipStatus.APPROVED
+            );
 
             System.out.println("User " + userId + " communities check:");
-            System.out.println("- Communities object: " + user.getCommunities());
-            System.out.println("- Communities size: " + (user.getCommunities() != null ? user.getCommunities().size() : "null"));
             System.out.println("- Can post: " + hasCommunities);
-
-            if (user.getCommunities() != null) {
-                user.getCommunities().forEach(community ->
-                        System.out.println("- Member of mycommunity: " + community.getName() + " (ID: " + community.getId() + ")")
-                );
-            }
 
             return hasCommunities;
         } catch (Exception e) {
@@ -480,21 +478,14 @@ public class PostService {
                 throw new EntityNotFoundException("User does not exist");
             }
 
-            // Force initialization of communities collection
-            user.getCommunities().size();
-
             // Check if user is member of the specific mycommunity
-            boolean isMember = user.getCommunities().stream()
-                    .anyMatch(community -> community.getId().equals(communityId));
+            boolean isMember = communityMembershipRepository.existsByUserIdAndCommunityIdAndStatus(
+                    userId,
+                    communityId,
+                    MembershipStatus.APPROVED
+            );
 
             System.out.println("User " + userId + " is member of mycommunity " + communityId + ": " + isMember);
-
-            if (user.getCommunities() != null) {
-                System.out.println("User communities:");
-                user.getCommunities().forEach(community ->
-                        System.out.println("- Community: " + community.getName() + " (ID: " + community.getId() + ")")
-                );
-            }
 
             return isMember;
         } catch (Exception e) {
