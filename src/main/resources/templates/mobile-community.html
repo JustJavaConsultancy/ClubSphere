@@ -2337,6 +2337,90 @@
                 }
             }
         });
+
+        // ── Mobile Assign Admin Logic ──
+        let _mobileAssignUserId = null;
+        let _mobileAssignCommunityId = null;
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.mobile-make-admin-btn');
+            if (!btn) return;
+            const userId   = btn.getAttribute('data-user-id');
+            const fullName = btn.getAttribute('data-full-name');
+            const email    = btn.getAttribute('data-email');
+            const initials = btn.getAttribute('data-initials');
+            openMobileAssignAdminModal(userId, fullName, email, initials);
+        });
+
+        function openMobileAssignAdminModal(userId, fullName, email, initials) {
+            _mobileAssignUserId      = userId;
+            _mobileAssignCommunityId = document.getElementById('mobileCommunityIdInput')?.value || '';
+            document.getElementById('mobileAdminModalAvatar').textContent = initials || '?';
+            document.getElementById('mobileAdminModalName').textContent   = (fullName || 'Unknown').trim();
+            document.getElementById('mobileAdminModalEmail').textContent  = email || '';
+            const btn = document.getElementById('mobileConfirmAssignAdminBtn');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            document.getElementById('mobileAssignAdminModal').classList.add('show');
+        }
+
+        function closeMobileAssignAdminModal() {
+            document.getElementById('mobileAssignAdminModal').classList.remove('show');
+            _mobileAssignUserId      = null;
+            _mobileAssignCommunityId = null;
+        }
+
+        function submitMobileAssignAdmin() {
+            if (!_mobileAssignUserId || !_mobileAssignCommunityId) return;
+            const btn = document.getElementById('mobileConfirmAssignAdminBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            fetch('/mobile/my-community/assignAdmin/' + _mobileAssignUserId + '/' + _mobileAssignCommunityId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Status ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                closeMobileAssignAdminModal();
+                showMobileToast('Admin role assigned successfully!', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            })
+            .catch(err => {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                showMobileToast('Failed to assign admin role.', 'error');
+                console.error('Assign admin error:', err);
+            });
+        }
+
+        // Close modal on backdrop click
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'mobileAssignAdminModal') closeMobileAssignAdminModal();
+        });
+
+        // ── Mobile Member Search Filter ──
+        function filterMobileMembers() {
+            const term = (document.getElementById('mobileMemberSearch').value || '').toLowerCase();
+            const rows = document.querySelectorAll('#mobileMembersList .mobile-member-row');
+            rows.forEach(row => {
+                const name  = (row.getAttribute('data-name')  || '').toLowerCase();
+                const email = (row.getAttribute('data-email') || '').toLowerCase();
+                row.style.display = (!term || name.includes(term) || email.includes(term)) ? '' : 'none';
+            });
+        }
+
+        // ── Toast Notification ──
+        function showMobileToast(message, type) {
+            const toast = document.getElementById('mobileToast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.className = 'mobile-toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
     </script>
 </div>
 </body>
