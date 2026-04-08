@@ -114,6 +114,10 @@ public class MobileHomeController {
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("currentPath", "/home");
 
+        // Check if user can post (community-aware: only admin/creator of this community)
+        boolean canUserPost = postService.canUserPostToCommunity(currentUserId, selectedCommunityId);
+        model.addAttribute("canUserPost", canUserPost);
+
         return "mobile-home";
     }
 

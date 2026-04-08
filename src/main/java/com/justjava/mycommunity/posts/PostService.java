@@ -438,22 +438,19 @@ public class PostService {
                 return false;
             }
 
-            // Admin check using robust method
+            // Global admin check using robust method
             if (isUserAdmin(userId)) {
-                System.out.println("User " + userId + " is admin - can post");
+                System.out.println("User " + userId + " is global admin - can post");
                 return true;
             }
 
-            // Check if user belongs to at least one mycommunity
-            boolean hasCommunities = communityMembershipRepository.existsByUserIdAndStatus(
-                    userId,
-                    MembershipStatus.APPROVED
-            );
+            // Check if user has ADMIN or CREATOR role in at least one community
+            boolean isCommunityAdmin = communityMembershipRepository.isUserAdminOfAnyCommunity(userId);
 
-            System.out.println("User " + userId + " communities check:");
-            System.out.println("- Can post: " + hasCommunities);
+            System.out.println("User " + userId + " community admin check:");
+            System.out.println("- Is community admin/creator: " + isCommunityAdmin);
 
-            return hasCommunities;
+            return isCommunityAdmin;
         } catch (Exception e) {
             System.out.println("Error checking if user can post: " + e.getMessage());
             e.printStackTrace();
@@ -466,9 +463,9 @@ public class PostService {
         try {
             System.out.println("Checking if user " + userId + " can post to mycommunity " + communityId);
 
-            // Admin check using robust method
+            // Global admin check using robust method
             if (isUserAdmin(userId)) {
-                System.out.println("User " + userId + " is admin - can post to any mycommunity");
+                System.out.println("User " + userId + " is global admin - can post to any mycommunity");
                 return true;
             }
 
@@ -478,16 +475,15 @@ public class PostService {
                 throw new EntityNotFoundException("User does not exist");
             }
 
-            // Check if user is member of the specific mycommunity
-            boolean isMember = communityMembershipRepository.existsByUserIdAndCommunityIdAndStatus(
+            // Check if user has ADMIN or CREATOR role in the specific community
+            boolean isCommunityAdmin = communityMembershipRepository.isUserCommunityAdmin(
                     userId,
-                    communityId,
-                    MembershipStatus.APPROVED
+                    communityId
             );
 
-            System.out.println("User " + userId + " is member of mycommunity " + communityId + ": " + isMember);
+            System.out.println("User " + userId + " is community admin/creator of mycommunity " + communityId + ": " + isCommunityAdmin);
 
-            return isMember;
+            return isCommunityAdmin;
         } catch (Exception e) {
             System.out.println("Error checking if user can post to mycommunity: " + e.getMessage());
             e.printStackTrace();

@@ -53,6 +53,25 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
 
     boolean existsByUserIdAndStatus(String userId, MembershipStatus status);
 
+    @Query("""
+        SELECT CASE WHEN COUNT(cm) > 0 THEN true ELSE false END
+        FROM CommunityMembership cm
+        WHERE cm.userId = :userId
+        AND cm.communityId = :communityId
+        AND cm.status = 'APPROVED'
+        AND (cm.role = 'ADMIN' OR cm.role = 'CREATOR')
+    """)
+    boolean isUserCommunityAdmin(String userId, Long communityId);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(cm) > 0 THEN true ELSE false END
+        FROM CommunityMembership cm
+        WHERE cm.userId = :userId
+        AND cm.status = 'APPROVED'
+        AND (cm.role = 'ADMIN' OR cm.role = 'CREATOR')
+    """)
+    boolean isUserAdminOfAnyCommunity(String userId);
+
     default Optional<String> findFirstAdmin(Long communityId) {
         List<String> admins = findAdminsByCommunityId(communityId);
         return admins.isEmpty() ? Optional.empty() : Optional.of(admins.get(0));

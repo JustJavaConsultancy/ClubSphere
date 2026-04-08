@@ -544,8 +544,8 @@
         </div>
     </div>
 
-    <!-- Create Post Card -->
-    <div class="mobile-card touch-feedback">
+    <!-- Create Post Card (only for community admins/creators) -->
+    <div th:if="${canUserPost}" class="mobile-card touch-feedback">
         <form hx-post="/mobile/create-post"
               hx-trigger="click"
               enctype="multipart/form-data"

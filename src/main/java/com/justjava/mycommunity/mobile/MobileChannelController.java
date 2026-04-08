@@ -384,10 +384,23 @@ public class MobileChannelController {
     @PostMapping("/create-post")
     public String handlePost(
             @RequestParam("content") String content,
-            @RequestParam(value = "image", required = false) MultipartFile image
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            HttpServletRequest request
     ) {
         String currentUserId = (String) authenticationManager.get("sub");
         System.out.println("Post content: " + content);
+
+        // Get selected community context and check admin/creator permission
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        boolean canPost;
+        if (selectedCommunityId != null) {
+            canPost = postService.canUserPostToCommunity(currentUserId, selectedCommunityId);
+        } else {
+            canPost = postService.canUserPost(currentUserId);
+        }
+        if (!canPost) {
+            return ""; // Silently reject - form shouldn't be visible anyway
+        }
 
         if (image != null && !image.isEmpty()) {
             System.out.println("Uploaded file: " + image.getOriginalFilename());
@@ -395,7 +408,12 @@ public class MobileChannelController {
             System.out.println("No file uploaded.");
         }
 
-        postService.createPost(new PostMessage(content, currentUserId, image));
+        PostMessage postMessage = new PostMessage(content, currentUserId, image);
+        if (selectedCommunityId != null) {
+            postMessage.setPostLevel("COMMUNITY");
+            postMessage.setPostLevelId(selectedCommunityId);
+        }
+        postService.createPost(postMessage);
 
         return "";
     }
