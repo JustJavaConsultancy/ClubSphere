@@ -22,4 +22,8 @@ public interface MembershipSubscriptionRepository extends JpaRepository<Membersh
             Long communityId,
             SubscriptionStatus status
     );
+
+    List<MembershipSubscription> findByCommunityId(Long communityId);
+
+    List<MembershipSubscription> findByUserId(String userId);
 }
