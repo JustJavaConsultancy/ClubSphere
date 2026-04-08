@@ -891,8 +891,8 @@ public class CommunityService {
     @Transactional
     public void assignCommunityAdmin(String currentUserId, String targetUserId, Long communityId) {
 
-        // 🔐 Step 1: Validate current user is admin
-        boolean isAdmin = communityMembershipRepository
+        // 🔐 Step 1: Validate current user is admin (community-level or system-level)
+        boolean isCommunityAdmin = communityMembershipRepository
                 .existsByUserIdAndCommunityIdAndRoleAndStatus(
                         currentUserId,
                         communityId,
@@ -900,7 +900,9 @@ public class CommunityService {
                         MembershipStatus.APPROVED
                 );
 
-        if (!isAdmin) {
+        boolean isSystemAdmin = authenticationManager.isAdmin();
+
+        if (!isCommunityAdmin && !isSystemAdmin) {
             throw new SecurityException("Only community admin can assign admin role");
         }
 

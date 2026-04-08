@@ -787,6 +787,344 @@
                 font-size: 18px;
             }
         }
+
+        /* ── Community Members List ── */
+        .mobile-member-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .mobile-member-row:last-child { border-bottom: none; }
+
+        .mobile-member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mobile-member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .mobile-member-details {
+            min-width: 0;
+        }
+
+        .mobile-member-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e1b4b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mobile-member-email {
+            font-size: 12px;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mobile-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .mobile-role-badge.admin {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        .mobile-role-badge.member {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .mobile-role-badge.moderator {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        /* ── Mobile Make Admin Button ── */
+        .mobile-make-admin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1.5px solid #e0e7ff;
+            background: #f0f4ff;
+            color: #4338ca;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .mobile-make-admin-btn:active {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border-color: transparent;
+        }
+
+        .mobile-already-admin-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        /* ── Assign Admin Modal (Mobile) ── */
+        .mobile-admin-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .mobile-admin-modal.show {
+            display: flex;
+        }
+
+        .mobile-admin-modal-content {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUpModal 0.3s ease;
+        }
+
+        @keyframes slideUpModal {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        .mobile-admin-modal-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 24px 20px 18px;
+            text-align: center;
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .mobile-admin-modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 8px 0 4px;
+        }
+
+        .mobile-admin-modal-header p {
+            font-size: 13px;
+            opacity: 0.85;
+            margin: 0;
+        }
+
+        .mobile-admin-crown-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-admin-modal-body {
+            padding: 20px;
+        }
+
+        .mobile-admin-member-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8faff;
+            border: 1.5px solid #e0e7ff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+        }
+
+        .mobile-admin-warning {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.5;
+        }
+
+        .mobile-admin-warning svg {
+            flex-shrink: 0;
+            margin-top: 1px;
+            color: #f59e0b;
+        }
+
+        .mobile-admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mobile-admin-cancel-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .mobile-admin-confirm-btn {
+            flex: 1.4;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .mobile-admin-confirm-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .mobile-admin-confirm-btn .btn-spinner {
+            display: none;
+            width: 15px; height: 15px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 9999px;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .mobile-admin-confirm-btn.loading .btn-spinner   { display: inline-block; }
+        .mobile-admin-confirm-btn.loading .btn-label-text { display: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Mobile Post Creation ── */
+        .mobile-post-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            font-size: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-post-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .mobile-post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .mobile-member-search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-member-search-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .mobile-toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .mobile-toast.show { opacity: 1; }
+        .mobile-toast.success { background: #059669; color: white; }
+        .mobile-toast.error   { background: #dc2626; color: white; }
     </style>
 </head>
 <body>
@@ -1137,6 +1475,197 @@
             </button>
         </form>
     </div>
+
+    <!-- Community Members Section -->
+    <div class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Community Members</h2>
+        </div>
+
+        <!-- Search Members -->
+        <input type="text"
+               id="mobileMemberSearch"
+               class="mobile-member-search-input"
+               placeholder="Search members..."
+               oninput="filterMobileMembers()">
+
+        <input type="hidden" name="communityId" th:value="${communityId != null ? communityId : ''}" id="mobileCommunityIdInput">
+
+        <!-- Members List -->
+        <div id="mobileMembersList">
+            <div th:if="${communityMembers == null or #lists.isEmpty(communityMembers)}"
+                 style="text-align: center; padding: 24px 0; color: #9ca3af;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width: 40px; height: 40px; margin: 0 auto 8px; color: #d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <p style="font-weight: 600; color: #6b7280;">No members yet</p>
+                <p style="font-size: 13px;">Invite members to grow your community.</p>
+            </div>
+
+            <div th:each="member : ${communityMembers}"
+                 class="mobile-member-row"
+                 th:attr="data-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+                          data-email=${member.email != null ? member.email : ''}">
+                <div class="mobile-member-info">
+                    <div class="mobile-member-avatar"
+                         th:text="${(member.firstName != null ? #strings.substring(member.firstName, 0, 1) : '?') + (member.lastName != null ? #strings.substring(member.lastName, 0, 1) : '')}">
+                        JD
+                    </div>
+                    <div class="mobile-member-details">
+                        <div class="mobile-member-name"
+                             th:text="${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')}">
+                            John Doe
+                        </div>
+                        <div class="mobile-member-email"
+                             th:if="${member.privacy == null or !member.privacy}"
+                             th:text="${member.email != null ? member.email : ''}">
+                            john@example.com
+                        </div>
+                        <div class="mobile-member-email"
+                             th:if="${member.privacy != null and member.privacy}">
+                            Private profile
+                        </div>
+                        <!-- Role Badge -->
+                        <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
+                              class="mobile-role-badge admin">
+                            <svg style="width:10px;height:10px;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/></svg>
+                            Admin
+                        </span>
+                        <span th:if="${member.role != null and member.role.name() == 'MODERATOR'}"
+                              class="mobile-role-badge moderator">
+                            Moderator
+                        </span>
+                        <span th:if="${member.role == null or (member.role.name() != 'ADMIN' and member.role.name() != 'MODERATOR')}"
+                              class="mobile-role-badge member">
+                            Member
+                        </span>
+                    </div>
+                </div>
+                <!-- Admin Action: Make Admin / Already Admin -->
+                <div th:if="${isAdmin}">
+                    <button th:if="${member.role == null or member.role.name() != 'ADMIN'}"
+                            class="mobile-make-admin-btn"
+                            th:attr="data-user-id=${member.userId},
+                                     data-full-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+                                     data-email=${member.email != null ? member.email : ''},
+                                     data-initials=${(member.firstName != null ? #strings.substring(member.firstName,0,1) : '?') + (member.lastName != null ? #strings.substring(member.lastName,0,1) : '')}">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3l1.5 4.5L10 5l1 4 3.5-2L13 11h6l-2.5 3.5L19 18H5l2.5-3.5L5 11h6L9.5 7 13 9l1-4-3.5 2.5L9 3H5z"/>
+                        </svg>
+                        Make Admin
+                    </button>
+                    <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
+                          class="mobile-already-admin-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                        </svg>
+                        Admin
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Post Card (only for community admins/creators) -->
+    <div th:if="${canUserPost}" class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Create Post</h2>
+        </div>
+        <form hx-post="/mobile/create-post"
+              hx-trigger="click from:.mobile-post-submit-btn"
+              enctype="multipart/form-data"
+              method="POST"
+              hx-on::after-request="this.reset(); showMobileToast('Post created!', 'success');">
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <div class="mobile-post-avatar">
+                    <span th:text="${usersName != null ? #strings.substring(usersName,0,2) : 'U'}">AA</span>
+                </div>
+                <div style="flex: 1;">
+                    <textarea
+                            name="content"
+                            th:placeholder="${community != null and community.communityName != null ? 'Share an update with ' + community.communityName + '...' : 'Share an update with the community...'}"
+                            class="mobile-post-input"
+                            rows="3"
+                            required></textarea>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; background: #f3f4f6; cursor: pointer; font-size: 13px; color: #6b7280;">
+                    <input type="file" name="image" accept="image/*" style="display:none;">
+                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Photo
+                </label>
+                <button type="button" class="mobile-post-submit-btn"
+                        style="padding: 10px 20px; background: linear-gradient(135deg, #2A2494, #3730a3); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer;">
+                    Post
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Assign Admin Confirmation Modal (Mobile) -->
+    <div th:if="${isAdmin}" id="mobileAssignAdminModal" class="mobile-admin-modal">
+        <div class="mobile-admin-modal-content">
+            <div class="mobile-admin-modal-header">
+                <div class="mobile-admin-crown-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l3-9 4 5 2-8 2 8 4-5 3 9H3z"/>
+                    </svg>
+                </div>
+                <h3>Assign Admin Role</h3>
+                <p>This will grant full administrative privileges</p>
+            </div>
+            <div class="mobile-admin-modal-body">
+                <div class="mobile-admin-member-card">
+                    <div class="mobile-member-avatar" id="mobileAdminModalAvatar">JD</div>
+                    <div>
+                        <div class="mobile-member-name" id="mobileAdminModalName">John Doe</div>
+                        <div class="mobile-member-email" id="mobileAdminModalEmail">john@example.com</div>
+                        <div style="margin-top:6px;display:flex;align-items:center;gap:4px;">
+                            <span class="mobile-role-badge member" style="font-size:10px;">Member</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#818cf8" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span class="mobile-role-badge admin" style="font-size:10px;">Admin</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-admin-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    </svg>
+                    <span>Admins can manage community settings, groups, and promote other members. This action can only be reversed by another admin.</span>
+                </div>
+                <div class="mobile-admin-actions">
+                    <button type="button" class="mobile-admin-cancel-btn" onclick="closeMobileAssignAdminModal()">Cancel</button>
+                    <button type="button" class="mobile-admin-confirm-btn" id="mobileConfirmAssignAdminBtn" onclick="submitMobileAssignAdmin()">
+                        <span class="btn-spinner"></span>
+                        <span class="btn-label-text" style="display:inline-flex;align-items:center;gap:6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l3-9 4 5 2-8 2 8 4-5 3 9H3z"/>
+                            </svg>
+                            Yes, Make Admin
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="mobileToast" class="mobile-toast"></div>
 
     <!-- Add Group Modal (Admin Only) -->
     <div th:if="${isAdmin}" id="addGroupModal" class="mobile-modal">
@@ -1808,6 +2337,90 @@
                 }
             }
         });
+
+        // ── Mobile Assign Admin Logic ──
+        let _mobileAssignUserId = null;
+        let _mobileAssignCommunityId = null;
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.mobile-make-admin-btn');
+            if (!btn) return;
+            const userId   = btn.getAttribute('data-user-id');
+            const fullName = btn.getAttribute('data-full-name');
+            const email    = btn.getAttribute('data-email');
+            const initials = btn.getAttribute('data-initials');
+            openMobileAssignAdminModal(userId, fullName, email, initials);
+        });
+
+        function openMobileAssignAdminModal(userId, fullName, email, initials) {
+            _mobileAssignUserId      = userId;
+            _mobileAssignCommunityId = document.getElementById('mobileCommunityIdInput')?.value || '';
+            document.getElementById('mobileAdminModalAvatar').textContent = initials || '?';
+            document.getElementById('mobileAdminModalName').textContent   = (fullName || 'Unknown').trim();
+            document.getElementById('mobileAdminModalEmail').textContent  = email || '';
+            const btn = document.getElementById('mobileConfirmAssignAdminBtn');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            document.getElementById('mobileAssignAdminModal').classList.add('show');
+        }
+
+        function closeMobileAssignAdminModal() {
+            document.getElementById('mobileAssignAdminModal').classList.remove('show');
+            _mobileAssignUserId      = null;
+            _mobileAssignCommunityId = null;
+        }
+
+        function submitMobileAssignAdmin() {
+            if (!_mobileAssignUserId || !_mobileAssignCommunityId) return;
+            const btn = document.getElementById('mobileConfirmAssignAdminBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            fetch('/mobile/my-community/assignAdmin/' + _mobileAssignUserId + '/' + _mobileAssignCommunityId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Status ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                closeMobileAssignAdminModal();
+                showMobileToast('Admin role assigned successfully!', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            })
+            .catch(err => {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                showMobileToast('Failed to assign admin role.', 'error');
+                console.error('Assign admin error:', err);
+            });
+        }
+
+        // Close modal on backdrop click
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'mobileAssignAdminModal') closeMobileAssignAdminModal();
+        });
+
+        // ── Mobile Member Search Filter ──
+        function filterMobileMembers() {
+            const term = (document.getElementById('mobileMemberSearch').value || '').toLowerCase();
+            const rows = document.querySelectorAll('#mobileMembersList .mobile-member-row');
+            rows.forEach(row => {
+                const name  = (row.getAttribute('data-name')  || '').toLowerCase();
+                const email = (row.getAttribute('data-email') || '').toLowerCase();
+                row.style.display = (!term || name.includes(term) || email.includes(term)) ? '' : 'none';
+            });
+        }
+
+        // ── Toast Notification ──
+        function showMobileToast(message, type) {
+            const toast = document.getElementById('mobileToast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.className = 'mobile-toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
     </script>
 </div>
 </body>

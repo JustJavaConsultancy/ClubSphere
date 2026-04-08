@@ -451,8 +451,15 @@ public class HomeController {
         model.addAttribute("currentTime", currentTime);
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         model.addAttribute("isAdmin",authenticationManager.isAdmin());
-        // Check if user can post and add debugging
-        boolean canUserPost = postService.canUserPost(currentUserId);
+        // Check if user can post - community-aware check
+        boolean canUserPost;
+        if (selectedCommunityId != null) {
+            // When viewing a specific community, check if user is admin/creator of that community
+            canUserPost = postService.canUserPostToCommunity(currentUserId, selectedCommunityId);
+        } else {
+            // Universal view - check if user is admin/creator of any community
+            canUserPost = postService.canUserPost(currentUserId);
+        }
         System.out.println("HomeController - User " + currentUserId + " can post: " + canUserPost);
         System.out.println("HomeController - User communities count: " + userCommunities.size());
 
@@ -473,9 +480,18 @@ public class HomeController {
         String currentUserId = (String) authenticationManager.get("sub");
         System.out.println("Post content: " + content);
 
-        // Check if user can post
-        if (!postService.canUserPost(currentUserId)) {
-            model.addAttribute("errorMessage", "You must belong to at least one mycommunity to create posts.");
+        // Get selected community context
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+
+        // Check if user can post (community-aware)
+        boolean canPost;
+        if (selectedCommunityId != null) {
+            canPost = postService.canUserPostToCommunity(currentUserId, selectedCommunityId);
+        } else {
+            canPost = postService.canUserPost(currentUserId);
+        }
+        if (!canPost) {
+            model.addAttribute("errorMessage", "Only community administrators can create posts.");
             return "error-fragment"; // Return error fragment
         }
 
@@ -486,8 +502,6 @@ public class HomeController {
         }
 
         try {
-            // Get selected mycommunity ID from session for mycommunity-specific posting
-            Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
 
             PostMessage postMessage = new PostMessage(content, currentUserId, image);
             if (selectedCommunityId != null) {

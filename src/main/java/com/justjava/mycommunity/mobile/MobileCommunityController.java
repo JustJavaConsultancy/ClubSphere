@@ -8,9 +8,11 @@ import com.justjava.mycommunity.community.CommunityGroupService;
 import com.justjava.mycommunity.community.CommunityService;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.network.NetworkService;
+import com.justjava.mycommunity.posts.PostService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +37,7 @@ public class MobileCommunityController {
     private final NetworkService networkService;
     private final CommunityGroupService communityGroupService;
     private final AuthenticationManager authenticationManager;
+    private final PostService postService;
 
     @GetMapping
     public String mobileCommunityPage(HttpServletRequest request, Model model) {
@@ -81,8 +84,8 @@ public class MobileCommunityController {
             List<UserDTO> communityMembers = new ArrayList<>();
             List<UserDTO> availableUsersToInvite = new ArrayList<>();
             try {
+                communityMembers = communityService.getCommunityMembers(communityId);
                 if (isAdmin) {
-                    communityMembers = communityService.getCommunityMembers(communityId);
                     availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
                 }
             } catch (Exception e) {
@@ -131,11 +134,17 @@ public class MobileCommunityController {
             model.addAttribute("community", normalizedCommunity);
             model.addAttribute("groups", processedGroups);
             model.addAttribute("availableMembers", communityMembers);
+            model.addAttribute("communityMembers", communityMembers);
             model.addAttribute("availableUsersToInvite", availableUsersToInvite);
             model.addAttribute("communityId", communityId);
             model.addAttribute("suggestedGroups", suggestedGroups);
             model.addAttribute("groupRequests", groupRequests);
             model.addAttribute("isAdmin", isAdmin);
+            model.addAttribute("userId", currentUserId);
+            model.addAttribute("usersName", authenticationManager.get("name"));
+
+            boolean canUserPost = postService.canUserPostToCommunity(currentUserId, communityId);
+            model.addAttribute("canUserPost", canUserPost);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,11 +152,13 @@ public class MobileCommunityController {
             model.addAttribute("community", new HashMap<>());
             model.addAttribute("groups", new ArrayList<>());
             model.addAttribute("availableMembers", new ArrayList<>());
+            model.addAttribute("communityMembers", new ArrayList<>());
             model.addAttribute("availableUsersToInvite", new ArrayList<>());
             model.addAttribute("communityId", null);
             model.addAttribute("suggestedGroups", new ArrayList<>());
             model.addAttribute("groupRequests", new ArrayList<>());
             model.addAttribute("isAdmin", false);
+            model.addAttribute("canUserPost", false);
         }
 
         model.addAttribute("currentPath", "/my-mycommunity");
@@ -415,6 +426,29 @@ public class MobileCommunityController {
                 redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
                 return "redirect:/mobile/my-community";
             }
+        }
+    }
+
+    @PostMapping("/assignAdmin/{userId}/{communityId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> assignAdmin(
+            @PathVariable("userId") String userId,
+            @PathVariable("communityId") Long communityId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUser = (String) authenticationManager.get("sub");
+            communityService.assignCommunityAdmin(currentUser, userId, communityId);
+            response.put("success", true);
+            response.put("message", "Admin role assigned successfully");
+            return ResponseEntity.ok(response);
+        } catch (SecurityException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(403).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to assign admin role: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
 
