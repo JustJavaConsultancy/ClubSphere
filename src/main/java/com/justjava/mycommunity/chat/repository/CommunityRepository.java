@@ -19,6 +19,7 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
     """)
     List<Community> findCommunitiesByUserId(String userId);
 
+    @Query("SELECT c FROM Community c WHERE c.isPrivate = false OR c.isPrivate IS NULL")
     List<Community> findByIsPrivateFalse();
 
     boolean existsByOrganization_Id(Long organizationId);

@@ -300,7 +300,18 @@ public class CommunityService {
             communityMembershipRepository.save(membership);
         }
 
-        // 🔹 Step 4: Resolve admin (fail fast if none)
+        // 🔹 Step 4: Create CommunityRequest so admin can see it in pending requests
+        CommunityRequest existingRequest = communityRequestRepository
+                .findByUser_UserIdAndCommunity_Id(requestingUserId, communityId);
+        if (existingRequest == null) {
+            CommunityRequest communityRequest = new CommunityRequest();
+            communityRequest.setUser(user);
+            communityRequest.setCommunity(community);
+            communityRequest.setStatus("P");
+            communityRequestRepository.save(communityRequest);
+        }
+
+        // 🔹 Step 5: Resolve admin (fail fast if none)
         String adminUserId = resolveCommunityAdmin(communityId);
 
         // 🔹 Step 5: Start Flowable process
@@ -459,6 +470,11 @@ public class CommunityService {
 
             for (Community community : publicCommunities) {
 
+                // 🔒 Extra safety: skip private communities
+                if (Boolean.TRUE.equals(community.getIsPrivate())) {
+                    continue;
+                }
+
                 CommunityMembership membership =
                         membershipMap.get(community.getId());
 
@@ -525,6 +541,13 @@ public class CommunityService {
         if (request != null && "P".equals(request.getStatus())) {
             communityRequestRepository.delete(request);
         }
+
+        // Also remove the PENDING membership
+        Optional<CommunityMembership> membershipOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
+        if (membershipOpt.isPresent() && membershipOpt.get().getStatus() == MembershipStatus.PENDING) {
+            communityMembershipRepository.delete(membershipOpt.get());
+        }
     }
 
     @Transactional
@@ -532,7 +555,18 @@ public class CommunityService {
         CommunityRequest communityRequest = communityRequestRepository.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException("Community request does not exist"));
 
-        // Delete the request instead of marking as rejected
+        // Update the membership status to REJECTED
+        String userId = communityRequest.getUser().getUserId();
+        Long communityId = communityRequest.getCommunity().getId();
+        Optional<CommunityMembership> membershipOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
+        if (membershipOpt.isPresent()) {
+            CommunityMembership membership = membershipOpt.get();
+            membership.setStatus(MembershipStatus.REJECTED);
+            communityMembershipRepository.save(membership);
+        }
+
+        // Delete the request
         communityRequestRepository.delete(communityRequest);
     }
 
@@ -815,10 +849,14 @@ public class CommunityService {
             // 🔥 Upgrade role if needed (e.g., MEMBER → ADMIN)
             if (role == Role.ADMIN && existing.getRole() != Role.ADMIN) {
                 existing.setRole(Role.ADMIN);
-                existing.setStatus(MembershipStatus.APPROVED);
-                communityMembershipRepository.save(existing);
             }
 
+            // ✅ Always approve the membership when linking user to community
+            if (existing.getStatus() != MembershipStatus.APPROVED) {
+                existing.setStatus(MembershipStatus.APPROVED);
+            }
+
+            communityMembershipRepository.save(existing);
             return;
         }
 
