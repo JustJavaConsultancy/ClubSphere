@@ -38,6 +38,7 @@ import java.util.Map;
 
 @Controller
 public class HomeController {
+
     @Autowired
     private CommunityService communityService;
     @Autowired

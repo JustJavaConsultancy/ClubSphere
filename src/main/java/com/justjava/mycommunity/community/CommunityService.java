@@ -8,8 +8,11 @@ import com.justjava.mycommunity.chat.repository.CommunityRepository;
 import com.justjava.mycommunity.chat.repository.CommunityRequestRepository;
 import com.justjava.mycommunity.chat.repository.CommunityInvitationRepository;
 import com.justjava.mycommunity.chat.repository.OrganizationRepository;
+import com.justjava.mycommunity.community.dto.PaymentStatus;
+import com.justjava.mycommunity.community.dto.PaymentType;
 import com.justjava.mycommunity.community.mapper.CommunityMapper;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
+import com.justjava.mycommunity.community.repository.PaymentTransactionRepository;
 import com.justjava.mycommunity.organization.Channel;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.organization.TownHall;
@@ -24,6 +27,7 @@ import org.flowable.engine.RuntimeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,6 +47,7 @@ public class CommunityService {
     private final CommunityMembershipRepository communityMembershipRepository;
     private final RuntimeService runtimeService;
     private final CommunityMapper communityMapper;
+    private final PaymentTransactionRepository paymentTransactionRepository;
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
         User user = resolveUser(dto.getUserEmail());
@@ -914,6 +919,112 @@ public class CommunityService {
 
         return normalizedCommunity;
     }
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCommunityPayments(Long communityId) {
 
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        try {
+            // 🔹 Validate community
+            communityRepository.findById(communityId)
+                    .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+
+            // 🔹 Fetch successful payments
+            List<PaymentTransaction> transactions = paymentTransactionRepository.
+                    findByStatusAndType(PaymentStatus.SUCCESS,
+                    PaymentType.SUBSCRIPTION);
+
+            for (PaymentTransaction tx : transactions) {
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("transactionId", tx.getId());
+                data.put("userId", tx.getUserId());
+                data.put("amount", tx.getAmount());
+                data.put("type", tx.getType());
+                data.put("status", tx.getStatus());
+                data.put("date", tx.getCreatedAt());
+
+                result.add(data);
+            }
+
+        } catch (Exception e) {
+            //log.error("Error fetching community payments", e);
+        }
+
+        return result;
+    }
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCommunityPaymentsPerMember(Long communityId) {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        try {
+            // 🔹 Validate community
+            communityRepository.findById(communityId)
+                    .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+
+            // 🔹 Fetch successful payments
+            List<PaymentTransaction> transactions =
+                    paymentTransactionRepository.findByCommunityIdAndStatus(
+                            communityId,
+                            PaymentStatus.SUCCESS
+                    );
+
+            if (transactions.isEmpty()) {
+                return result;
+            }
+
+            // 🔹 Group by userId
+            Map<String, List<PaymentTransaction>> grouped =
+                    transactions.stream()
+                            .collect(Collectors.groupingBy(PaymentTransaction::getUserId));
+
+            // 🔹 Fetch all users in one query
+            List<String> userIds = new ArrayList<>(grouped.keySet());
+
+            Map<String, User> userMap = userRepository.findByUserIdIn(userIds)
+                    .stream()
+                    .collect(Collectors.toMap(User::getUserId, u -> u));
+
+            // 🔹 Build response
+            for (Map.Entry<String, List<PaymentTransaction>> entry : grouped.entrySet()) {
+
+                String userId = entry.getKey();
+                List<PaymentTransaction> userTxs = entry.getValue();
+
+                BigDecimal totalAmount = userTxs.stream()
+                        .map(PaymentTransaction::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                Map<String, Object> data = new HashMap<>();
+
+                User user = userMap.get(userId);
+
+                data.put("userId", userId);
+                data.put("firstName", user != null ? user.getFirstName() : null);
+                data.put("lastName", user != null ? user.getLastName() : null);
+                data.put("totalAmount", totalAmount);
+
+                // 🔹 Add transactions
+                List<Map<String, Object>> txList = userTxs.stream().map(tx -> {
+                    Map<String, Object> txData = new HashMap<>();
+                    txData.put("transactionId", tx.getId());
+                    txData.put("amount", tx.getAmount());
+                    txData.put("type", tx.getType());
+                    txData.put("date", tx.getCreatedAt());
+                    return txData;
+                }).toList();
+
+                data.put("transactions", txList);
+
+                result.add(data);
+            }
+
+        } catch (Exception e) {
+            //log.error("Error fetching payments per member", e);
+        }
+
+        return result;
+    }
     // Utility method if needed
 }
