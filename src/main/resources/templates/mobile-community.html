@@ -1389,6 +1389,11 @@
                         <span th:text="${group != null && group.memberCount != null ? group.memberCount + ' members' : '0 members'}">45 members</span>
                     </div>
                 </div>
+                <!-- Enter Group Button -->
+                <a th:href="@{/mobile/group(id=${group.id})}" style="display:block;margin-top:12px;padding:10px 16px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;box-shadow:0 4px 12px rgba(42,36,148,0.3);transition:all 0.2s ease;">
+                    <svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Enter Group
+                </a>
             </div>
         </div>
     </div>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group - Connect</title>
+    <style>
+        .mobile-back-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,0.95);border:1px solid rgba(0,0,0,0.1);border-radius:12px;font-size:14px;font-weight:500;color:#374151;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:16px}
+        .mobile-back-btn:active{transform:scale(0.95)}
+        .mobile-group-banner{background:linear-gradient(135deg,#2A2494,#3730a3);border-radius:20px;padding:24px;margin-bottom:20px;color:#fff;box-shadow:0 8px 32px rgba(42,36,148,0.3);position:relative;overflow:hidden}
+        .mobile-group-banner::before{content:'';position:absolute;top:-50%;right:-30%;width:200px;height:200px;background:rgba(255,255,255,0.05);border-radius:50%}
+        .mobile-group-banner-title{font-size:22px;font-weight:700;margin-bottom:8px}
+        .mobile-group-banner-desc{font-size:14px;opacity:0.9;line-height:1.5;margin-bottom:12px}
+        .mobile-group-banner-meta{display:flex;align-items:center;gap:16px;font-size:13px;opacity:0.85;flex-wrap:wrap}
+        .mobile-group-banner-meta-item{display:flex;align-items:center;gap:6px}
+        .mg-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,0.1)}
+        .mg-section-title{font-size:18px;font-weight:700;color:#1f2937}
+        .mg-section-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+        .mg-icon{width:32px;height:32px;background:linear-gradient(135deg,#2A2494,#3730a3);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+        .mg-post-textarea{width:100%;padding:14px;border:2px solid rgba(0,0,0,0.1);border-radius:14px;font-size:15px;background:rgba(255,255,255,0.9);resize:vertical;min-height:80px;box-sizing:border-box}
+        .mg-post-textarea:focus{outline:none;border-color:#2A2494;box-shadow:0 0 0 4px rgba(42,36,148,0.1)}
+        .mg-post-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+        .mg-upload-btn{padding:10px;border:none;background:#f3f4f6;border-radius:10px;color:#6b7280;cursor:pointer}
+        .mg-submit-btn{padding:10px 20px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(42,36,148,0.3)}
+        .mg-submit-btn:active{transform:scale(0.95)}
+        .mg-file-preview{margin-top:12px;position:relative;display:inline-block}
+        .mg-file-preview img{max-width:100%;max-height:200px;border-radius:12px}
+        .mg-file-remove{position:absolute;top:8px;right:8px;width:28px;height:28px;background:#ef4444;color:#fff;border:none;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .mg-post-card{background:rgba(255,255,255,0.95);border:1px solid rgba(0,0,0,0.06);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+        .mg-post-header{display:flex;align-items:center;margin-bottom:12px}
+        .mg-post-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;margin-right:12px;flex-shrink:0}
+        .mg-post-author{font-weight:600;color:#1f2937;font-size:15px}
+        .mg-post-time{font-size:12px;color:#9ca3af}
+        .mg-post-content{font-size:15px;color:#374151;line-height:1.6;margin-bottom:12px}
+        .mg-post-image{width:100%;border-radius:12px;margin-bottom:12px}
+        .mg-post-footer{display:flex;align-items:center;padding-top:12px;border-top:1px solid #f3f4f6}
+        .mg-comment-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#6b7280;font-size:14px;cursor:pointer;padding:8px 12px;border-radius:8px;width:100%;justify-content:center}
+        .mg-comment-btn:active{background:#f3f4f6}
+        .mg-comment-section{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+        .mg-comment-section.expanded{max-height:600px;overflow-y:auto}
+        .mg-comment-item{display:flex;padding:10px 0;border-left:3px solid #e5e7eb;padding-left:12px;margin-bottom:8px}
+        .mg-comment-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px;margin-right:10px;flex-shrink:0}
+        .mg-comment-author{font-weight:600;font-size:13px;color:#1f2937}
+        .mg-comment-text{font-size:13px;color:#4b5563;line-height:1.4}
+        .mg-comment-form{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f3f4f6}
+        .mg-comment-input{flex:1;padding:10px 14px;border:2px solid rgba(0,0,0,0.08);border-radius:20px;font-size:14px;background:#f9fafb}
+        .mg-comment-input:focus{outline:none;border-color:#2A2494;background:#fff}
+        .mg-comment-submit{padding:10px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+        .mg-comment-submit:active{transform:scale(0.9)}
+        .mg-member-item{display:flex;align-items:center;padding:12px;background:#f9fafb;border-radius:12px;margin-bottom:8px}
+        .mg-member-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;margin-right:12px;flex-shrink:0}
+        .mg-member-name{font-weight:500;color:#374151;font-size:14px}
+        .mg-member-email{font-size:12px;color:#9ca3af}
+        .mg-empty{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;color:#9ca3af}
+        .mg-empty-icon{width:48px;height:48px;margin-bottom:16px;color:#d1d5db}
+        .mg-error{background:#fef2f2;border:1px solid #fecaca;border-radius:16px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;color:#dc2626;font-size:14px}
+        .mg-members-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end;opacity:0;transition:opacity 0.3s ease}
+        .mg-members-modal.active{display:flex;opacity:1}
+        .mg-members-modal-content{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:75vh;overflow:hidden;transform:translateY(100%);transition:transform 0.3s ease}
+        .mg-members-modal.active .mg-members-modal-content{transform:translateY(0)}
+        .mg-modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid #e5e7eb;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff}
+        .mg-modal-title{font-size:18px;font-weight:700}
+        .mg-modal-close{background:none;border:none;color:#fff;cursor:pointer;padding:8px;border-radius:8px}
+        .mg-modal-body{padding:16px;max-height:60vh;overflow-y:auto}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Back Button -->
+    <a th:href="@{/mobile/my-community}" class="mobile-back-btn">
+        <svg style="width:18px;height:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to Community
+    </a>
+
+    <!-- Error -->
+    <div th:if="${error}" class="mg-error">
+        <svg style="width:20px;height:20px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- Group Header -->
+    <div th:if="${group != null}" class="mobile-group-banner">
+        <h1 class="mobile-group-banner-title" th:text="${group.groupName}">Group Name</h1>
+        <p class="mobile-group-banner-desc" th:text="${group.groupDescription}">Description</p>
+        <div class="mobile-group-banner-meta">
+            <div class="mobile-group-banner-meta-item">
+                <svg style="width:16px;height:16px" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+                <span th:text="${groupMembers != null ? #lists.size(groupMembers) : 0} + ' members'">0 members</span>
+            </div>
+            <div th:if="${community != null}" class="mobile-group-banner-meta-item">
+                <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span th:text="${community.communityName}">Community</span>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${group != null}">
+
+        <!-- Create Post -->
+        <div class="mg-card">
+            <div class="mg-section-header">
+                <div class="mg-icon"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>
+                <h2 class="mg-section-title">Share with the Group</h2>
+            </div>
+            <form id="mg-post-form" enctype="multipart/form-data">
+                <textarea id="mg-post-content" class="mg-post-textarea" placeholder="What's on your mind?" required></textarea>
+                <input type="file" id="mg-post-file" accept="image/*" style="display:none">
+                <div id="mg-file-preview" class="mg-file-preview" style="display:none">
+                    <img id="mg-preview-img" src="" alt="Preview">
+                    <button type="button" id="mg-remove-file" class="mg-file-remove">&times;</button>
+                </div>
+                <div class="mg-post-actions">
+                    <button type="button" id="mg-upload-btn" class="mg-upload-btn">
+                        <svg style="width:20px;height:20px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </button>
+                    <button type="submit" class="mg-submit-btn">Post</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Posts -->
+        <div class="mg-card">
+            <div class="mg-section-header">
+                <div class="mg-icon"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg></div>
+                <h2 class="mg-section-title">Group Posts</h2>
+            </div>
+            <div id="mg-posts-container">
+                <div th:if="${#lists.isEmpty(groupPosts)}" class="mg-empty">
+                    <svg class="mg-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                    <h3 style="font-size:16px;font-weight:600;color:#374151;margin-bottom:4px">No Posts Yet</h3>
+                    <p style="font-size:14px;color:#9ca3af">Be the first to share something with this group!</p>
+                </div>
+                <div th:each="post : ${groupPosts}" class="mg-post-card">
+                    <div class="mg-post-header">
+                        <div class="mg-post-avatar"><span th:text="${#strings.substring(post.userFullName,0,2)}">AA</span></div>
+                        <div>
+                            <div class="mg-post-author" th:text="${post.userFullName}">User</div>
+                            <div class="mg-post-time"><span th:attr="data-time=${post.dateCreated}" class="time-ago"></span></div>
+                        </div>
+                    </div>
+                    <p class="mg-post-content" th:text="${post.content}">Content</p>
+                    <img th:if="${post.picture != null}" th:src="'data:image/jpeg;base64,' + ${post.picture}" class="mg-post-image" alt="Post image">
+                    <div class="mg-post-footer">
+                        <button class="mg-comment-btn" th:attr="data-post=${post.postID}">
+                            <svg style="width:18px;height:18px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            <span th:text="${#lists.size(post.comments)} + ' comments'">0 comments</span>
+                        </button>
+                    </div>
+                    <div class="mg-comment-section" th:id="'comments-' + ${post.postID}">
+                        <div style="padding-top:12px">
+                            <div th:each="comment : ${post.comments}" class="mg-comment-item">
+                                <div class="mg-comment-avatar"><span th:text="${#strings.substring(comment.senderFullName,0,2)}">AA</span></div>
+                                <div style="flex:1">
+                                    <div class="mg-comment-author" th:text="${comment.senderFullName}">User</div>
+                                    <div class="mg-comment-text" th:text="${comment.comment}">Comment</div>
+                                </div>
+                            </div>
+                        </div>
+                        <form class="mg-comment-form" th:action="@{/mobile/group/post-comment}" method="post">
+                            <input type="hidden" name="postId" th:value="${post.postID}">
+                            <input type="hidden" name="groupId" th:value="${group.id}">
+                            <input type="text" name="comment" class="mg-comment-input" placeholder="Write a comment..." required>
+                            <button type="submit" class="mg-comment-submit">
+                                <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members -->
+        <div class="mg-card">
+            <div class="mg-section-header">
+                <div class="mg-icon"><svg style="width:16px;height:16px" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg></div>
+                <h2 class="mg-section-title">Group Members</h2>
+            </div>
+            <div th:if="${groupMembers == null || #lists.isEmpty(groupMembers)}" class="mg-empty">
+                <svg class="mg-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <h3 style="font-size:16px;font-weight:600;color:#374151;margin-bottom:4px">No members yet</h3>
+            </div>
+            <div th:if="${groupMembers != null && !#lists.isEmpty(groupMembers)}">
+                <div th:each="member, iterStat : ${groupMembers}" th:if="${iterStat.index < 5}" class="mg-member-item">
+                    <div class="mg-member-avatar"><span th:text="${#strings.substring(member.firstName != null ? member.firstName : member.email, 0, 1) + #strings.substring(member.lastName != null ? member.lastName : '', 0, 1)}">U</span></div>
+                    <div>
+                        <div class="mg-member-name" th:text="${member.firstName != null and member.lastName != null ? member.firstName + ' ' + member.lastName : member.email}">Name</div>
+                        <div class="mg-member-email" th:text="${member.email}">email</div>
+                    </div>
+                </div>
+                <button th:if="${#lists.size(groupMembers) > 5}" id="view-all-members-btn" style="width:100%;margin-top:12px;padding:12px;background:#f3f4f6;border:none;border-radius:12px;font-size:14px;font-weight:500;color:#374151;cursor:pointer">
+                    View All Members (<span th:text="${#lists.size(groupMembers)}">0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Members Modal -->
+    <div class="mg-members-modal" id="members-modal">
+        <div class="mg-members-modal-content">
+            <div class="mg-modal-header">
+                <h2 class="mg-modal-title">All Group Members</h2>
+                <button class="mg-modal-close" id="close-members-modal">
+                    <svg style="width:24px;height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="mg-modal-body" id="all-members-list"></div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var groupId = /*[[${group?.id}]]*/ null;
+        var groupMembersData = /*[[${groupMembers}]]*/ [];
+        /*]]>*/
+        document.addEventListener('DOMContentLoaded', function() {
+            function formatTimeAgo(ds) {
+                if (!ds) return '';
+                var d = new Date(ds), now = new Date(), s = Math.floor((now-d)/1000), m = Math.floor(s/60), h = Math.floor(m/60), dy = Math.floor(h/24);
+                if (dy===0) { if(h>0) return h+' hours ago'; if(m>0) return m+' minutes ago'; return s+' seconds ago'; }
+                if (dy===1) return 'yesterday at '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+                return d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+            }
+            document.querySelectorAll('.time-ago').forEach(function(el){el.textContent=formatTimeAgo(el.dataset.time)});
+
+            // Post form
+            var pf=document.getElementById('mg-post-form'),pc=document.getElementById('mg-post-content'),pfil=document.getElementById('mg-post-file'),ub=document.getElementById('mg-upload-btn'),fp=document.getElementById('mg-file-preview'),pi=document.getElementById('mg-preview-img'),rf=document.getElementById('mg-remove-file');
+            if(ub) ub.addEventListener('click',function(){pfil.click()});
+            if(pfil) pfil.addEventListener('change',function(e){var f=e.target.files[0];if(f){var r=new FileReader();r.onload=function(e){pi.src=e.target.result;fp.style.display='inline-block'};r.readAsDataURL(f)}});
+            if(rf) rf.addEventListener('click',function(){pfil.value='';fp.style.display='none';pi.src=''});
+            if(pf) pf.addEventListener('submit',function(e){
+                e.preventDefault();
+                if(!groupId){alert('Group ID not found');return}
+                var fd=new FormData();fd.append('groupId',groupId);fd.append('content',pc.value);
+                if(pfil.files[0]) fd.append('file',pfil.files[0]);
+                fetch('/mobile/group/post',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(d){
+                    if(d.success){pc.value='';pfil.value='';fp.style.display='none';pi.src='';window.location.reload()}else{alert('Failed: '+d.message)}
+                }).catch(function(err){console.error(err);alert('Error creating post')});
+            });
+
+            // Comment toggle
+            document.querySelectorAll('.mg-comment-btn').forEach(function(b){b.addEventListener('click',function(){var id=this.getAttribute('data-post'),cs=document.getElementById('comments-'+id);if(cs)cs.classList.toggle('expanded')})});
+
+            // Members modal
+            var mm=document.getElementById('members-modal'),cm=document.getElementById('close-members-modal'),va=document.getElementById('view-all-members-btn'),ml=document.getElementById('all-members-list');
+            if(va&&mm) va.addEventListener('click',function(){
+                ml.innerHTML=groupMembersData.map(function(m){var fn=m.firstName||'',ln=m.lastName||'',full=(fn+' '+ln).trim()||m.email||'Unknown',ini=(fn.charAt(0)+ln.charAt(0)).toUpperCase()||(m.email?m.email.charAt(0).toUpperCase():'U');
+                return '<div class="mg-member-item"><div class="mg-member-avatar">'+ini+'</div><div><div class="mg-member-name">'+full+'</div><div class="mg-member-email">'+(m.email||'')+'</div></div></div>'}).join('');
+                mm.classList.add('active');document.body.style.overflow='hidden'});
+            if(cm) cm.addEventListener('click',function(){mm.classList.remove('active');document.body.style.overflow='auto'});
+            if(mm) mm.addEventListener('click',function(e){if(e.target===mm){mm.classList.remove('active');document.body.style.overflow='auto'}});
+        });
+    </script>
+</div>
+</body>
+</html>
