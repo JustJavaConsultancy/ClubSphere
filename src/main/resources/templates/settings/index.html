@@ -90,71 +90,8 @@
             Settings
         </h1>
 
-        <!-- Admin / Community Status Visibility Card -->
-        <section th:if="${isAdmin}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <span class="material-icons text-purple-600">visibility</span>
-                Community Status
-            </h2>
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-700 mb-1">Control who can see your profile</p>
-                    <div id="communityStatusIndicator" class="status-indicator status-public"
-                         th:attr="data-privacy=${community.communityPrivacy}"
-                         _="on load
-                                if @data-privacy == 'true'
-                                    remove .status-public from me
-                                    add .status-private to me
-                                    add .bg-red-100 to me
-                                else
-                                    add .status-public to me
-                                end">
-                        <span id="communityStatusSubject" th:text="${community.communityPrivacy} ? 'lock' : 'public'"
-                              class="material-icons text-base">public</span>
-                        <span id="communityStatusDescription" th:text="${community.communityPrivacy} ? 'Private Community Profile'
-                                    : 'Public Community Profile'">Public Community Profile</span>
-                    </div>
-                    <div class="status-explanation" id="communityStatusExplanation"
-                         th:text="${community.communityPrivacy} ? 'Your community has been set to private'
-                         : 'Your community has been set to public'">
-                        Your community has been set to public.
-                    </div>
-                </div>
-                <label class="status-toggle">
-                    <input type="checkbox"
-                           _="on click
-                                if my.checked
-                                    remove .status-public from #communityStatusIndicator
-                                    add .status-private to #communityStatusIndicator
-                                    add .bg-red-100 to #communityStatusIndicator
-                                    put 'Your community is set to Private' into #communityStatusExplanation
-                                    put 'lock' into #communityStatusSubject
-                                    put 'Private Community Profile' into #communityStatusDescription
-                                else
-                                    remove .status-private from #communityStatusIndicator
-                                    remove .bg-red-100 from #communityStatusIndicator
-                                    add .status-public to #communityStatusIndicator
-                                    put 'Your community is set to Public' into #communityStatusExplanation
-                                    put 'public' into #communityStatusSubject
-                                    put 'Public Community Profile' into #communityStatusDescription
-                                end
-                                on htmx:afterRequest wait 1s location.reload()"
-                           id="communityStatusToggle"
-                           th:checked="${community.communityPrivacy}"
-                           hx-post="/update-communityStatus"
-                           hx-target="#communityStatusFeedback"
-                           hx-swap="innerHTML"
-                           hx-vals='js:{status: document.getElementById("communityStatusToggle").checked ? "private" : "public"}'>
-                    <span class="status-slider"></span>
-                </label>
-            </div>
-            <div class="mt-4 flex items-center gap-3">
-                <span id="communityStatusFeedback" class="text-sm text-green-600"></span>
-            </div>
-        </section>
-
         <!-- Status Visibility Card -->
-        <section th:if="${!community.communityPrivacy}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <span class="material-icons text-purple-600">visibility</span>
                 Profile Status
