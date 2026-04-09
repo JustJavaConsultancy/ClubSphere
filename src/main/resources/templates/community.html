@@ -213,11 +213,165 @@
             font-size: 13px;
             font-weight: 500;
             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .members-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.35);
         }
 
         .members-icon {
             width: 16px;
             height: 16px;
+        }
+
+        /* Group Members Modal */
+        .group-members-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .group-members-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .group-members-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .group-members-modal.show .group-members-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .gm-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .gm-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .gm-modal-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .gm-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .gm-modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .gm-modal-body {
+            padding: 20px 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .gm-member-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .gm-member-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .gm-member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .gm-member-name {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+
+        .gm-member-email {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .gm-loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .gm-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        .gm-search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        .gm-search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .community-settings-grid {
@@ -918,7 +1072,10 @@
                         </div>
                     </td>
                     <td class="py-3 px-4">
-                            <span class="members-badge">
+                            <span class="members-badge"
+                                  th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.name != null ? group.name : 'Unknown Group'}"
+                                  onclick="viewGroupMembers(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))"
+                                  title="Click to view members">
                                 <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                                 </svg>
@@ -1633,6 +1790,95 @@
             // Show / hide no-results message
             if (noResults) noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
         }
+    </script>
+
+    <!-- GROUP MEMBERS MODAL -->
+    <div id="groupMembersModal" class="group-members-modal" role="dialog" aria-modal="true">
+        <div class="group-members-modal-content">
+            <div class="gm-modal-header">
+                <div>
+                    <h2 class="gm-modal-title" id="gmModalTitle">Group Members</h2>
+                    <p class="gm-modal-subtitle" id="gmModalSubtitle">Loading...</p>
+                </div>
+                <button class="gm-modal-close" onclick="closeGroupMembersModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="gm-modal-body">
+                <input type="text" class="gm-search-input" id="gmSearchInput" placeholder="Search members..." oninput="filterGroupMembersModal()">
+                <div id="gmMembersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewGroupMembers(groupId, groupName) {
+            var modal = document.getElementById('groupMembersModal');
+            var titleEl = document.getElementById('gmModalTitle');
+            var subtitleEl = document.getElementById('gmModalSubtitle');
+            var listEl = document.getElementById('gmMembersList');
+            var searchInput = document.getElementById('gmSearchInput');
+
+            titleEl.textContent = (groupName || 'Group') + ' Members';
+            subtitleEl.textContent = 'Loading members...';
+            listEl.innerHTML = '<div class="gm-loading">Loading members...</div>';
+            searchInput.value = '';
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            fetch('/api/group/' + groupId + '/members')
+                .then(function(response) { return response.json(); })
+                .then(function(members) {
+                    if (!members || members.length === 0) {
+                        subtitleEl.textContent = '0 members';
+                        listEl.innerHTML = '<div class="gm-empty"><p>No members in this group yet.</p></div>';
+                        return;
+                    }
+                    subtitleEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
+                    listEl.innerHTML = members.map(function(m) {
+                        var fn = m.firstName || '';
+                        var ln = m.lastName || '';
+                        var fullName = (fn + ' ' + ln).trim() || m.email || 'Unknown';
+                        var initials = ((fn.charAt(0) || '') + (ln.charAt(0) || '')).toUpperCase() || (m.email ? m.email.charAt(0).toUpperCase() : 'U');
+                        return '<div class="gm-member-item" data-name="' + fullName.toLowerCase() + '" data-email="' + (m.email || '').toLowerCase() + '">' +
+                            '<div class="gm-member-avatar">' + initials + '</div>' +
+                            '<div><div class="gm-member-name">' + fullName + '</div>' +
+                            '<div class="gm-member-email">' + (m.email || '') + '</div></div></div>';
+                    }).join('');
+                })
+                .catch(function(err) {
+                    console.error('Error fetching group members:', err);
+                    subtitleEl.textContent = 'Error';
+                    listEl.innerHTML = '<div class="gm-empty"><p>Failed to load members. Please try again.</p></div>';
+                });
+        }
+
+        function closeGroupMembersModal() {
+            document.getElementById('groupMembersModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function filterGroupMembersModal() {
+            var query = document.getElementById('gmSearchInput').value.toLowerCase();
+            var items = document.querySelectorAll('#gmMembersList .gm-member-item');
+            items.forEach(function(item) {
+                var name = item.getAttribute('data-name') || '';
+                var email = item.getAttribute('data-email') || '';
+                item.style.display = (name.indexOf(query) !== -1 || email.indexOf(query) !== -1) ? '' : 'none';
+            });
+        }
+
+        // Close modal on backdrop click or Escape
+        document.getElementById('groupMembersModal').addEventListener('click', function(e) {
+            if (e.target === this) closeGroupMembersModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('groupMembersModal').classList.contains('show')) {
+                closeGroupMembersModal();
+            }
+        });
     </script>
 
     <!-- ASSIGN ADMIN CONFIRMATION MODAL -->

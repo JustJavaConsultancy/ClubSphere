@@ -190,7 +190,7 @@
                         <div class="mg-member-email" th:text="${member.email}">email</div>
                     </div>
                 </div>
-                <button th:if="${#lists.size(groupMembers) > 5}" id="view-all-members-btn" style="width:100%;margin-top:12px;padding:12px;background:#f3f4f6;border:none;border-radius:12px;font-size:14px;font-weight:500;color:#374151;cursor:pointer">
+                <button th:if="${groupMembers != null && #lists.size(groupMembers) > 0}" id="view-all-members-btn" style="width:100%;margin-top:12px;padding:12px;background:#f3f4f6;border:none;border-radius:12px;font-size:14px;font-weight:500;color:#374151;cursor:pointer">
                     View All Members (<span th:text="${#lists.size(groupMembers)}">0</span>)
                 </button>
             </div>

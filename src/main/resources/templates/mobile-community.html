@@ -219,6 +219,142 @@
             font-size: 13px;
             font-weight: 500;
             box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-members-badge:active {
+            transform: scale(0.95);
+        }
+
+        /* Group Members Modal (bottom-sheet) */
+        .mobile-gm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-gm-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .mobile-gm-modal-content {
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-height: 75vh;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-gm-modal.active .mobile-gm-modal-content {
+            transform: translateY(0);
+        }
+
+        .mobile-gm-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: #fff;
+        }
+
+        .mobile-gm-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .mobile-gm-modal-subtitle {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+
+        .mobile-gm-modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .mobile-gm-modal-body {
+            padding: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .mobile-gm-search {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            background: #f9fafb;
+        }
+
+        .mobile-gm-search:focus {
+            outline: none;
+            border-color: #2A2494;
+            background: #fff;
+        }
+
+        .mobile-gm-member-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .mobile-gm-member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .mobile-gm-member-name {
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .mobile-gm-member-email {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .mobile-gm-loading, .mobile-gm-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
         }
 
         .mobile-action-button {
@@ -1382,12 +1518,14 @@
                     </div>
                 </div>
                 <div class="mobile-group-meta">
-                    <div class="mobile-members-badge">
+                    <button class="mobile-members-badge"
+                            th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}"
+                            onclick="viewMobileGroupMembers(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                         </svg>
                         <span th:text="${group != null && group.memberCount != null ? group.memberCount + ' members' : '0 members'}">45 members</span>
-                    </div>
+                    </button>
                 </div>
                 <!-- Enter Group Button -->
                 <a th:href="@{/mobile/group(id=${group.id})}" style="display:block;margin-top:12px;padding:10px 16px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;box-shadow:0 4px 12px rgba(42,36,148,0.3);transition:all 0.2s ease;">
@@ -1618,6 +1756,25 @@
                 </button>
             </div>
         </form>
+    </div>
+
+    <!-- Group Members Modal (Mobile) -->
+    <div id="mobileGroupMembersModal" class="mobile-gm-modal">
+        <div class="mobile-gm-modal-content">
+            <div class="mobile-gm-modal-header">
+                <div>
+                    <h2 class="mobile-gm-modal-title" id="mobileGmModalTitle">Group Members</h2>
+                    <p class="mobile-gm-modal-subtitle" id="mobileGmModalSubtitle">Loading...</p>
+                </div>
+                <button class="mobile-gm-modal-close" onclick="closeMobileGroupMembersModal()">
+                    <svg style="width:24px;height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="mobile-gm-modal-body">
+                <input type="text" class="mobile-gm-search" id="mobileGmSearchInput" placeholder="Search members..." oninput="filterMobileGroupMembers()">
+                <div id="mobileGmMembersList"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Assign Admin Confirmation Modal (Mobile) -->
@@ -2426,6 +2583,68 @@
             toast.className = 'mobile-toast ' + type + ' show';
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
+
+        // ── Mobile Group Members Modal ──
+        function viewMobileGroupMembers(groupId, groupName) {
+            var modal = document.getElementById('mobileGroupMembersModal');
+            var titleEl = document.getElementById('mobileGmModalTitle');
+            var subtitleEl = document.getElementById('mobileGmModalSubtitle');
+            var listEl = document.getElementById('mobileGmMembersList');
+            var searchInput = document.getElementById('mobileGmSearchInput');
+
+            titleEl.textContent = (groupName || 'Group') + ' Members';
+            subtitleEl.textContent = 'Loading members...';
+            listEl.innerHTML = '<div class="mobile-gm-loading">Loading members...</div>';
+            searchInput.value = '';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            fetch('/api/group/' + groupId + '/members')
+                .then(function(response) { return response.json(); })
+                .then(function(members) {
+                    if (!members || members.length === 0) {
+                        subtitleEl.textContent = '0 members';
+                        listEl.innerHTML = '<div class="mobile-gm-empty"><p>No members in this group yet.</p></div>';
+                        return;
+                    }
+                    subtitleEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
+                    listEl.innerHTML = members.map(function(m) {
+                        var fn = m.firstName || '';
+                        var ln = m.lastName || '';
+                        var fullName = (fn + ' ' + ln).trim() || m.email || 'Unknown';
+                        var initials = ((fn.charAt(0) || '') + (ln.charAt(0) || '')).toUpperCase() || (m.email ? m.email.charAt(0).toUpperCase() : 'U');
+                        return '<div class="mobile-gm-member-item" data-name="' + fullName.toLowerCase() + '" data-email="' + (m.email || '').toLowerCase() + '">' +
+                            '<div class="mobile-gm-member-avatar">' + initials + '</div>' +
+                            '<div><div class="mobile-gm-member-name">' + fullName + '</div>' +
+                            '<div class="mobile-gm-member-email">' + (m.email || '') + '</div></div></div>';
+                    }).join('');
+                })
+                .catch(function(err) {
+                    console.error('Error fetching group members:', err);
+                    subtitleEl.textContent = 'Error';
+                    listEl.innerHTML = '<div class="mobile-gm-empty"><p>Failed to load members. Please try again.</p></div>';
+                });
+        }
+
+        function closeMobileGroupMembersModal() {
+            document.getElementById('mobileGroupMembersModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function filterMobileGroupMembers() {
+            var query = document.getElementById('mobileGmSearchInput').value.toLowerCase();
+            var items = document.querySelectorAll('#mobileGmMembersList .mobile-gm-member-item');
+            items.forEach(function(item) {
+                var name = item.getAttribute('data-name') || '';
+                var email = item.getAttribute('data-email') || '';
+                item.style.display = (name.indexOf(query) !== -1 || email.indexOf(query) !== -1) ? '' : 'none';
+            });
+        }
+
+        // Close group members modal on backdrop click
+        document.getElementById('mobileGroupMembersModal').addEventListener('click', function(e) {
+            if (e.target === this) closeMobileGroupMembersModal();
+        });
     </script>
 </div>
 </body>

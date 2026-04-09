@@ -663,7 +663,7 @@
                 </div>
 
                 <!-- View All Members button (only show if more than 5 members) -->
-                <button th:if="${#lists.size(groupMembers) > 5}" id="view-all-members-btn" class="w-full mt-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 btn-transition">
+                <button th:if="${groupMembers != null && #lists.size(groupMembers) > 0}" id="view-all-members-btn" class="w-full mt-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 btn-transition">
                     View All Members (<span th:text="${#lists.size(groupMembers)}">0</span>)
                 </button>
             </div>
