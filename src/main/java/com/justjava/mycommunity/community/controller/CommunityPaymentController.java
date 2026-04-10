@@ -54,9 +54,9 @@ public class CommunityPaymentController {
 
         String userId = (String) authenticationManager.get("sub");
 
-        communityService.startSubscription(userId, communityId, amount);
+        String redirectUrl = communityService.startSubscription(userId, communityId, amount);
 
-        return "<div class='alert alert-success'>Subscription started. Complete payment.</div>";
+        return "<script>window.location.href='" + redirectUrl + "'</script>";
     }
     @GetMapping("/subscriptions/list")
     public String communitySubscriptions(@PathVariable Long communityId, Model model) {

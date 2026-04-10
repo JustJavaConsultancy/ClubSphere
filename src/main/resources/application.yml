@@ -138,7 +138,7 @@ resend:
 # Paystack Configuration
 paystack:
   secret:
-    key: ${PAYSTACK_SECRET_KEY:sk_test_acf964d88e2549da8c0a981ce531ce3a6e9a08f1}
+      key: ${PAYSTACK_SECRET_KEY:sk_test_acf964d88e2549da8c0a981ce531ce3a6e9a08f1}
   public:
     key: ${PAYSTACK_PUBLIC_KEY:pk_test_9f2df75ef7284aafb795d3df1cefdae56046e8f4}
 

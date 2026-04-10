@@ -12,6 +12,7 @@ import com.justjava.mycommunity.community.dto.PaymentStatus;
 import com.justjava.mycommunity.community.dto.PaymentType;
 import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.mapper.CommunityMapper;
+import com.justjava.mycommunity.community.payment.orchestrator.PaymentOrchestratorService;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
 import com.justjava.mycommunity.community.repository.PaymentTransactionRepository;
@@ -51,7 +52,7 @@ public class CommunityService {
     private final CommunityMapper communityMapper;
     private final MembershipSubscriptionRepository membershipSubscriptionRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
-
+private final PaymentOrchestratorService paymentOrchestratorService;
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
         User user = resolveUser(dto.getUserEmail());
@@ -1071,9 +1072,11 @@ public class CommunityService {
         return result;
     }
     @Transactional
-    public void startSubscription(String userId, Long communityId, BigDecimal amount) {
+    public String startSubscription(String userId,
+                                    Long communityId,
+                                    BigDecimal amount) {
 
-        // 🔹 Validate membership
+        // 🔹 Step 1: Validate user is a member
         boolean isMember = communityMembershipRepository
                 .existsByUserIdAndCommunityIdAndStatus(
                         userId,
@@ -1085,7 +1088,7 @@ public class CommunityService {
             throw new SecurityException("User must be a member before subscribing");
         }
 
-        // 🔹 Prevent duplicate active subscription
+        // 🔹 Step 2: Prevent duplicate active subscription
         boolean alreadySubscribed = membershipSubscriptionRepository
                 .existsByUserIdAndCommunityIdAndStatus(
                         userId,
@@ -1097,20 +1100,41 @@ public class CommunityService {
             throw new IllegalStateException("User already has an active subscription");
         }
 
-        // 🔹 Start Flowable process
-        String businessKey = userId + "_" + communityId;
+        // 🔹 Step 3: Generate unique payment reference (VERY IMPORTANT)
+        String paymentRef = UUID.randomUUID().toString();
 
+        // 🔹 Step 4: Start Flowable process FIRST
         runtimeService.startProcessInstanceByKey(
                 "communitySubscription",
-                businessKey,
+                paymentRef, // 🔥 MUST match webhook correlation
                 Map.of(
                         "userId", userId,
                         "communityId", communityId,
-                        "amount", amount
+                        "amount", amount,
+                        "paymentRef", paymentRef
                 )
         );
 
-        //log.info("Subscription process started for user {} in community {}", userId, communityId);
+        // 🔹 Step 5: Initiate payment via orchestrator
+        Map<String, Object> paymentResponse =
+                paymentOrchestratorService.initiatePayment(
+                        userId,
+                        communityId,
+                        amount,
+                        null // default gateway (Paystack)
+                );
+
+        // 🔹 Step 6: Extract redirect URL
+        Map<String, Object> data = (Map<String, Object>) paymentResponse.get("data");
+
+        if (data == null || data.get("authorization_url") == null) {
+            throw new RuntimeException("Failed to initialize payment");
+        }
+
+        String authorizationUrl = (String) data.get("authorization_url");
+
+        // 🔹 Step 7: Return redirect URL to frontend
+        return authorizationUrl;
     }
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCommunitySubscriptions(Long communityId) {
