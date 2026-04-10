@@ -1140,6 +1140,11 @@ public class CommunityService {
                 .stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
 
+        // 🔹 Fetch payment transactions for this community
+        List<PaymentTransaction> allTx = paymentTransactionRepository.findByCommunityId(communityId);
+        Map<String, List<PaymentTransaction>> txByUser = allTx.stream()
+                .collect(Collectors.groupingBy(PaymentTransaction::getUserId));
+
         for (MembershipSubscription sub : subscriptions) {
 
             User user = userMap.get(sub.getUserId());
@@ -1148,14 +1153,26 @@ public class CommunityService {
             data.put("userId", sub.getUserId());
             data.put("firstName", user != null ? user.getFirstName() : null);
             data.put("lastName", user != null ? user.getLastName() : null);
+            data.put("email", user != null ? user.getEmail() : null);
             data.put("status", sub.getStatus());
             data.put("startDate", sub.getStartDate());
             data.put("nextBillingDate", sub.getNextBillingDate());
+
+            // 🔹 Attach payment history for this subscriber
+            List<PaymentTransaction> userTxList = txByUser.getOrDefault(sub.getUserId(), List.of());
+            BigDecimal totalPaid = userTxList.stream()
+                    .filter(tx -> tx.getStatus() == PaymentStatus.SUCCESS)
+                    .map(PaymentTransaction::getAmount)
+                    .filter(a -> a != null)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            data.put("totalPaid", totalPaid);
+            data.put("transactionCount", userTxList.size());
 
             result.add(data);
         }
         return result;
     }
+
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getUserSubscriptions(String userId) {
 
@@ -1164,18 +1181,80 @@ public class CommunityService {
         List<MembershipSubscription> subscriptions =
                 membershipSubscriptionRepository.findByUserId(userId);
 
+        if (subscriptions.isEmpty()) {
+            return result;
+        }
+
+        // 🔹 Fetch community names in batch
+        List<Long> communityIds = subscriptions.stream()
+                .map(MembershipSubscription::getCommunityId)
+                .distinct()
+                .toList();
+
+        Map<Long, Community> communityMap = communityRepository.findAllById(communityIds)
+                .stream()
+                .collect(Collectors.toMap(Community::getId, c -> c));
+
+        // 🔹 Fetch payment transactions for this user
+        List<PaymentTransaction> allTx = paymentTransactionRepository.findByUserId(userId);
+        Map<Long, List<PaymentTransaction>> txByCommunity = allTx.stream()
+                .filter(tx -> tx.getCommunityId() != null)
+                .collect(Collectors.groupingBy(PaymentTransaction::getCommunityId));
+
         for (MembershipSubscription sub : subscriptions) {
 
+            Community community = communityMap.get(sub.getCommunityId());
+
             Map<String, Object> data = new HashMap<>();
+            data.put("subscriptionId", sub.getId());
             data.put("communityId", sub.getCommunityId());
+            data.put("communityName", community != null ? community.getName() : "Unknown Community");
             data.put("status", sub.getStatus());
             data.put("startDate", sub.getStartDate());
             data.put("nextBillingDate", sub.getNextBillingDate());
+
+            // 🔹 Attach payment transactions for this community
+            List<PaymentTransaction> communityTx = txByCommunity.getOrDefault(sub.getCommunityId(), List.of());
+            List<Map<String, Object>> transactions = new ArrayList<>();
+            for (PaymentTransaction tx : communityTx) {
+                Map<String, Object> txData = new HashMap<>();
+                txData.put("transactionId", tx.getId());
+                txData.put("amount", tx.getAmount());
+                txData.put("type", tx.getType());
+                txData.put("paymentStatus", tx.getStatus());
+                txData.put("date", tx.getCreatedAt());
+                txData.put("providerRef", tx.getProviderRef());
+                transactions.add(txData);
+            }
+            data.put("transactions", transactions);
 
             result.add(data);
         }
 
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasActiveSubscription(String userId, Long communityId) {
+        return membershipSubscriptionRepository
+                .existsByUserIdAndCommunityIdAndStatus(userId, communityId, SubscriptionStatus.ACTIVE);
+    }
+
+    @Transactional
+    public void cancelSubscription(String userId, Long subscriptionId) {
+        MembershipSubscription sub = membershipSubscriptionRepository.findById(subscriptionId)
+                .orElseThrow(() -> new EntityNotFoundException("Subscription not found"));
+
+        if (!sub.getUserId().equals(userId)) {
+            throw new SecurityException("You can only cancel your own subscriptions");
+        }
+
+        if (sub.getStatus() != SubscriptionStatus.ACTIVE) {
+            throw new IllegalStateException("Only active subscriptions can be cancelled");
+        }
+
+        sub.setStatus(SubscriptionStatus.CANCELLED);
+        membershipSubscriptionRepository.save(sub);
     }
     // Utility method if needed
 }

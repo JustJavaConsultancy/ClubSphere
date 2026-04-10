@@ -467,6 +467,17 @@ public class HomeController {
         model.addAttribute("userCommunities", userCommunities);
         request.getSession(true).setAttribute("loggedInUser", authenticationManager.get("name"));
 
+        // Subscription status for the current user
+        boolean hasActiveSubscription = false;
+        if (selectedCommunityId != null) {
+            try {
+                hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, selectedCommunityId);
+            } catch (Exception e) {
+                System.out.println("Error checking subscription status: " + e.getMessage());
+            }
+        }
+        model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+
         System.out.println("=== END HOME CONTROLLER DEBUG ===");
         return "home";
     }

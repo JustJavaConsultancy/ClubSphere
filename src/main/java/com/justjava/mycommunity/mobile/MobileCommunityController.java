@@ -146,6 +146,15 @@ public class MobileCommunityController {
             boolean canUserPost = postService.canUserPostToCommunity(currentUserId, communityId);
             model.addAttribute("canUserPost", canUserPost);
 
+            // Subscription status for the current user
+            boolean hasActiveSubscription = false;
+            try {
+                hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, communityId);
+            } catch (Exception e) {
+                System.out.println("Mobile - Error checking subscription status: " + e.getMessage());
+            }
+            model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "Error loading community data: " + e.getMessage());

@@ -259,6 +259,99 @@
             color: #991b1b;
         }
 
+        /* Subscription Card */
+        .subscription-card {
+            background: linear-gradient(135deg, #faf5ff 0%, #f0fdf4 100%);
+            border: 1px solid #e9d5ff;
+        }
+        .subscription-card .sub-active-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .subscription-card .sub-inactive-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .subscribe-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .subscribe-btn:hover {
+            background: linear-gradient(135deg, #6d28d9, #5b21b6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+        /* Subscribe Modal */
+        .sub-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .sub-modal-overlay.show {
+            display: flex;
+        }
+        .sub-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: subModalSlideIn 0.3s ease;
+        }
+        @keyframes subModalSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sub-modal-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .sub-modal-content .sub-amount-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .sub-modal-content .sub-amount-input:focus {
+            border-color: #7c3aed;
+        }
+
         .secondary-button {
             background: #f8fafc;
             color: #475569;
@@ -967,6 +1060,71 @@
         .row-admin-flash {
             animation: rowSuccessFlash 1.4s ease forwards;
         }
+
+        /* ── Manage Page Tab Navigation ── */
+        .manage-tab-container {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f3f4f6;
+        }
+
+        .manage-tab-nav {
+            display: flex;
+            background: #f9fafb;
+            border-bottom: 1px solid #f3f4f6;
+            overflow-x: auto;
+        }
+
+        .manage-tab-button {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .manage-tab-button.active {
+            color: #4f46e5;
+            background: white;
+        }
+
+        .manage-tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4f46e5, #4338ca);
+        }
+
+        .manage-tab-content {
+            padding: 1.5rem;
+        }
+
+        .manage-tab-panel {
+            display: none;
+        }
+
+        .manage-tab-panel.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .manage-tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.8125rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1010,6 +1168,29 @@
         </svg>
         <span>You are viewing this community in read-only mode. Only administrators can modify community settings.</span>
     </div>
+
+    <!-- ══════════════════════════════════════════════
+         TAB CONTAINER - Organizes manage page sections
+    ══════════════════════════════════════════════ -->
+    <div class="manage-tab-container">
+        <nav class="manage-tab-nav">
+            <button type="button" class="manage-tab-button active" data-manage-tab="general">
+                <i class="fas fa-cog" style="margin-right:6px;"></i> General
+            </button>
+            <button type="button" class="manage-tab-button" data-manage-tab="groups">
+                <i class="fas fa-users" style="margin-right:6px;"></i> Groups
+            </button>
+            <button type="button" class="manage-tab-button" data-manage-tab="members">
+                <i class="fas fa-user-friends" style="margin-right:6px;"></i> Members
+            </button>
+            <button type="button" th:if="${isAdmin}" class="manage-tab-button" data-manage-tab="subscriptions">
+                <i class="fas fa-credit-card" style="margin-right:6px;"></i> Subscriptions
+            </button>
+        </nav>
+
+        <div class="manage-tab-content">
+            <!-- ═══════════ GENERAL TAB ═══════════ -->
+            <div id="general" class="manage-tab-panel active">
 
     <!-- Community Settings -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 community-settings-grid">
@@ -1139,6 +1320,81 @@
         </div>
     </div>
 
+    <!-- Community Subscription -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6 subscription-card">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Community Subscription
+        </h2>
+        <div th:if="${hasActiveSubscription}">
+            <div class="sub-active-badge mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Active Subscription
+            </div>
+            <p class="text-sm text-gray-600">You have an active subscription to this community. Thank you for your support!</p>
+        </div>
+        <div th:if="${!hasActiveSubscription}">
+            <div class="sub-inactive-badge mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Not Subscribed
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Support this community with a recurring monthly subscription. You choose the amount.</p>
+            <button type="button" onclick="openSubscribeModal()" class="subscribe-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Subscribe Now
+            </button>
+        </div>
+        <div id="subscriptionFeedback" class="mt-3"></div>
+    </div>
+
+    <!-- Subscribe Modal -->
+    <div id="subscribeModal" class="sub-modal-overlay" onclick="if(event.target===this) closeSubscribeModal()">
+        <div class="sub-modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="margin:0;">Subscribe to Community</h3>
+                <button onclick="closeSubscribeModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to pay monthly. You can choose any amount.</p>
+            <form hx-post="/subscription/subscribe"
+                  hx-target="#subscriptionFeedback"
+                  hx-swap="innerHTML"
+                  onsubmit="closeSubscribeModal()">
+                <input type="hidden" name="communityId" th:value="${communityId}">
+                <div style="margin-bottom: 16px;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Amount</label>
+                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                           class="sub-amount-input" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center;">
+                        Confirm Subscription
+                    </button>
+                    <button type="button" onclick="closeSubscribeModal()"
+                            class="secondary-button" style="flex:0 0 auto;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+            </div><!-- END general tab -->
+
+            <!-- ═══════════ GROUPS TAB ═══════════ -->
+            <div id="groups" class="manage-tab-panel">
+
     <!-- Groups Management -->
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div class="flex justify-between items-center mb-6">
@@ -1182,19 +1438,19 @@
                 <tr th:each="group : ${groups}" class="border-b border-gray-100 hover:bg-gray-50 group-row" th:id="'group-row-' + ${group.id}">
                     <td class="py-3 px-4">
                         <div class="font-medium text-gray-800"
-                             th:text="${group != null && group.name != null ? group.name : 'Unknown Group'}">Frontend
+                             th:text="${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}">Frontend
                             Developers
                         </div>
                     </td>
                     <td class="py-3 px-4">
                         <div class="text-gray-600 text-sm"
-                             th:text="${group != null && group.description != null ? group.description : 'No description'}">
+                             th:text="${group != null && group.groupDescription != null ? group.groupDescription : 'No description'}">
                             A group for frontend developers
                         </div>
                     </td>
                     <td class="py-3 px-4">
                             <span class="members-badge"
-                                  th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.name != null ? group.name : 'Unknown Group'}"
+                                  th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}"
                                   onclick="viewGroupMembers(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))"
                                   title="Click to view members">
                                 <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -1217,7 +1473,7 @@
                                     </svg>
                                     Edit
                                 </div>
-                                <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.name != null ? group.name : 'Unknown Group'}"
+                                <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}"
                                      onclick="deleteGroup(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))"
                                      class="dropdown-item text-red-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1233,6 +1489,11 @@
             </table>
         </div>
     </div>
+
+            </div><!-- END groups tab -->
+
+            <!-- ═══════════ MEMBERS TAB ═══════════ -->
+            <div id="members" class="manage-tab-panel">
 
     <!-- ══════════════════════════════════════════════
          COMMUNITY MEMBERS SECTION
@@ -1487,6 +1748,73 @@
             </button>
         </form>
     </div>
+
+            </div><!-- END members tab -->
+
+            <!-- ═══════════ SUBSCRIPTIONS TAB (Admin Only) ═══════════ -->
+            <div th:if="${isAdmin}" id="subscriptions" class="manage-tab-panel">
+
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="community-subscriptions-section">
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                Community Subscriptions
+            </h2>
+            <button type="button"
+                    th:attr="hx-get='/subscription/subscriptions/list?communityId=' + ${communityId}"
+                    hx-target="#subscriptions-table-body"
+                    hx-swap="innerHTML"
+                    hx-trigger="click"
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                    onclick="this.classList.add('opacity-50');">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+            </button>
+        </div>
+
+        <!-- Subscriptions Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-100">
+            <table class="w-full" id="communitySubscriptionsTable">
+                <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Subscriber</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Start Date</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Next Billing</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Total Paid</th>
+                </tr>
+                </thead>
+                <tbody id="subscriptions-table-body">
+                <tr id="subscriptions-loading-row">
+                    <td colspan="6" class="py-8 text-center text-gray-400">
+                        <div class="flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                            </svg>
+                            <p class="text-sm">Loading subscriptions...</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+            </div><!-- END subscriptions tab -->
+
+        </div><!-- END manage-tab-content -->
+    </div><!-- END manage-tab-container -->
+
+    <!-- ══════════════════════════════════════════════
+         COMMUNITY SUBSCRIPTIONS (Admin Only)
+         Loaded via HTMX from /subscription/subscriptions/list
+    ══════════════════════════════════════════════ -->
+    <!-- The subscriptions section is now in its own tab above -->
 
     <!-- Add Group Modal (Admin Only) -->
     <div th:if="${isAdmin}" id="addGroupModal" class="modal">
@@ -1799,8 +2127,8 @@
         fetch('/my-community/groups/' + groupId + '?communityId=' + communityId)
             .then(response => { if (!response.ok) throw new Error('Network response was not ok'); return response.json(); })
             .then(group => {
-                document.getElementById('editGroupName').value = group.name || '';
-                document.getElementById('editGroupDescription').value = group.description || '';
+                document.getElementById('editGroupName').value = group.groupName || '';
+                document.getElementById('editGroupDescription').value = group.groupDescription || '';
                 const form = document.getElementById('editGroupForm');
                 form.setAttribute('hx-post', `/my-community/groups/${groupId}/edit`);
                 form.setAttribute('hx-target', `#group-row-${groupId}`);
@@ -1935,6 +2263,16 @@
     </div>
 
     <script>
+        // ── Subscribe Modal ──
+        function openSubscribeModal() {
+            document.getElementById('subscribeModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSubscribeModal() {
+            document.getElementById('subscribeModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
         function updatePrivacyUI(isPrivate) {
             var badge = document.getElementById('privacyStatusBadge');
             var text = document.getElementById('privacyStatusText');
@@ -2162,6 +2500,93 @@
         document.addEventListener('click', function(event) {
             if (event.target.id === 'assignAdminModal') closeAssignAdminModal();
         });
+    </script>
+
+    <!-- Subscriptions auto-load script (Admin only) -->
+    <script th:if="${isAdmin}" th:inline="javascript">
+        (function() {
+            const communityId = /*[[${communityId}]]*/ null;
+            if (!communityId) return;
+
+            fetch('/subscription/subscriptions/list?communityId=' + communityId)
+                .then(r => r.json())
+                .then(subs => {
+                    const tbody = document.getElementById('subscriptions-table-body');
+                    if (!tbody) return;
+
+                    if (!subs || subs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400"><div class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg><p class="text-sm">No subscriptions found for this community.</p></div></td></tr>';
+                        return;
+                    }
+
+                    let html = '';
+                    subs.forEach(sub => {
+                        const fullName = ((sub.firstName || '') + ' ' + (sub.lastName || '')).trim() || 'Unknown';
+                        const email = sub.email || '—';
+                        const status = sub.status || 'UNKNOWN';
+                        const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
+                        const nextBilling = sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
+                        const totalPaid = sub.totalPaid != null ? '₦' + Number(sub.totalPaid).toFixed(2) : '₦0.00';
+
+                        let statusClass = 'bg-gray-100 text-gray-600';
+                        if (status === 'ACTIVE') statusClass = 'bg-green-100 text-green-700';
+                        else if (status === 'CANCELLED') statusClass = 'bg-red-100 text-red-700';
+
+                        html += '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+                        html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
+                        html += '<td class="py-3 px-4 text-gray-600 text-sm">' + email + '</td>';
+                        html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + statusClass + '">' + status + '</span></td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + startDate + '</td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + nextBilling + '</td>';
+                        html += '<td class="py-3 px-4 text-sm font-medium text-gray-800">' + totalPaid + '</td>';
+                        html += '</tr>';
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error('Error loading subscriptions:', err);
+                    const tbody = document.getElementById('subscriptions-table-body');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-red-400 text-sm">Error loading subscriptions.</td></tr>';
+                    }
+                });
+        })();
+    </script>
+
+    <!-- Tab navigation logic for manage page -->
+    <script>
+        (function() {
+            function initializeManageTabs() {
+                const tabButtons = document.querySelectorAll('.manage-tab-button');
+                const tabPanels = document.querySelectorAll('.manage-tab-panel');
+
+                tabButtons.forEach(function(button) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const targetTab = button.getAttribute('data-manage-tab');
+
+                        // Remove active class from all buttons and panels
+                        tabButtons.forEach(function(btn) { btn.classList.remove('active'); });
+                        tabPanels.forEach(function(panel) { panel.classList.remove('active'); });
+
+                        // Add active class to clicked button and corresponding panel
+                        button.classList.add('active');
+                        var targetPanel = document.getElementById(targetTab);
+                        if (targetPanel) {
+                            targetPanel.classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeManageTabs);
+            } else {
+                initializeManageTabs();
+            }
+        })();
     </script>
 
 </div>

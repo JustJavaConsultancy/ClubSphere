@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Subscriptions - Connect</title>
+    <style>
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-active { background-color: #d1fae5; color: #065f46; }
+        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+        .status-expired { background-color: #f3f4f6; color: #6b7280; }
+
+        .tx-row { transition: background-color 0.15s ease; }
+        .tx-row:hover { background-color: #f9fafb; }
+
+        .tx-status-success { color: #059669; }
+        .tx-status-pending { color: #d97706; }
+        .tx-status-failed { color: #dc2626; }
+
+        .expand-btn { cursor: pointer; transition: transform 0.2s ease; }
+        .expand-btn.rotated { transform: rotate(180deg); }
+
+        .tx-panel { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .tx-panel.open { max-height: 500px; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-5xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                My Subscriptions
+            </h1>
+            <p class="text-gray-500 mt-1">View your subscription history across all communities</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-500">
+                <p class="text-sm text-gray-500">Active</p>
+                <p class="text-2xl font-bold text-gray-800"
+                   th:text="${subscriptions != null ? #lists.size(subscriptions.?[status.name() == 'ACTIVE']) : 0}">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-400">
+                <p class="text-sm text-gray-500">Cancelled</p>
+                <p class="text-2xl font-bold text-gray-800"
+                   th:text="${subscriptions != null ? #lists.size(subscriptions.?[status.name() == 'CANCELLED']) : 0}">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-gray-400">
+                <p class="text-sm text-gray-500">Expired</p>
+                <p class="text-2xl font-bold text-gray-800"
+                   th:text="${subscriptions != null ? #lists.size(subscriptions.?[status.name() == 'EXPIRED']) : 0}">0</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${subscriptions == null or #lists.isEmpty(subscriptions)}"
+             class="bg-white rounded-xl shadow-sm p-12 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">No Subscriptions Yet</h3>
+            <p class="text-gray-400">You haven't subscribed to any communities yet. Browse communities to find one to join!</p>
+        </div>
+
+        <!-- Subscriptions List -->
+        <div th:if="${subscriptions != null and !#lists.isEmpty(subscriptions)}" class="space-y-4">
+            <div th:each="sub, iterStat : ${subscriptions}" class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <!-- Subscription Header -->
+                <div class="p-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-lg font-bold text-gray-800"
+                                    th:text="${sub.communityName != null ? sub.communityName : 'Unknown Community'}">Community Name</h3>
+                                <span class="status-badge"
+                                      th:classappend="${sub.status != null && sub.status.name() == 'ACTIVE'} ? ' status-active' : (${sub.status != null && sub.status.name() == 'CANCELLED'} ? ' status-cancelled' : ' status-expired')"
+                                      th:text="${sub.status != null ? sub.status : 'UNKNOWN'}">ACTIVE</span>
+                            </div>
+                            <div class="flex flex-wrap gap-6 text-sm text-gray-500">
+                                <span class="flex items-center gap-1">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Started: <span th:text="${sub.startDate != null ? #temporals.format(sub.startDate, 'MMM dd, yyyy') : 'N/A'}">Jan 01, 2025</span>
+                                </span>
+                                <span th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}" class="flex items-center gap-1">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Next billing: <span th:text="${sub.nextBillingDate != null ? #temporals.format(sub.nextBillingDate, 'MMM dd, yyyy') : 'N/A'}">Feb 01, 2025</span>
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2">
+                            <!-- Cancel button for active subscriptions -->
+                            <button th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}"
+                                    type="button"
+                                    class="px-3 py-1.5 rounded-lg border border-red-300 bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition-colors"
+                                    th:onclick="'cancelSubscription(' + ${sub.subscriptionId} + ', this)'">
+                                ✕ Cancel
+                            </button>
+                            <!-- Expand transactions button -->
+                            <button type="button" class="expand-btn p-2 rounded-lg hover:bg-gray-100 text-gray-500"
+                                th:onclick="'toggleTransactions(' + ${iterStat.index} + ')'"
+                                th:id="'expand-btn-' + ${iterStat.index}">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History Panel -->
+                <div class="tx-panel border-t border-gray-100" th:id="'tx-panel-' + ${iterStat.index}">
+                    <div class="p-6 bg-gray-50">
+                        <h4 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Transaction History</h4>
+
+                        <div th:if="${sub.transactions == null or #lists.isEmpty(sub.transactions)}"
+                             class="text-center py-6 text-gray-400 text-sm">
+                            No transactions recorded yet.
+                        </div>
+
+                        <table th:if="${sub.transactions != null and !#lists.isEmpty(sub.transactions)}" class="w-full text-sm">
+                            <thead>
+                            <tr class="text-left text-gray-500 border-b border-gray-200">
+                                <th class="pb-2 font-medium">Date</th>
+                                <th class="pb-2 font-medium">Amount</th>
+                                <th class="pb-2 font-medium">Type</th>
+                                <th class="pb-2 font-medium">Status</th>
+                                <th class="pb-2 font-medium">Reference</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="tx : ${sub.transactions}" class="tx-row border-b border-gray-100">
+                                <td class="py-3" th:text="${tx.date != null ? #temporals.format(tx.date, 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</td>
+                                <td class="py-3 font-medium" th:text="${tx.amount != null ? '₦' + #numbers.formatDecimal(tx.amount, 1, 2) : 'N/A'}">₦100.00</td>
+                                <td class="py-3" th:text="${tx.type}">SUBSCRIPTION</td>
+                                <td class="py-3">
+                                    <span th:text="${tx.paymentStatus}"
+                                          th:classappend="${tx.paymentStatus != null && tx.paymentStatus.name() == 'SUCCESS'} ? ' tx-status-success' : (${tx.paymentStatus != null && tx.paymentStatus.name() == 'PENDING'} ? ' tx-status-pending' : ' tx-status-failed')">SUCCESS</span>
+                                </td>
+                                <td class="py-3 text-gray-400 text-xs" th:text="${tx.providerRef != null ? tx.providerRef : '—'}">TX-123</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTransactions(index) {
+            const panel = document.getElementById('tx-panel-' + index);
+            const btn = document.getElementById('expand-btn-' + index);
+            if (panel && btn) {
+                panel.classList.toggle('open');
+                btn.classList.toggle('rotated');
+            }
+        }
+
+        function cancelSubscription(subscriptionId, btnElement) {
+            if (!confirm('Are you sure you want to cancel this subscription? This action cannot be undone.')) {
+                return;
+            }
+
+            const originalHtml = btnElement.innerHTML;
+            btnElement.textContent = '⏳ Cancelling...';
+            btnElement.disabled = true;
+            btnElement.style.opacity = '0.7';
+
+            fetch('/subscription/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'subscriptionId=' + subscriptionId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.disabled = false;
+                    btnElement.style.opacity = '1';
+                    alert(data.message || 'Failed to cancel subscription.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+                btnElement.style.opacity = '1';
+                alert('Failed to cancel subscription. Please try again.');
+            });
+        }
+    </script>
+</div>
+</body>
+</html>
+
+
+
+

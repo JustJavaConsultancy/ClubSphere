@@ -191,7 +191,8 @@ public class MobileChannelController {
     }
 
     @GetMapping("/organizations")
-    public String organizationsPage(HttpServletRequest request, Model model) {
+    public String organizationsPage(HttpServletRequest request, Model model,
+                                    @RequestParam(value = "tab", required = false) String tab) {
         String currentUserId = (String) authenticationManager.get("sub");
         boolean isAdmin = authenticationManager.isAdmin();
 
@@ -216,13 +217,18 @@ public class MobileChannelController {
             communityRequests = communityService.getPendingRequests();
         }
 
+        // Get user subscriptions
+        List<Map<String, Object>> userSubscriptions = communityService.getUserSubscriptions(currentUserId);
+
         model.addAttribute("userCommunities", userCommunities);
         model.addAttribute("suggestedCommunities", suggestedCommunities);
         model.addAttribute("communityInvitations", communityInvitations);
         model.addAttribute("communityRequests", communityRequests);
+        model.addAttribute("userSubscriptions", userSubscriptions);
         model.addAttribute("userId", authenticationManager.get("sub"));
         model.addAttribute("usersName", authenticationManager.get("name"));
         model.addAttribute("currentPath", "/organizations");
+        model.addAttribute("activeTab", tab != null ? tab : "my-communities");
 
         // Check for success message
         String successMessage = (String) request.getSession().getAttribute("successMessage");

@@ -497,7 +497,7 @@
             let selectedModulePrice = 0;
 
             function money(n){
-                try { return new Intl.NumberFormat(undefined, {style:'currency', currency:'USD'}).format(n || 0); } catch(e){ return `$${Number(n||0).toFixed(2)}` }
+                try { return new Intl.NumberFormat('en-NG', {style:'currency', currency:'NGN'}).format(n || 0); } catch(e){ return `₦${Number(n||0).toFixed(2)}` }
             }
 
             function openBooking(moduleId, moduleName, modulePrice){

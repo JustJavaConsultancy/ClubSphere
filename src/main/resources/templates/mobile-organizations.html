@@ -499,23 +499,26 @@
     <!-- Tab Container -->
     <div class="tab-container">
         <nav class="tab-nav">
-            <button class="tab-button active" data-tab="my-communities">
+            <button class="tab-button" th:classappend="${activeTab == 'my-communities'} ? ' active'" data-tab="my-communities">
                 My Communities
             </button>
-            <button th:if="${!session.isAdmin}" class="tab-button" data-tab="suggested">
+            <button th:if="${!session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'suggested'} ? ' active'" data-tab="suggested">
                 Suggested
             </button>
-            <button th:if="${!session.isAdmin}" class="tab-button" data-tab="invitations">
+            <button th:if="${!session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'invitations'} ? ' active'" data-tab="invitations">
                 Invitations
             </button>
-            <button th:if="${session.isAdmin}" class="tab-button" data-tab="requests">
+            <button th:if="${session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'requests'} ? ' active'" data-tab="requests">
                 Requests
+            </button>
+            <button class="tab-button" th:classappend="${activeTab == 'subscriptions'} ? ' active'" data-tab="subscriptions">
+                Subscriptions
             </button>
         </nav>
 
         <div class="tab-content">
             <!-- My Communities Tab -->
-            <div id="my-communities" class="tab-panel active">
+            <div id="my-communities" class="tab-panel" th:classappend="${activeTab == 'my-communities'} ? ' active'">
                 <!-- Empty State for My Communities -->
                 <div th:if="${#lists.isEmpty(userCommunities)}" class="empty-state">
                     <div class="empty-state-icon">
@@ -707,10 +710,158 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Subscriptions Tab -->
+            <div id="subscriptions" class="tab-panel" th:classappend="${activeTab == 'subscriptions'} ? ' active'">
+                <!-- Summary Stats -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+                    <div style="background: white; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 3px solid #10b981;">
+                        <p style="font-size: 11px; color: #6b7280; margin: 0;">Active</p>
+                        <p style="font-size: 1.15rem; font-weight: 700; color: #1f2937; margin: 0;"
+                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[status.name() == 'ACTIVE']) : 0}">0</p>
+                    </div>
+                    <div style="background: white; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 3px solid #ef4444;">
+                        <p style="font-size: 11px; color: #6b7280; margin: 0;">Cancelled</p>
+                        <p style="font-size: 1.15rem; font-weight: 700; color: #1f2937; margin: 0;"
+                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[status.name() == 'CANCELLED']) : 0}">0</p>
+                    </div>
+                    <div style="background: white; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 3px solid #9ca3af;">
+                        <p style="font-size: 11px; color: #6b7280; margin: 0;">Expired</p>
+                        <p style="font-size: 1.15rem; font-weight: 700; color: #1f2937; margin: 0;"
+                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[status.name() == 'EXPIRED']) : 0}">0</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${userSubscriptions == null or #lists.isEmpty(userSubscriptions)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <span class="material-icons text-3xl" style="color: #2A2494;">credit_card</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Subscriptions Yet</h3>
+                    <p class="text-gray-600 mb-6">Browse communities to subscribe!</p>
+                </div>
+
+                <!-- Subscriptions List -->
+                <div th:each="sub, iterStat : ${userSubscriptions}"
+                     style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);"
+                     th:attr="data-subscription-id=${sub.subscriptionId}">
+
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <h4 style="font-weight: 700; color: #1f2937; margin: 0 0 4px 0;"
+                                th:text="${sub.communityName != null ? sub.communityName : 'Unknown Community'}">Community</h4>
+                            <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
+                                  th:style="${sub.status != null && sub.status.name() == 'ACTIVE'} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : (${sub.status != null && sub.status.name() == 'CANCELLED'} ? 'background-color: #fee2e2; color: #991b1b; display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #f3f4f6; color: #6b7280; display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;')"
+                                  th:text="${sub.status != null ? sub.status : 'UNKNOWN'}">ACTIVE</span>
+                        </div>
+                        <button type="button" style="padding: 4px; background: none; border: none; color: #9ca3af; cursor: pointer; transition: transform 0.2s ease;"
+                                th:onclick="'toggleMobileSubTx(' + ${iterStat.index} + ')'"
+                                th:id="'m-sub-expand-btn-' + ${iterStat.index}">
+                            <span class="material-icons" style="font-size: 20px;">expand_more</span>
+                        </button>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #6b7280; margin-bottom: 8px;">
+                        <span>Started: <span style="font-weight: 500;" th:text="${sub.startDate != null ? #temporals.format(sub.startDate, 'MMM dd, yyyy') : 'N/A'}">Jan 01</span></span>
+                        <span th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}">
+                            Next: <span style="font-weight: 500;" th:text="${sub.nextBillingDate != null ? #temporals.format(sub.nextBillingDate, 'MMM dd, yyyy') : 'N/A'}">Feb 01</span>
+                        </span>
+                    </div>
+
+                    <!-- Cancel Button -->
+                    <button th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}"
+                            type="button"
+                            style="width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #fca5a5; background: #fef2f2; color: #dc2626; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 8px; transition: background 0.2s ease;"
+                            th:onclick="'cancelMobileSubscription(' + ${sub.subscriptionId} + ', this)'"
+                            th:attr="data-sub-id=${sub.subscriptionId}">
+                        <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">cancel</span>
+                        Cancel Subscription
+                    </button>
+
+                    <!-- Transaction History -->
+                    <div style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease;"
+                         th:id="'m-sub-tx-panel-' + ${iterStat.index}">
+                        <div style="border-top: 1px solid #f3f4f6; padding-top: 12px; margin-top: 8px;">
+                            <h5 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0;">Transactions</h5>
+
+                            <div th:if="${sub.transactions == null or #lists.isEmpty(sub.transactions)}"
+                                 style="text-align: center; padding: 16px; color: #9ca3af; font-size: 12px;">
+                                No transactions recorded yet.
+                            </div>
+
+                            <div th:each="tx : ${sub.transactions}" style="background: #f9fafb; border-radius: 10px; padding: 12px; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <span style="font-weight: 500; font-size: 14px;" th:text="${tx.amount != null ? '₦' + #numbers.formatDecimal(tx.amount, 1, 2) : 'N/A'}">₦100.00</span>
+                                    <span style="font-size: 12px; font-weight: 600;"
+                                          th:text="${tx.paymentStatus}"
+                                          th:style="${tx.paymentStatus != null && tx.paymentStatus.name() == 'SUCCESS'} ? 'color: #059669; font-size: 12px; font-weight: 600;' : (${tx.paymentStatus != null && tx.paymentStatus.name() == 'PENDING'} ? 'color: #d97706; font-size: 12px; font-weight: 600;' : 'color: #dc2626; font-size: 12px; font-weight: 600;')">SUCCESS</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af;">
+                                    <span th:text="${tx.date != null ? #temporals.format(tx.date, 'MMM dd, yyyy') : 'N/A'}">Jan 01</span>
+                                    <span th:text="${tx.type}">SUBSCRIPTION</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Toggle mobile subscription transaction panel
+        function toggleMobileSubTx(index) {
+            const panel = document.getElementById('m-sub-tx-panel-' + index);
+            const btn = document.getElementById('m-sub-expand-btn-' + index);
+            if (panel) {
+                if (panel.style.maxHeight === '0px' || panel.style.maxHeight === '') {
+                    panel.style.maxHeight = '600px';
+                    if (btn) btn.querySelector('.material-icons').textContent = 'expand_less';
+                } else {
+                    panel.style.maxHeight = '0px';
+                    if (btn) btn.querySelector('.material-icons').textContent = 'expand_more';
+                }
+            }
+        }
+
+        // Cancel subscription (mobile)
+        function cancelMobileSubscription(subscriptionId, btnElement) {
+            if (!confirm('Are you sure you want to cancel this subscription?')) {
+                return;
+            }
+
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">hourglass_empty</span> Cancelling...';
+            btnElement.disabled = true;
+            btnElement.style.opacity = '0.7';
+
+            fetch('/subscription/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'subscriptionId=' + subscriptionId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/mobile/organizations?tab=subscriptions';
+                } else {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.disabled = false;
+                    btnElement.style.opacity = '1';
+                    alert(data.message || 'Failed to cancel subscription.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+                btnElement.style.opacity = '1';
+                alert('Failed to cancel subscription. Please try again.');
+            });
+        }
+
         // Tab switching functionality
         function initializeTabs() {
             const tabButtons = document.querySelectorAll('.tab-button');

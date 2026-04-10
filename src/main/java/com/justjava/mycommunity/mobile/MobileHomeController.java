@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.SessionDTO;
+import com.justjava.mycommunity.community.CommunityService;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.posts.PostService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,13 +46,16 @@ public class MobileHomeController {
     private final AuthenticationManager authenticationManager;
     private final PostService postService;
     private final EventService eventService;
+    private final CommunityService communityService;
 
     public MobileHomeController(AuthenticationManager authenticationManager,
                                 PostService postService,
-                                EventService eventService) {
+                                EventService eventService,
+                                CommunityService communityService) {
         this.authenticationManager = authenticationManager;
         this.postService = postService;
         this.eventService = eventService;
+        this.communityService = communityService;
     }
 
     /**
@@ -117,6 +121,15 @@ public class MobileHomeController {
         // Check if user can post (community-aware: only admin/creator of this community)
         boolean canUserPost = postService.canUserPostToCommunity(currentUserId, selectedCommunityId);
         model.addAttribute("canUserPost", canUserPost);
+
+        // Subscription status for the current user
+        boolean hasActiveSubscription = false;
+        try {
+            hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, selectedCommunityId);
+        } catch (Exception e) {
+            log.warn("Error checking subscription status: {}", e.getMessage());
+        }
+        model.addAttribute("hasActiveSubscription", hasActiveSubscription);
 
         return "mobile-home";
     }

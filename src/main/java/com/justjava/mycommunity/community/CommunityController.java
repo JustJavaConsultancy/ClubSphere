@@ -117,6 +117,15 @@ public class CommunityController {
             model.addAttribute("communityId", communityId);
             model.addAttribute("isAdmin", isAdmin);
 
+            // Subscription status for the current user
+            boolean hasActiveSubscription = false;
+            try {
+                hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, communityId);
+            } catch (Exception e) {
+                System.out.println("Error checking subscription status: " + e.getMessage());
+            }
+            model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "Error loading community data: " + e.getMessage());

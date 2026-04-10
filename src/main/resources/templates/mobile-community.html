@@ -305,6 +305,95 @@
             color: #991b1b;
         }
 
+        /* Mobile Subscription Card */
+        .mobile-subscription-card {
+            background: linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(240, 253, 244, 0.95));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(233, 213, 255, 0.5);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .mobile-sub-active-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+        .mobile-sub-inactive-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+        .mobile-subscribe-btn {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
+        }
+        .mobile-sub-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-sub-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .mobile-sub-modal-content {
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            padding: 24px 20px 32px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        .mobile-sub-modal.active .mobile-sub-modal-content {
+            transform: translateY(0);
+        }
+        .mobile-sub-amount-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .mobile-sub-amount-input:focus {
+            border-color: #7c3aed;
+        }
+
         /* Group Members Modal (bottom-sheet) */
         .mobile-gm-modal {
             display: none;
@@ -1338,6 +1427,61 @@
         .mobile-toast.show { opacity: 1; }
         .mobile-toast.success { background: #059669; color: white; }
         .mobile-toast.error   { background: #dc2626; color: white; }
+
+        /* ── Mobile Tab Navigation ── */
+        .mobile-manage-tabs {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 6px;
+            padding: 4px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .mobile-manage-tabs::-webkit-scrollbar { display: none; }
+
+        .mobile-manage-tab-btn {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 8px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .mobile-manage-tab-btn.active {
+            background: linear-gradient(135deg, #2A2494, #3730a3);
+            color: white;
+            box-shadow: 0 4px 12px rgba(42, 36, 148, 0.3);
+        }
+
+        .mobile-manage-tab-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .mobile-manage-tab-panel {
+            display: none;
+        }
+
+        .mobile-manage-tab-panel.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -1383,6 +1527,29 @@
         </svg>
         <span>You are viewing this community as a member. Only administrators can modify settings and create groups.</span>
     </div>
+
+    <!-- ═══ Mobile Tab Navigation ═══ -->
+    <div class="mobile-manage-tabs">
+        <button class="mobile-manage-tab-btn active" data-mobile-tab="m-general">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            General
+        </button>
+        <button class="mobile-manage-tab-btn" data-mobile-tab="m-groups">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Groups
+        </button>
+        <button class="mobile-manage-tab-btn" data-mobile-tab="m-members">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Members
+        </button>
+        <button th:if="${isAdmin}" class="mobile-manage-tab-btn" data-mobile-tab="m-subscriptions">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            Subs
+        </button>
+    </div>
+
+    <!-- ═══════════ GENERAL TAB ═══════════ -->
+    <div id="m-general" class="mobile-manage-tab-panel active">
 
     <!-- Community Settings -->
     <div class="mobile-card">
@@ -1513,6 +1680,77 @@
             <span id="mobilePrivacyFeedback" style="font-size: 13px; color: #059669;"></span>
         </div>
     </div>
+
+    <!-- Community Subscription -->
+    <div class="mobile-subscription-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Subscription</h2>
+        </div>
+
+        <div th:if="${hasActiveSubscription}" style="padding: 12px;">
+            <div class="mobile-sub-active-badge" style="margin-bottom: 10px;">
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Active Subscription
+            </div>
+            <p style="font-size: 14px; color: #374151;">You have an active subscription to this community. Thank you for your support!</p>
+        </div>
+
+        <div th:if="${!hasActiveSubscription}" style="padding: 12px;">
+            <div class="mobile-sub-inactive-badge" style="margin-bottom: 10px;">
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Not Subscribed
+            </div>
+            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">Support this community with a recurring monthly subscription. You choose the amount.</p>
+            <button type="button" onclick="openMobileSubscribeModal()" class="mobile-subscribe-btn">
+                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Subscribe Now
+            </button>
+        </div>
+        <div id="mobileSubscriptionFeedback" style="margin-top: 8px; padding: 0 12px;"></div>
+    </div>
+
+    <!-- Mobile Subscribe Modal (bottom-sheet) -->
+    <div id="mobileSubscribeModal" class="mobile-sub-modal" onclick="if(event.target===this) closeMobileSubscribeModal()">
+        <div class="mobile-sub-modal-content">
+            <div style="width: 40px; height: 4px; background: #d1d5db; border-radius: 4px; margin: 0 auto 16px;"></div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Subscribe to Community</h3>
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Enter the amount you'd like to pay monthly. You can choose any amount.</p>
+            <form hx-post="/subscription/subscribe"
+                  hx-target="#mobileSubscriptionFeedback"
+                  hx-swap="innerHTML"
+                  onsubmit="closeMobileSubscribeModal()">
+                <input type="hidden" name="communityId" th:value="${communityId}">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Monthly Amount</label>
+                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                           class="mobile-sub-amount-input" required>
+                </div>
+                <button type="submit" class="mobile-subscribe-btn">
+                    Confirm Subscription
+                </button>
+                <button type="button" onclick="closeMobileSubscribeModal()"
+                        style="width: 100%; padding: 12px; margin-top: 10px; background: #f3f4f6; border: none; border-radius: 14px; font-size: 15px; font-weight: 500; color: #6b7280; cursor: pointer;">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    </div><!-- END m-general tab -->
+
+    <!-- ═══════════ GROUPS TAB ═══════════ -->
+    <div id="m-groups" class="mobile-manage-tab-panel">
 
     <!-- Group Requests Section (Admin Only) -->
     <div th:if="${isAdmin}" class="mobile-card">
@@ -1709,6 +1947,11 @@
         </div>
     </div>
 
+    </div><!-- END m-groups tab -->
+
+    <!-- ═══════════ MEMBERS TAB ═══════════ -->
+    <div id="m-members" class="mobile-manage-tab-panel">
+
     <!-- Invite Members (Admin only) -->
     <div th:if="${isAdmin}" class="mobile-card">
         <div class="mobile-section-header">
@@ -1840,6 +2083,31 @@
             </div>
         </div>
     </div>
+
+    </div><!-- END m-members tab -->
+
+    <!-- ═══════════ SUBSCRIPTIONS TAB (Admin Only) ═══════════ -->
+    <div th:if="${isAdmin}" id="m-subscriptions" class="mobile-manage-tab-panel">
+
+    <!-- Admin: Community Subscriptions Section -->
+    <div th:if="${isAdmin}" class="mobile-card">
+        <div class="mobile-section-header">
+            <div class="mobile-icon" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+            </div>
+            <h2 class="mobile-section-title">Community Subscriptions</h2>
+        </div>
+        <div id="mobile-subscriptions-list" style="padding: 4px 0;">
+            <div style="text-align:center;padding:20px 0;color:#9ca3af;">
+                <div style="display:inline-block;width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 8px;"></div>
+                <p style="font-size:13px;">Loading subscriptions...</p>
+            </div>
+        </div>
+    </div>
+
+    </div><!-- END m-subscriptions tab -->
 
     <!-- Create Post Card (only for community admins/creators) -->
     <div th:if="${canUserPost}" class="mobile-card">
@@ -2728,6 +2996,18 @@
             }
         }
 
+        // ── Mobile Subscribe Modal ──
+        function openMobileSubscribeModal() {
+            var modal = document.getElementById('mobileSubscribeModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMobileSubscribeModal() {
+            var modal = document.getElementById('mobileSubscribeModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
         // ── Mobile Group Members Modal ──
         function viewMobileGroupMembers(groupId, groupName) {
             var modal = document.getElementById('mobileGroupMembersModal');
@@ -2788,6 +3068,84 @@
         // Close group members modal on backdrop click
         document.getElementById('mobileGroupMembersModal').addEventListener('click', function(e) {
             if (e.target === this) closeMobileGroupMembersModal();
+        });
+    </script>
+
+    <!-- Mobile Subscriptions auto-load script (Admin only) -->
+    <script th:if="${isAdmin}" th:inline="javascript">
+        (function() {
+            const communityId = /*[[${communityId}]]*/ null;
+            if (!communityId) return;
+
+            const container = document.getElementById('mobile-subscriptions-list');
+            if (!container) return;
+
+            fetch('/subscription/subscriptions/list?communityId=' + communityId)
+                .then(r => r.json())
+                .then(subs => {
+                    if (!subs || subs.length === 0) {
+                        container.innerHTML = '<div style="text-align:center;padding:24px 0;color:#9ca3af;"><p style="font-weight:600;color:#6b7280;">No subscriptions yet</p><p style="font-size:13px;">Subscribers will appear here.</p></div>';
+                        return;
+                    }
+
+                    let html = '';
+                    subs.forEach(sub => {
+                        const fullName = ((sub.firstName || '') + ' ' + (sub.lastName || '')).trim() || 'Unknown';
+                        const email = sub.email || '';
+                        const status = sub.status || 'UNKNOWN';
+                        const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'N/A';
+                        const totalPaid = sub.totalPaid != null ? '₦' + Number(sub.totalPaid).toFixed(2) : '₦0.00';
+
+                        let statusColor = '#6b7280';
+                        let statusBg = '#f3f4f6';
+                        if (status === 'ACTIVE') { statusColor = '#065f46'; statusBg = '#d1fae5'; }
+                        else if (status === 'CANCELLED') { statusColor = '#991b1b'; statusBg = '#fee2e2'; }
+
+                        const initials = (sub.firstName ? sub.firstName.charAt(0) : '?') + (sub.lastName ? sub.lastName.charAt(0) : '');
+
+                        html += '<div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f3f4f6;">';
+                        html += '<div style="width:36px;height:36px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:#4338ca;margin-right:12px;flex-shrink:0;">' + initials + '</div>';
+                        html += '<div style="flex:1;min-width:0;">';
+                        html += '<div style="font-weight:600;font-size:14px;color:#1f2937;">' + fullName + '</div>';
+                        html += '<div style="font-size:12px;color:#9ca3af;">' + email + '</div>';
+                        html += '<div style="font-size:11px;color:#6b7280;margin-top:2px;">Since ' + startDate + ' · ' + totalPaid + '</div>';
+                        html += '</div>';
+                        html += '<span style="display:inline-flex;padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:600;text-transform:uppercase;background:' + statusBg + ';color:' + statusColor + ';">' + status + '</span>';
+                        html += '</div>';
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error('Error loading subscriptions:', err);
+                    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:#ef4444;font-size:13px;">Error loading subscriptions.</div>';
+                });
+        })();
+    </script>
+
+    <!-- Mobile Tab Navigation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabButtons = document.querySelectorAll('.mobile-manage-tab-btn');
+            const tabPanels = document.querySelectorAll('.mobile-manage-tab-panel');
+            tabButtons.forEach(function(btn) {
+                btn.addEventListener('click', function () {
+                    var tab = btn.getAttribute('data-mobile-tab');
+                    tabButtons.forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    tabPanels.forEach(function(panel) {
+                        if (panel.id === tab) {
+                            panel.classList.add('active');
+                        } else {
+                            panel.classList.remove('active');
+                        }
+                    });
+                    // Scroll to top of tabs when switching
+                    var tabNav = document.querySelector('.mobile-manage-tabs');
+                    if (tabNav) {
+                        tabNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
         });
     </script>
 </div>

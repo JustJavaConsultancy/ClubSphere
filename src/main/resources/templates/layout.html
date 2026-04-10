@@ -306,6 +306,13 @@
                     AI Support
                 </a>
 
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/subscription/my-subscriptions}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/subscription/my-subscriptions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-credit-card w-5"></i>
+                    Subscriptions
+                </a>
+
                 <a th:href="@{/settings}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/settings'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
@@ -492,6 +499,13 @@
                    th:classappend="${currentPath == '/ai-support'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-robot w-5"></i>
                     AI Support
+                </a>
+
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/subscription/my-subscriptions}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/subscription/my-subscriptions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-credit-card w-5"></i>
+                    Subscriptions
                 </a>
 
                 <a th:href="@{/settings}"
