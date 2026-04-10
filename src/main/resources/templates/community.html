@@ -185,6 +185,80 @@
             transform: none;
         }
 
+        /* Community Privacy Toggle */
+        .privacy-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .privacy-toggle {
+            position: relative;
+            display: inline-block;
+            width: 56px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .privacy-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .privacy-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #10b981;
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .privacy-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .privacy-slider {
+            background-color: #ef4444;
+        }
+
+        input:checked + .privacy-slider:before {
+            transform: translateX(28px);
+        }
+
+        .privacy-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .privacy-status-badge.public {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .privacy-status-badge.private {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
         .secondary-button {
             background: #f8fafc;
             color: #475569;
@@ -213,11 +287,165 @@
             font-size: 13px;
             font-weight: 500;
             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .members-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.35);
         }
 
         .members-icon {
             width: 16px;
             height: 16px;
+        }
+
+        /* Group Members Modal */
+        .group-members-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .group-members-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .group-members-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .group-members-modal.show .group-members-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .gm-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .gm-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .gm-modal-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .gm-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .gm-modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .gm-modal-body {
+            padding: 20px 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .gm-member-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .gm-member-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .gm-member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .gm-member-name {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+
+        .gm-member-email {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .gm-loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .gm-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        .gm-search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        .gm-search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .community-settings-grid {
@@ -864,6 +1092,53 @@
         </div>
     </div>
 
+    <!-- Community Privacy Toggle (Admin Only) -->
+    <div th:if="${isAdmin}" class="bg-white rounded-xl shadow-sm p-6 mb-6 card-hover community-card">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            Community Privacy
+        </h2>
+        <div class="privacy-toggle-wrapper">
+            <div>
+                <p class="text-sm text-gray-700 mb-2">Control community visibility</p>
+                <div id="privacyStatusBadge"
+                     class="privacy-status-badge"
+                     th:classappend="${community != null && community.communityPrivacy != null && community.communityPrivacy} ? 'private' : 'public'">
+                    <svg id="privacyIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path th:if="${community == null || community.communityPrivacy == null || !community.communityPrivacy}"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path th:if="${community != null && community.communityPrivacy != null && community.communityPrivacy}"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span id="privacyStatusText"
+                          th:text="${community != null && community.communityPrivacy != null && community.communityPrivacy} ? 'Private' : 'Public'">Public</span>
+                </div>
+                <p id="privacyExplanation" class="text-xs text-gray-500 mt-2"
+                   th:text="${community != null && community.communityPrivacy != null && community.communityPrivacy}
+                       ? 'This community is private. Only invited members can access it.'
+                       : 'This community is public. Anyone can discover and join it.'">
+                    This community is public. Anyone can discover and join it.
+                </p>
+            </div>
+            <label class="privacy-toggle">
+                <input type="checkbox"
+                       id="privacyToggle"
+                       th:checked="${community != null && community.communityPrivacy != null && community.communityPrivacy}"
+                       hx-post="/my-community/update-privacy"
+                       hx-target="#privacyFeedback"
+                       hx-swap="innerHTML"
+                       hx-vals='js:{communityId: document.querySelector("[name=communityId]").value, status: document.getElementById("privacyToggle").checked ? "private" : "public"}'
+                       onchange="updatePrivacyUI(this.checked)">
+                <span class="privacy-slider"></span>
+            </label>
+        </div>
+        <div class="mt-3">
+            <span id="privacyFeedback" class="text-sm text-green-600"></span>
+        </div>
+    </div>
+
     <!-- Groups Management -->
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div class="flex justify-between items-center mb-6">
@@ -918,7 +1193,10 @@
                         </div>
                     </td>
                     <td class="py-3 px-4">
-                            <span class="members-badge">
+                            <span class="members-badge"
+                                  th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.name != null ? group.name : 'Unknown Group'}"
+                                  onclick="viewGroupMembers(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))"
+                                  title="Click to view members">
                                 <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                                 </svg>
@@ -1633,6 +1911,111 @@
             // Show / hide no-results message
             if (noResults) noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
         }
+    </script>
+
+    <!-- GROUP MEMBERS MODAL -->
+    <div id="groupMembersModal" class="group-members-modal" role="dialog" aria-modal="true">
+        <div class="group-members-modal-content">
+            <div class="gm-modal-header">
+                <div>
+                    <h2 class="gm-modal-title" id="gmModalTitle">Group Members</h2>
+                    <p class="gm-modal-subtitle" id="gmModalSubtitle">Loading...</p>
+                </div>
+                <button class="gm-modal-close" onclick="closeGroupMembersModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="gm-modal-body">
+                <input type="text" class="gm-search-input" id="gmSearchInput" placeholder="Search members..." oninput="filterGroupMembersModal()">
+                <div id="gmMembersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updatePrivacyUI(isPrivate) {
+            var badge = document.getElementById('privacyStatusBadge');
+            var text = document.getElementById('privacyStatusText');
+            var explanation = document.getElementById('privacyExplanation');
+            if (!badge) return;
+            if (isPrivate) {
+                badge.className = 'privacy-status-badge private';
+                text.textContent = 'Private';
+                explanation.textContent = 'This community is private. Only invited members can access it.';
+            } else {
+                badge.className = 'privacy-status-badge public';
+                text.textContent = 'Public';
+                explanation.textContent = 'This community is public. Anyone can discover and join it.';
+            }
+        }
+
+        function viewGroupMembers(groupId, groupName) {
+            var modal = document.getElementById('groupMembersModal');
+            var titleEl = document.getElementById('gmModalTitle');
+            var subtitleEl = document.getElementById('gmModalSubtitle');
+            var listEl = document.getElementById('gmMembersList');
+            var searchInput = document.getElementById('gmSearchInput');
+
+            titleEl.textContent = (groupName || 'Group') + ' Members';
+            subtitleEl.textContent = 'Loading members...';
+            listEl.innerHTML = '<div class="gm-loading">Loading members...</div>';
+            searchInput.value = '';
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            fetch('/api/group/' + groupId + '/members')
+                .then(function(response) { return response.json(); })
+                .then(function(members) {
+                    if (!members || members.length === 0) {
+                        subtitleEl.textContent = '0 members';
+                        listEl.innerHTML = '<div class="gm-empty"><p>No members in this group yet.</p></div>';
+                        return;
+                    }
+                    subtitleEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
+                    listEl.innerHTML = members.map(function(m) {
+                        var fn = m.firstName || '';
+                        var ln = m.lastName || '';
+                        var fullName = (fn + ' ' + ln).trim() || m.email || 'Unknown';
+                        var initials = ((fn.charAt(0) || '') + (ln.charAt(0) || '')).toUpperCase() || (m.email ? m.email.charAt(0).toUpperCase() : 'U');
+                        return '<div class="gm-member-item" data-name="' + fullName.toLowerCase() + '" data-email="' + (m.email || '').toLowerCase() + '">' +
+                            '<div class="gm-member-avatar">' + initials + '</div>' +
+                            '<div><div class="gm-member-name">' + fullName + '</div>' +
+                            '<div class="gm-member-email">' + (m.email || '') + '</div></div></div>';
+                    }).join('');
+                })
+                .catch(function(err) {
+                    console.error('Error fetching group members:', err);
+                    subtitleEl.textContent = 'Error';
+                    listEl.innerHTML = '<div class="gm-empty"><p>Failed to load members. Please try again.</p></div>';
+                });
+        }
+
+        function closeGroupMembersModal() {
+            document.getElementById('groupMembersModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function filterGroupMembersModal() {
+            var query = document.getElementById('gmSearchInput').value.toLowerCase();
+            var items = document.querySelectorAll('#gmMembersList .gm-member-item');
+            items.forEach(function(item) {
+                var name = item.getAttribute('data-name') || '';
+                var email = item.getAttribute('data-email') || '';
+                item.style.display = (name.indexOf(query) !== -1 || email.indexOf(query) !== -1) ? '' : 'none';
+            });
+        }
+
+        // Close modal on backdrop click or Escape
+        document.getElementById('groupMembersModal').addEventListener('click', function(e) {
+            if (e.target === this) closeGroupMembersModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('groupMembersModal').classList.contains('show')) {
+                closeGroupMembersModal();
+            }
+        });
     </script>
 
     <!-- ASSIGN ADMIN CONFIRMATION MODAL -->

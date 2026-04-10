@@ -459,8 +459,45 @@ public class MobileCommunityController {
             normalizedCommunity.put("communityName", communityResponse.getName());
             normalizedCommunity.put("communityDescription", communityResponse.getDescription());
             normalizedCommunity.put("isPrivate", communityResponse.getIsPrivate());
+            normalizedCommunity.put("communityPrivacy", communityResponse.getCommunityPrivacy() != null ? communityResponse.getCommunityPrivacy() : false);
         }
         return normalizedCommunity;
+    }
+
+    // HTMX endpoint for updating community privacy
+    @PostMapping("/update-privacy")
+    @ResponseBody
+    public String updateCommunityPrivacy(@RequestParam("communityId") Long communityId,
+                                         @RequestParam("status") String status) {
+        try {
+            if (!authenticationManager.isAdmin()) {
+                return "❌ Only administrators can change community privacy";
+            }
+
+            CommunityDTO currentResponse = communityService.getCommunityById(communityId);
+            if (currentResponse == null) {
+                return "❌ Community not found";
+            }
+
+            boolean isPrivate = "private".equalsIgnoreCase(status);
+
+            CreateCommunityVO dto = CreateCommunityVO.builder()
+                    .communityName(currentResponse.getName())
+                    .communityDescription(currentResponse.getDescription())
+                    .isPrivate(isPrivate)
+                    .build();
+
+            communityService.updateCommunity(dto, communityId);
+
+            if (isPrivate) {
+                return "🔒 Community is now Private";
+            } else {
+                return "✅ Community is now Public";
+            }
+
+        } catch (Exception e) {
+            return "❌ Error updating privacy: " + e.getMessage();
+        }
     }
 
     private boolean isHtmxRequest(String hxRequest) {

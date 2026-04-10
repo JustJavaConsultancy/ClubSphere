@@ -738,6 +738,42 @@ public class CommunityController {
         return "fragments/empty-groups :: empty-state";
     }
 
+    // HTMX endpoint for updating community privacy
+    @PostMapping("/update-privacy")
+    @ResponseBody
+    public String updateCommunityPrivacy(@RequestParam("communityId") Long communityId,
+                                         @RequestParam("status") String status) {
+        try {
+            if (!authenticationManager.isAdmin()) {
+                return "❌ Only administrators can change community privacy";
+            }
+
+            CommunityDTO currentResponse = communityService.getCommunityById(communityId);
+            if (currentResponse == null) {
+                return "❌ Community not found";
+            }
+
+            boolean isPrivate = "private".equalsIgnoreCase(status);
+
+            CreateCommunityVO dto = CreateCommunityVO.builder()
+                    .communityName(currentResponse.getName())
+                    .communityDescription(currentResponse.getDescription())
+                    .isPrivate(isPrivate)
+                    .build();
+
+            communityService.updateCommunity(dto, communityId);
+
+            if (isPrivate) {
+                return "🔒 Community is now Private";
+            } else {
+                return "✅ Community is now Public";
+            }
+
+        } catch (Exception e) {
+            return "❌ Error updating privacy: " + e.getMessage();
+        }
+    }
+
     // Utility method to check if request is from HTMX
     private boolean isHtmxRequest(String hxRequest) {
         return "true".equals(hxRequest);

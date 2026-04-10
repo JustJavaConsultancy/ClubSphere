@@ -66,7 +66,9 @@ private final PaymentOrchestratorService paymentOrchestratorService;
         community.setOrganization(user.getOrganization() != null ? user.getOrganization() : organization);
         community.setChannel(channel);
         community.setTownHall(townHall);
-        community.setPrivate(dto.getIsPrivate() != null ? dto.getIsPrivate() : false);
+        boolean isPrivate = dto.getIsPrivate() != null ? dto.getIsPrivate() : false;
+        community.setPrivate(isPrivate);
+        community.setCommunityPrivacy(isPrivate);
         community = communityRepository.save(community);
         linkUserToCommunity(user, community, Role.CREATOR);
 
@@ -161,6 +163,10 @@ private final PaymentOrchestratorService paymentOrchestratorService;
 
         community.setName(vo.getCommunityName());
         community.setDescription(vo.getCommunityDescription());
+        if (vo.getIsPrivate() != null) {
+            community.setCommunityPrivacy(vo.getIsPrivate());
+            community.setPrivate(vo.getIsPrivate());
+        }
         communityRepository.save(community);
     }
 
