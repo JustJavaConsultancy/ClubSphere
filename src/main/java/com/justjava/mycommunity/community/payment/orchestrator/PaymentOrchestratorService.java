@@ -34,6 +34,7 @@ public class PaymentOrchestratorService {
     public Map<String, Object> initiatePayment(String userId,
                                                Long communityId,
                                                BigDecimal amount,
+                                               PaymentType paymentType,
                                                String gatewayName) {
 
         String reference = UUID.randomUUID().toString();
@@ -45,6 +46,7 @@ public class PaymentOrchestratorService {
         tx.setAmount(amount);
         tx.setStatus(PaymentStatus.PENDING);
         tx.setType(PaymentType.SUBSCRIPTION);
+        tx.setType(paymentType);
         tx.setProviderRef(reference);
         tx.setCreatedAt(LocalDateTime.now());
 
@@ -73,4 +75,5 @@ public class PaymentOrchestratorService {
 
         return gateway.verifyPayment(reference);
     }
+
 }

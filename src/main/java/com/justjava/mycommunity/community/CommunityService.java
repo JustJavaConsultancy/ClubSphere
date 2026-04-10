@@ -1127,7 +1127,7 @@ private final PaymentOrchestratorService paymentOrchestratorService;
                         userId,
                         communityId,
                         amount,
-                        null // default gateway (Paystack)
+                        PaymentType.DONATION, null // default gateway (Paystack)
                 );
 
         // 🔹 Step 6: Extract redirect URL
@@ -1200,6 +1200,50 @@ private final PaymentOrchestratorService paymentOrchestratorService;
         }
 
         return result;
+    }
+    @Transactional
+    public String processDonation(String userId,
+                                  Long communityId,
+                                  BigDecimal amount,
+                                  String message) {
+
+        // 🔹 Validate community
+        communityRepository.findById(communityId)
+                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+
+        // 🔹 Unique reference
+        String paymentRef = UUID.randomUUID().toString();
+
+        // 🔹 Start Flowable process
+        runtimeService.startProcessInstanceByKey(
+                "communityDonation",
+                paymentRef,
+                Map.of(
+                        "userId", userId,
+                        "communityId", communityId,
+                        "amount", amount,
+                        "paymentRef", paymentRef,
+                        "message", message
+                )
+        );
+
+        // 🔹 Initiate payment (same as subscription)
+        Map<String, Object> paymentResponse =
+                paymentOrchestratorService.initiatePayment(
+                        userId,
+                        communityId,
+                        amount,
+                        PaymentType.DONATION,
+                        null
+                );
+
+        Map<String, Object> data = (Map<String, Object>) paymentResponse.get("data");
+
+        if (data == null || data.get("authorization_url") == null) {
+            throw new RuntimeException("Failed to initialize donation payment");
+        }
+
+        return (String) data.get("authorization_url");
     }
     // Utility method if needed
 }
