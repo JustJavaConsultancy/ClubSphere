@@ -762,6 +762,10 @@
                     </div>
 
                     <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #6b7280; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #1f2937; font-size: 14px; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-icons" style="font-size: 14px; color: #10b981;">payments</span>
+                            <span th:text="${sub.amount != null ? '₦' + #numbers.formatDecimal(sub.amount, 1, 2) : 'N/A'}">₦0.00</span>
+                        </span>
                         <span>Started: <span style="font-weight: 500;" th:text="${sub.startDate != null ? #temporals.format(sub.startDate, 'MMM dd, yyyy') : 'N/A'}">Jan 01</span></span>
                         <span th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}">
                             Next: <span style="font-weight: 500;" th:text="${sub.nextBillingDate != null ? #temporals.format(sub.nextBillingDate, 'MMM dd, yyyy') : 'N/A'}">Feb 01</span>

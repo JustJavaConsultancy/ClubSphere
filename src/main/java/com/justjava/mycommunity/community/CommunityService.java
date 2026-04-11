@@ -1210,6 +1210,7 @@ public class CommunityService {
             data.put("communityId", sub.getCommunityId());
             data.put("communityName", community != null ? community.getName() : "Unknown Community");
             data.put("status", sub.getStatus());
+            data.put("amount", sub.getAmount());
             data.put("startDate", sub.getStartDate());
             data.put("nextBillingDate", sub.getNextBillingDate());
 
