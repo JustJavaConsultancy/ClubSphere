@@ -13,6 +13,7 @@ import com.justjava.mycommunity.community.dto.PaymentType;
 import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.mapper.CommunityMapper;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
+import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
 import com.justjava.mycommunity.community.repository.PaymentTransactionRepository;
 import com.justjava.mycommunity.organization.Channel;
@@ -51,6 +52,7 @@ public class CommunityService {
     private final CommunityMapper communityMapper;
     private final MembershipSubscriptionRepository membershipSubscriptionRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
+    private final DonationRepository donationRepository;
 
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
@@ -957,180 +959,84 @@ public class CommunityService {
         }
     }
 
-    // Utility method if needed
-    private Map<String, Object> extractCommunityData(Object communityResponse) {
-        Map<String, Object> normalizedCommunity = new HashMap<>();
+    // ══════════════════ SUBSCRIPTIONS ══════════════════
 
-        if (communityResponse instanceof CommunityDTO communityDTO) {
-            normalizedCommunity.put("id", communityDTO.getId());
-            normalizedCommunity.put("communityName", communityDTO.getName());
-            normalizedCommunity.put("communityDescription", communityDTO.getDescription());
-        }
-
-        return normalizedCommunity;
+    public boolean hasActiveSubscription(String userId, Long communityId) {
+        return membershipSubscriptionRepository.existsByUserIdAndCommunityIdAndStatus(
+                userId, communityId, SubscriptionStatus.ACTIVE
+        );
     }
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getCommunityPayments(Long communityId) {
 
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        try {
-            // 🔹 Validate community
-            communityRepository.findById(communityId)
-                    .orElseThrow(() -> new EntityNotFoundException("Community not found"));
-
-            // 🔹 Fetch successful payments
-            List<PaymentTransaction> transactions = paymentTransactionRepository.
-                    findByStatusAndType(PaymentStatus.SUCCESS,
-                    PaymentType.SUBSCRIPTION);
-
-            for (PaymentTransaction tx : transactions) {
-
-                Map<String, Object> data = new HashMap<>();
-                data.put("transactionId", tx.getId());
-                data.put("userId", tx.getUserId());
-                data.put("amount", tx.getAmount());
-                data.put("type", tx.getType());
-                data.put("status", tx.getStatus());
-                data.put("date", tx.getCreatedAt());
-
-                result.add(data);
-            }
-
-        } catch (Exception e) {
-            //log.error("Error fetching community payments", e);
-        }
-
-        return result;
-    }
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getCommunityPaymentsPerMember(Long communityId) {
-
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        try {
-            // 🔹 Validate community
-            communityRepository.findById(communityId)
-                    .orElseThrow(() -> new EntityNotFoundException("Community not found"));
-
-            // 🔹 Fetch successful payments
-            List<PaymentTransaction> transactions =
-                    paymentTransactionRepository.findByCommunityIdAndStatus(
-                            communityId,
-                            PaymentStatus.SUCCESS
-                    );
-
-            if (transactions.isEmpty()) {
-                return result;
-            }
-
-            // 🔹 Group by userId
-            Map<String, List<PaymentTransaction>> grouped =
-                    transactions.stream()
-                            .collect(Collectors.groupingBy(PaymentTransaction::getUserId));
-
-            // 🔹 Fetch all users in one query
-            List<String> userIds = new ArrayList<>(grouped.keySet());
-
-            Map<String, User> userMap = userRepository.findByUserIdIn(userIds)
-                    .stream()
-                    .collect(Collectors.toMap(User::getUserId, u -> u));
-
-            // 🔹 Build response
-            for (Map.Entry<String, List<PaymentTransaction>> entry : grouped.entrySet()) {
-
-                String userId = entry.getKey();
-                List<PaymentTransaction> userTxs = entry.getValue();
-
-                BigDecimal totalAmount = userTxs.stream()
-                        .map(PaymentTransaction::getAmount)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                Map<String, Object> data = new HashMap<>();
-
-                User user = userMap.get(userId);
-
-                data.put("userId", userId);
-                data.put("firstName", user != null ? user.getFirstName() : null);
-                data.put("lastName", user != null ? user.getLastName() : null);
-                data.put("totalAmount", totalAmount);
-
-                // 🔹 Add transactions
-                List<Map<String, Object>> txList = userTxs.stream().map(tx -> {
-                    Map<String, Object> txData = new HashMap<>();
-                    txData.put("transactionId", tx.getId());
-                    txData.put("amount", tx.getAmount());
-                    txData.put("type", tx.getType());
-                    txData.put("date", tx.getCreatedAt());
-                    return txData;
-                }).toList();
-
-                data.put("transactions", txList);
-
-                result.add(data);
-            }
-
-        } catch (Exception e) {
-            //log.error("Error fetching payments per member", e);
-        }
-
-        return result;
-    }
     @Transactional
     public void startSubscription(String userId, Long communityId, BigDecimal amount) {
 
-        // 🔹 Validate membership
+        // Validate membership
         boolean isMember = communityMembershipRepository
-                .existsByUserIdAndCommunityIdAndStatus(
-                        userId,
-                        communityId,
-                        MembershipStatus.APPROVED
-                );
-
+                .existsByUserIdAndCommunityIdAndStatus(userId, communityId, MembershipStatus.APPROVED);
         if (!isMember) {
-            throw new SecurityException("User must be a member before subscribing");
+            throw new SecurityException("User must be a community member before subscribing");
         }
 
-        // 🔹 Prevent duplicate active subscription
-        boolean alreadySubscribed = membershipSubscriptionRepository
-                .existsByUserIdAndCommunityIdAndStatus(
-                        userId,
-                        communityId,
-                        SubscriptionStatus.ACTIVE
-                );
-
-        if (alreadySubscribed) {
-            throw new IllegalStateException("User already has an active subscription");
+        // Check for existing active subscription
+        Optional<MembershipSubscription> existing =
+                membershipSubscriptionRepository.findByUserIdAndCommunityId(userId, communityId);
+        if (existing.isPresent() && existing.get().getStatus() == SubscriptionStatus.ACTIVE) {
+            throw new IllegalStateException("User already has an active subscription for this community");
         }
 
-        // 🔹 Start Flowable process
-        String businessKey = userId + "_" + communityId;
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException("Subscription amount must be at least ₦1");
+        }
 
-        runtimeService.startProcessInstanceByKey(
-                "communitySubscription",
-                businessKey,
-                Map.of(
-                        "userId", userId,
-                        "communityId", communityId,
-                        "amount", amount
-                )
-        );
+        // Create subscription
+        MembershipSubscription sub = new MembershipSubscription();
+        sub.setUserId(userId);
+        sub.setCommunityId(communityId);
+        sub.setAmount(amount);
+        sub.setStatus(SubscriptionStatus.ACTIVE);
+        sub.setStartDate(java.time.LocalDateTime.now());
+        sub.setNextBillingDate(java.time.LocalDateTime.now().plusMonths(1));
+        membershipSubscriptionRepository.save(sub);
 
-        //log.info("Subscription process started for user {} in community {}", userId, communityId);
+        // Record payment transaction
+        PaymentTransaction tx = new PaymentTransaction();
+        tx.setUserId(userId);
+        tx.setCommunityId(communityId);
+        tx.setAmount(amount);
+        tx.setType(PaymentType.SUBSCRIPTION);
+        tx.setStatus(PaymentStatus.SUCCESS);
+        tx.setProviderRef("SUB-" + sub.getId());
+        tx.setCreatedAt(java.time.LocalDateTime.now());
+        paymentTransactionRepository.save(tx);
     }
+
+    @Transactional
+    public void cancelSubscription(String userId, Long subscriptionId) {
+
+        MembershipSubscription sub = membershipSubscriptionRepository.findById(subscriptionId)
+                .orElseThrow(() -> new EntityNotFoundException("Subscription not found"));
+
+        if (!sub.getUserId().equals(userId)) {
+            throw new SecurityException("You can only cancel your own subscription");
+        }
+
+        if (sub.getStatus() != SubscriptionStatus.ACTIVE) {
+            throw new IllegalStateException("Subscription is not active");
+        }
+
+        sub.setStatus(SubscriptionStatus.CANCELLED);
+        membershipSubscriptionRepository.save(sub);
+    }
+
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCommunitySubscriptions(Long communityId) {
 
         List<Map<String, Object>> result = new ArrayList<>();
 
-        List<MembershipSubscription> subscriptions =
-                membershipSubscriptionRepository.findByCommunityId(communityId);
+        List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByCommunityId(communityId);
+        if (subscriptions.isEmpty()) return result;
 
-        if (subscriptions.isEmpty()) {
-            return result;
-        }
-
-        // 🔹 Fetch users in batch
+        // Fetch users in batch
         List<String> userIds = subscriptions.stream()
                 .map(MembershipSubscription::getUserId)
                 .distinct()
@@ -1138,38 +1044,35 @@ public class CommunityService {
 
         Map<String, User> userMap = userRepository.findByUserIdIn(userIds)
                 .stream()
-                .collect(Collectors.toMap(User::getUserId, u -> u));
-
-        // 🔹 Fetch payment transactions for this community
-        List<PaymentTransaction> allTx = paymentTransactionRepository.findByCommunityId(communityId);
-        Map<String, List<PaymentTransaction>> txByUser = allTx.stream()
-                .collect(Collectors.groupingBy(PaymentTransaction::getUserId));
+                .collect(Collectors.toMap(User::getUserId, u -> u, (a, b) -> a));
 
         for (MembershipSubscription sub : subscriptions) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("subscriptionId", sub.getId());
+            entry.put("userId", sub.getUserId());
 
             User user = userMap.get(sub.getUserId());
+            entry.put("firstName", user != null ? user.getFirstName() : "Unknown");
+            entry.put("lastName", user != null ? user.getLastName() : "");
+            entry.put("email", user != null ? user.getEmail() : "");
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("userId", sub.getUserId());
-            data.put("firstName", user != null ? user.getFirstName() : null);
-            data.put("lastName", user != null ? user.getLastName() : null);
-            data.put("email", user != null ? user.getEmail() : null);
-            data.put("status", sub.getStatus());
-            data.put("startDate", sub.getStartDate());
-            data.put("nextBillingDate", sub.getNextBillingDate());
-
-            // 🔹 Attach payment history for this subscriber
-            List<PaymentTransaction> userTxList = txByUser.getOrDefault(sub.getUserId(), List.of());
-            BigDecimal totalPaid = userTxList.stream()
-                    .filter(tx -> tx.getStatus() == PaymentStatus.SUCCESS)
-                    .map(PaymentTransaction::getAmount)
-                    .filter(a -> a != null)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            data.put("totalPaid", totalPaid);
-            data.put("transactionCount", userTxList.size());
-
-            result.add(data);
+            entry.put("amount", sub.getAmount());
+            entry.put("status", sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN");
+            entry.put("startDate", sub.getStartDate());
+            entry.put("nextBillingDate", sub.getNextBillingDate());
+            result.add(entry);
         }
+
+        // Sort newest first
+        result.sort((a, b) -> {
+            Comparable da = (Comparable) b.get("startDate");
+            Comparable db = (Comparable) a.get("startDate");
+            if (da == null && db == null) return 0;
+            if (da == null) return 1;
+            if (db == null) return -1;
+            return da.compareTo(db);
+        });
+
         return result;
     }
 
@@ -1178,16 +1081,146 @@ public class CommunityService {
 
         List<Map<String, Object>> result = new ArrayList<>();
 
-        List<MembershipSubscription> subscriptions =
-                membershipSubscriptionRepository.findByUserId(userId);
+        List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByUserId(userId);
+        if (subscriptions.isEmpty()) return result;
 
-        if (subscriptions.isEmpty()) {
-            return result;
-        }
-
-        // 🔹 Fetch community names in batch
+        // Fetch community names in batch
         List<Long> communityIds = subscriptions.stream()
                 .map(MembershipSubscription::getCommunityId)
+                .distinct()
+                .toList();
+
+        Map<Long, String> communityNameMap = new HashMap<>();
+        for (Long cId : communityIds) {
+            try {
+                communityRepository.findById(cId).ifPresent(c -> communityNameMap.put(cId, c.getName()));
+            } catch (Exception e) {
+                communityNameMap.put(cId, "Unknown Community");
+            }
+        }
+
+        for (MembershipSubscription sub : subscriptions) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("subscriptionId", sub.getId());
+            entry.put("communityId", sub.getCommunityId());
+            entry.put("communityName", communityNameMap.getOrDefault(sub.getCommunityId(), "Unknown Community"));
+            entry.put("amount", sub.getAmount());
+            entry.put("status", sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN");
+            entry.put("startDate", sub.getStartDate());
+            entry.put("nextBillingDate", sub.getNextBillingDate());
+            result.add(entry);
+        }
+
+        // Sort newest first
+        result.sort((a, b) -> {
+            Comparable da = (Comparable) b.get("startDate");
+            Comparable db = (Comparable) a.get("startDate");
+            if (da == null && db == null) return 0;
+            if (da == null) return 1;
+            if (db == null) return -1;
+            return da.compareTo(db);
+        });
+
+        return result;
+    }
+
+    // ══════════════════ DONATIONS ══════════════════
+
+    @Transactional
+    public void makeDonation(String userId, Long communityId, BigDecimal amount, String message) {
+
+        // Validate membership
+        boolean isMember = communityMembershipRepository
+                .existsByUserIdAndCommunityIdAndStatus(
+                        userId,
+                        communityId,
+                        MembershipStatus.APPROVED
+                );
+
+        if (!isMember) {
+            throw new SecurityException("User must be a member before donating");
+        }
+
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException("Donation amount must be at least ₦1");
+        }
+
+        // Save donation record
+        Donation donation = new Donation();
+        donation.setUserId(userId);
+        donation.setCommunityId(communityId);
+        donation.setAmount(amount);
+        donation.setMessage(message != null && !message.isBlank() ? message.trim() : null);
+        donation.setDonatedAt(java.time.LocalDateTime.now());
+        donationRepository.save(donation);
+
+        // Save payment transaction
+        PaymentTransaction tx = new PaymentTransaction();
+        tx.setUserId(userId);
+        tx.setCommunityId(communityId);
+        tx.setAmount(amount);
+        tx.setType(PaymentType.DONATION);
+        tx.setStatus(PaymentStatus.SUCCESS);
+        tx.setProviderRef("DON-" + donation.getId());
+        tx.setCreatedAt(java.time.LocalDateTime.now());
+        paymentTransactionRepository.save(tx);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCommunityDonations(Long communityId) {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        List<Donation> donations = donationRepository.findByCommunityId(communityId);
+        if (donations.isEmpty()) return result;
+
+        // Fetch users in batch
+        List<String> userIds = donations.stream()
+                .map(Donation::getUserId)
+                .distinct()
+                .toList();
+
+        Map<String, User> userMap = userRepository.findByUserIdIn(userIds)
+                .stream()
+                .collect(Collectors.toMap(User::getUserId, u -> u));
+
+        for (Donation don : donations) {
+            User user = userMap.get(don.getUserId());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("donationId", don.getId());
+            data.put("userId", don.getUserId());
+            data.put("firstName", user != null ? user.getFirstName() : null);
+            data.put("lastName", user != null ? user.getLastName() : null);
+            data.put("email", user != null ? user.getEmail() : null);
+            data.put("amount", don.getAmount());
+            data.put("message", don.getMessage());
+            data.put("donatedAt", don.getDonatedAt());
+            result.add(data);
+        }
+
+        // Sort newest first
+        result.sort((a, b) -> {
+            java.time.LocalDateTime da = (java.time.LocalDateTime) a.get("donatedAt");
+            java.time.LocalDateTime db = (java.time.LocalDateTime) b.get("donatedAt");
+            if (da == null || db == null) return 0;
+            return db.compareTo(da);
+        });
+
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserDonations(String userId) {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        List<Donation> donations = donationRepository.findByUserId(userId);
+        if (donations.isEmpty()) return result;
+
+        // Fetch community names in batch
+        List<Long> communityIds = donations.stream()
+                .map(Donation::getCommunityId)
                 .distinct()
                 .toList();
 
@@ -1195,67 +1228,27 @@ public class CommunityService {
                 .stream()
                 .collect(Collectors.toMap(Community::getId, c -> c));
 
-        // 🔹 Fetch payment transactions for this user
-        List<PaymentTransaction> allTx = paymentTransactionRepository.findByUserId(userId);
-        Map<Long, List<PaymentTransaction>> txByCommunity = allTx.stream()
-                .filter(tx -> tx.getCommunityId() != null)
-                .collect(Collectors.groupingBy(PaymentTransaction::getCommunityId));
-
-        for (MembershipSubscription sub : subscriptions) {
-
-            Community community = communityMap.get(sub.getCommunityId());
+        for (Donation don : donations) {
+            Community community = communityMap.get(don.getCommunityId());
 
             Map<String, Object> data = new HashMap<>();
-            data.put("subscriptionId", sub.getId());
-            data.put("communityId", sub.getCommunityId());
+            data.put("donationId", don.getId());
+            data.put("communityId", don.getCommunityId());
             data.put("communityName", community != null ? community.getName() : "Unknown Community");
-            data.put("status", sub.getStatus());
-            data.put("amount", sub.getAmount());
-            data.put("startDate", sub.getStartDate());
-            data.put("nextBillingDate", sub.getNextBillingDate());
-
-            // 🔹 Attach payment transactions for this community
-            List<PaymentTransaction> communityTx = txByCommunity.getOrDefault(sub.getCommunityId(), List.of());
-            List<Map<String, Object>> transactions = new ArrayList<>();
-            for (PaymentTransaction tx : communityTx) {
-                Map<String, Object> txData = new HashMap<>();
-                txData.put("transactionId", tx.getId());
-                txData.put("amount", tx.getAmount());
-                txData.put("type", tx.getType());
-                txData.put("paymentStatus", tx.getStatus());
-                txData.put("date", tx.getCreatedAt());
-                txData.put("providerRef", tx.getProviderRef());
-                transactions.add(txData);
-            }
-            data.put("transactions", transactions);
-
+            data.put("amount", don.getAmount());
+            data.put("message", don.getMessage());
+            data.put("donatedAt", don.getDonatedAt());
             result.add(data);
         }
 
+        // Sort newest first
+        result.sort((a, b) -> {
+            java.time.LocalDateTime da = (java.time.LocalDateTime) a.get("donatedAt");
+            java.time.LocalDateTime db = (java.time.LocalDateTime) b.get("donatedAt");
+            if (da == null || db == null) return 0;
+            return db.compareTo(da);
+        });
+
         return result;
     }
-
-    @Transactional(readOnly = true)
-    public boolean hasActiveSubscription(String userId, Long communityId) {
-        return membershipSubscriptionRepository
-                .existsByUserIdAndCommunityIdAndStatus(userId, communityId, SubscriptionStatus.ACTIVE);
-    }
-
-    @Transactional
-    public void cancelSubscription(String userId, Long subscriptionId) {
-        MembershipSubscription sub = membershipSubscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new EntityNotFoundException("Subscription not found"));
-
-        if (!sub.getUserId().equals(userId)) {
-            throw new SecurityException("You can only cancel your own subscriptions");
-        }
-
-        if (sub.getStatus() != SubscriptionStatus.ACTIVE) {
-            throw new IllegalStateException("Only active subscriptions can be cancelled");
-        }
-
-        sub.setStatus(SubscriptionStatus.CANCELLED);
-        membershipSubscriptionRepository.save(sub);
-    }
-    // Utility method if needed
 }

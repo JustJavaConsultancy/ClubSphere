@@ -519,6 +519,9 @@
             <button class="tab-button" th:classappend="${activeTab == 'subscriptions'} ? ' active'" data-tab="subscriptions">
                 Subscriptions
             </button>
+            <button class="tab-button" th:classappend="${activeTab == 'donations'} ? ' active'" data-tab="donations">
+                Donations
+            </button>
         </nav>
 
         <div class="tab-content">
@@ -735,17 +738,17 @@
                     <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
                         <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">Active</p>
                         <p style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;"
-                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[status.name() == 'ACTIVE']) : 0}">0</p>
+                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[#this['status'] == 'ACTIVE']) : 0}">0</p>
                     </div>
                     <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #ef4444;">
                         <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">Cancelled</p>
                         <p style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;"
-                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[status.name() == 'CANCELLED']) : 0}">0</p>
+                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[#this['status'] == 'CANCELLED']) : 0}">0</p>
                     </div>
                     <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #9ca3af;">
                         <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">Expired</p>
                         <p style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;"
-                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[status.name() == 'EXPIRED']) : 0}">0</p>
+                           th:text="${userSubscriptions != null ? #lists.size(userSubscriptions.?[#this['status'] == 'EXPIRED']) : 0}">0</p>
                     </div>
                 </div>
 
@@ -760,9 +763,9 @@
 
                 <!-- Subscriptions List -->
                 <div th:if="${userSubscriptions != null and !#lists.isEmpty(userSubscriptions)}">
-                    <div th:each="sub, iterStat : ${userSubscriptions}"
-                         style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 1rem;"
-                         th:attr="data-subscription-id=${sub.subscriptionId}">
+                <div th:each="sub, iterStat : ${userSubscriptions}"
+                     style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 1rem;"
+                     th:attr="data-subscription-id=${sub['subscriptionId']}">
 
                         <!-- Subscription Header -->
                         <div style="padding: 1.25rem;">
@@ -770,35 +773,35 @@
                                 <div style="flex: 1;">
                                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
                                         <h4 style="font-size: 1.05rem; font-weight: 700; color: #1f2937; margin: 0;"
-                                            th:text="${sub.communityName != null ? sub.communityName : 'Unknown Community'}">Community Name</h4>
+                                            th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Community Name</h4>
                                         <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
-                                              th:style="${sub.status != null && sub.status.name() == 'ACTIVE'} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : (${sub.status != null && sub.status.name() == 'CANCELLED'} ? 'background-color: #fee2e2; color: #991b1b; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #f3f4f6; color: #6b7280; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;')"
-                                              th:text="${sub.status != null ? sub.status : 'UNKNOWN'}">ACTIVE</span>
+                                              th:style="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? 'background-color: #fee2e2; color: #991b1b; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #f3f4f6; color: #6b7280; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;')"
+                                              th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>
                                     </div>
                                     <div style="display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.85rem; color: #6b7280;">
                                         <span style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #1f2937; font-size: 0.95rem;">
                                             <i class="fas fa-money-bill-wave" style="font-size: 0.8rem; color: #10b981;"></i>
-                                            <span th:text="${sub.amount != null ? '₦' + #numbers.formatDecimal(sub.amount, 1, 2) : 'N/A'}">₦0.00</span>
+                                            <span th:text="${sub['amount'] != null ? '₦' + #numbers.formatDecimal(sub['amount'], 1, 2) : 'N/A'}">₦0.00</span>
                                         </span>
                                         <span style="display: flex; align-items: center; gap: 4px;">
                                             <i class="fas fa-calendar-alt" style="font-size: 0.8rem;"></i>
-                                            Started: <span th:text="${sub.startDate != null ? #temporals.format(sub.startDate, 'MMM dd, yyyy') : 'N/A'}">Jan 01, 2025</span>
+                                            Started: <span th:text="${sub['startDate'] != null ? #temporals.format(sub['startDate'], 'MMM dd, yyyy') : 'N/A'}">Jan 01, 2025</span>
                                         </span>
-                                        <span th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}" style="display: flex; align-items: center; gap: 4px;">
+                                        <span th:if="${sub['status'] != null && sub['status'] == 'ACTIVE'}" style="display: flex; align-items: center; gap: 4px;">
                                             <i class="fas fa-clock" style="font-size: 0.8rem;"></i>
-                                            Next billing: <span th:text="${sub.nextBillingDate != null ? #temporals.format(sub.nextBillingDate, 'MMM dd, yyyy') : 'N/A'}">Feb 01, 2025</span>
+                                            Next billing: <span th:text="${sub['nextBillingDate'] != null ? #temporals.format(sub['nextBillingDate'], 'MMM dd, yyyy') : 'N/A'}">Feb 01, 2025</span>
                                         </span>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <!-- Cancel button for active subscriptions -->
-                                    <button th:if="${sub.status != null && sub.status.name() == 'ACTIVE'}"
+                                    <button th:if="${sub['status'] != null && sub['status'] == 'ACTIVE'}"
                                             type="button"
                                             style="padding: 6px 14px; border-radius: 8px; border: 1px solid #fca5a5; background: #fef2f2; color: #dc2626; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
                                             onmouseover="this.style.background='#fee2e2'"
                                             onmouseout="this.style.background='#fef2f2'"
-                                            th:onclick="'cancelSubscription(' + ${sub.subscriptionId} + ', this)'"
-                                            th:attr="data-sub-id=${sub.subscriptionId}">
+                                            th:onclick="'cancelSubscription(' + ${sub['subscriptionId']} + ', this)'"
+                                            th:attr="data-sub-id=${sub['subscriptionId']}">
                                         <i class="fas fa-times-circle" style="margin-right: 4px;"></i> Cancel
                                     </button>
                                     <!-- Expand transactions button -->
@@ -818,12 +821,12 @@
                             <div style="padding: 1.25rem; background: #f9fafb;">
                                 <h5 style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 1rem 0;">Transaction History</h5>
 
-                                <div th:if="${sub.transactions == null or #lists.isEmpty(sub.transactions)}"
+                                <div th:if="${sub['transactions'] == null or #lists.isEmpty(sub['transactions'])}"
                                      style="text-align: center; padding: 1.5rem; color: #9ca3af; font-size: 0.85rem;">
                                     No transactions recorded yet.
                                 </div>
 
-                                <table th:if="${sub.transactions != null and !#lists.isEmpty(sub.transactions)}" style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                                <table th:if="${sub['transactions'] != null and !#lists.isEmpty(sub['transactions'])}" style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
                                     <thead>
                                     <tr style="text-align: left; color: #6b7280; border-bottom: 1px solid #e5e7eb;">
                                         <th style="padding-bottom: 0.5rem; font-weight: 500;">Date</th>
@@ -834,18 +837,75 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr th:each="tx : ${sub.transactions}" style="border-bottom: 1px solid #f3f4f6; transition: background-color 0.15s ease;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                                    <tr th:each="tx : ${sub['transactions']}" style="border-bottom: 1px solid #f3f4f6; transition: background-color 0.15s ease;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
                                         <td style="padding: 0.75rem 0;" th:text="${tx.date != null ? #temporals.format(tx.date, 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</td>
                                         <td style="padding: 0.75rem 0; font-weight: 500;" th:text="${tx.amount != null ? '₦' + #numbers.formatDecimal(tx.amount, 1, 2) : 'N/A'}">₦100.00</td>
                                         <td style="padding: 0.75rem 0;" th:text="${tx.type}">SUBSCRIPTION</td>
                                         <td style="padding: 0.75rem 0;">
                                             <span th:text="${tx.paymentStatus}"
-                                                  th:style="${tx.paymentStatus != null && tx.paymentStatus.name() == 'SUCCESS'} ? 'color: #059669; font-weight: 600;' : (${tx.paymentStatus != null && tx.paymentStatus.name() == 'PENDING'} ? 'color: #d97706; font-weight: 600;' : 'color: #dc2626; font-weight: 600;')">SUCCESS</span>
+                                                  th:style="${tx.paymentStatus != null && tx.paymentStatus == 'SUCCESS'} ? 'color: #059669; font-weight: 600;' : (${tx.paymentStatus != null && tx.paymentStatus == 'PENDING'} ? 'color: #d97706; font-weight: 600;' : 'color: #dc2626; font-weight: 600;')">SUCCESS</span>
                                         </td>
                                         <td style="padding: 0.75rem 0; color: #9ca3af; font-size: 0.75rem;" th:text="${tx.providerRef != null ? tx.providerRef : '—'}">TX-123</td>
                                     </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donations Tab -->
+            <div id="donations" class="tab-panel" th:classappend="${activeTab == 'donations'} ? ' active'">
+                <!-- Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #ec4899;">
+                        <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">Total Donations</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;"
+                           th:text="${userDonations != null ? #lists.size(userDonations) : 0}">0</p>
+                    </div>
+                    <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+                        <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">Total Amount</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;"
+                           th:text="${userDonations != null and !#lists.isEmpty(userDonations) ? '₦' + #aggregates.sum(userDonations.![#this['amount']]) : '₦0'}">₦0</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${userDonations == null or #lists.isEmpty(userDonations)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-heart text-3xl" style="color: #ec4899;"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Donations Yet</h3>
+                    <p class="text-gray-600 mb-6">You haven't donated to any communities yet. Visit a community to make your first donation!</p>
+                </div>
+
+                <!-- Donations List -->
+                <div th:if="${userDonations != null and !#lists.isEmpty(userDonations)}">
+                    <div th:each="don : ${userDonations}"
+                         style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 1rem; padding: 1.25rem;">
+                        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1f2937; margin: 0;"
+                                        th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Community Name</h4>
+                                    <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fce7f3; color: #be185d;">
+                                        Donation
+                                    </span>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.85rem; color: #6b7280;">
+                                    <span style="display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-calendar-alt" style="font-size: 0.8rem;"></i>
+                                        <span th:text="${don['donatedAt'] != null ? #temporals.format(don['donatedAt'], 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</span>
+                                    </span>
+                                </div>
+                                <div th:if="${don['message'] != null and !don['message'].isEmpty()}" style="margin-top: 0.75rem;">
+                                    <p style="font-size: 0.85rem; color: #6b7280; font-style: italic; margin: 0;">"<span th:text="${don['message']}">message</span>"</p>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="font-size: 1.5rem; font-weight: 700; color: #ec4899; margin: 0;"
+                                   th:text="${don['amount'] != null ? '₦' + #numbers.formatDecimal(don['amount'], 1, 2) : '₦0.00'}">₦100.00</p>
                             </div>
                         </div>
                     </div>

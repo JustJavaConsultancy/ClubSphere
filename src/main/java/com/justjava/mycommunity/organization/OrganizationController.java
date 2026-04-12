@@ -64,11 +64,15 @@ public class OrganizationController {
         // Get user subscriptions
         List<Map<String, Object>> userSubscriptions = communityService.getUserSubscriptions(currentUserId);
 
+        // Get user donations
+        List<Map<String, Object>> userDonations = communityService.getUserDonations(currentUserId);
+
         model.addAttribute("userCommunities", userCommunities);
         model.addAttribute("suggestedCommunities", suggestedCommunities);
         model.addAttribute("communityInvitations", communityInvitations);
         model.addAttribute("communityRequests", communityRequests);
         model.addAttribute("userSubscriptions", userSubscriptions);
+        model.addAttribute("userDonations", userDonations);
         model.addAttribute("userId", authenticationManager.get("sub"));
         model.addAttribute("usersName", authenticationManager.get("name"));
         model.addAttribute("currentPath", "/organizations");

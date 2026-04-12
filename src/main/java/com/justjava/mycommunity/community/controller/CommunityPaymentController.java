@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/subscription")
 @RequiredArgsConstructor
 public class CommunityPaymentController {
 
@@ -24,7 +23,7 @@ public class CommunityPaymentController {
     private final CommunityService communityService;
     private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/webhook/payment")
+    @PostMapping("/subscription/webhook/payment")
     public void handleWebhook(@RequestBody Map<String, Object> payload) {
 
         String paymentRef = (String) payload.get("reference");
@@ -41,7 +40,7 @@ public class CommunityPaymentController {
     }
 
     // 🔹 Subscribe (HTMX — called from community page)
-    @PostMapping("/subscribe")
+    @PostMapping("/subscription/subscribe")
     @ResponseBody
     public String subscribe(@RequestParam("communityId") Long communityId,
                             @RequestParam("amount") BigDecimal amount) {
@@ -61,7 +60,7 @@ public class CommunityPaymentController {
     }
 
     // 🔹 Cancel subscription
-    @PostMapping("/cancel")
+    @PostMapping("/subscription/cancel")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cancelSubscription(@RequestParam("subscriptionId") Long subscriptionId) {
         Map<String, Object> response = new HashMap<>();
@@ -87,14 +86,14 @@ public class CommunityPaymentController {
     }
 
     // 🔹 Admin: community subscriptions JSON (for HTMX)
-    @GetMapping("/subscriptions/list")
+    @GetMapping("/subscription/subscriptions/list")
     @ResponseBody
     public List<Map<String, Object>> communitySubscriptionsList(@RequestParam("communityId") Long communityId) {
         return communityService.getCommunitySubscriptions(communityId);
     }
 
     // 🔹 User: My Subscriptions page (all communities)
-    @GetMapping("/my-subscriptions")
+    @GetMapping("/subscription/my-subscriptions")
     public String mySubscriptionsPage(Model model) {
 
         String userId = (String) authenticationManager.get("sub");
@@ -111,7 +110,7 @@ public class CommunityPaymentController {
     }
 
     // 🔹 User: My Subscriptions JSON (for HTMX)
-    @GetMapping("/my-subscriptions/data")
+    @GetMapping("/subscription/my-subscriptions/data")
     @ResponseBody
     public List<Map<String, Object>> mySubscriptionsData() {
         String userId = (String) authenticationManager.get("sub");
@@ -119,7 +118,7 @@ public class CommunityPaymentController {
     }
 
     // 🔹 Mobile: My Subscriptions page
-    @GetMapping("/mobile/my-subscriptions")
+    @GetMapping("/subscription/mobile/my-subscriptions")
     public String mobileMySubscriptionsPage(Model model) {
 
         String userId = (String) authenticationManager.get("sub");
@@ -133,5 +132,65 @@ public class CommunityPaymentController {
         model.addAttribute("usersName", authenticationManager.get("name"));
 
         return "mobile-my-subscriptions";
+    }
+
+    // ══════════════════ DONATIONS ══════════════════
+
+    // 🔹 Make a donation (HTMX — called from community page)
+    @PostMapping("/donation/donate")
+    @ResponseBody
+    public String donate(@RequestParam("communityId") Long communityId,
+                         @RequestParam("amount") BigDecimal amount,
+                         @RequestParam(value = "message", required = false) String message) {
+        try {
+            String userId = (String) authenticationManager.get("sub");
+            communityService.makeDonation(userId, communityId, amount, message);
+            return "<div class='text-green-600 font-medium'>✅ Donation made successfully! Thank you for your generosity.</div>";
+        } catch (IllegalArgumentException e) {
+            return "<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>";
+        } catch (SecurityException e) {
+            return "<div class='text-red-600 font-medium'>❌ " + e.getMessage() + "</div>";
+        } catch (Exception e) {
+            return "<div class='text-red-600 font-medium'>❌ Error: " + e.getMessage() + "</div>";
+        }
+    }
+
+    // 🔹 Admin: community donations JSON (for HTMX / JS)
+    @GetMapping("/donation/donations/list")
+    @ResponseBody
+    public List<Map<String, Object>> communityDonationsList(@RequestParam("communityId") Long communityId) {
+        return communityService.getCommunityDonations(communityId);
+    }
+
+    // 🔹 User: My Donations page (all communities)
+    @GetMapping("/donation/my-donations")
+    public String myDonationsPage(Model model) {
+        String userId = (String) authenticationManager.get("sub");
+        List<Map<String, Object>> donations = communityService.getUserDonations(userId);
+        model.addAttribute("donations", donations);
+        model.addAttribute("currentPath", "/donation/my-donations");
+        model.addAttribute("userId", userId);
+        model.addAttribute("usersName", authenticationManager.get("name"));
+        return "my-donations";
+    }
+
+    // 🔹 User: My Donations JSON (for HTMX)
+    @GetMapping("/donation/my-donations/data")
+    @ResponseBody
+    public List<Map<String, Object>> myDonationsData() {
+        String userId = (String) authenticationManager.get("sub");
+        return communityService.getUserDonations(userId);
+    }
+
+    // 🔹 Mobile: My Donations page
+    @GetMapping("/donation/mobile/my-donations")
+    public String mobileMyDonationsPage(Model model) {
+        String userId = (String) authenticationManager.get("sub");
+        List<Map<String, Object>> donations = communityService.getUserDonations(userId);
+        model.addAttribute("donations", donations);
+        model.addAttribute("currentPath", "/donation/mobile/my-donations");
+        model.addAttribute("userId", userId);
+        model.addAttribute("usersName", authenticationManager.get("name"));
+        return "mobile-my-donations";
     }
 }

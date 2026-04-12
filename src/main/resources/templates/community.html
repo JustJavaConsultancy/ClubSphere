@@ -1186,6 +1186,9 @@
             <button type="button" th:if="${isAdmin}" class="manage-tab-button" data-manage-tab="subscriptions">
                 <i class="fas fa-credit-card" style="margin-right:6px;"></i> Subscriptions
             </button>
+            <button type="button" th:if="${isAdmin}" class="manage-tab-button" data-manage-tab="donations">
+                <i class="fas fa-heart" style="margin-right:6px;"></i> Donations
+            </button>
         </nav>
 
         <div class="manage-tab-content">
@@ -1382,6 +1385,64 @@
                         Confirm Subscription
                     </button>
                     <button type="button" onclick="closeSubscribeModal()"
+                            class="secondary-button" style="flex:0 0 auto;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Community Donation -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6 subscription-card">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            Donate to Community
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">Show your appreciation and support this community with a one-time donation. You choose the amount.</p>
+        <button type="button" onclick="openDonateModal()" class="subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            Donate Now
+        </button>
+        <div id="donationFeedback" class="mt-3"></div>
+    </div>
+
+    <!-- Donate Modal -->
+    <div id="donateModal" class="sub-modal-overlay" style="display:none;" onclick="if(event.target===this) closeDonateModal()">
+        <div class="sub-modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="margin:0;">Donate to Community</h3>
+                <button onclick="closeDonateModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to donate. You can also include an optional message.</p>
+            <form hx-post="/donation/donate"
+                  hx-target="#donationFeedback"
+                  hx-swap="innerHTML"
+                  onsubmit="closeDonateModal()">
+                <input type="hidden" name="communityId" th:value="${communityId}">
+                <div style="margin-bottom: 16px;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Donation Amount</label>
+                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                           class="sub-amount-input" required>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Message (optional)</label>
+                    <textarea name="message" rows="2" placeholder="Leave a message..."
+                              style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; resize:vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center; background: linear-gradient(135deg, #ec4899, #db2777);">
+                        Confirm Donation
+                    </button>
+                    <button type="button" onclick="closeDonateModal()"
                             class="secondary-button" style="flex:0 0 auto;">
                         Cancel
                     </button>
@@ -1806,6 +1867,61 @@
     </div>
 
             </div><!-- END subscriptions tab -->
+
+            <!-- ═══════════ DONATIONS TAB (Admin Only) ═══════════ -->
+            <div th:if="${isAdmin}" id="donations" class="manage-tab-panel">
+
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="community-donations-section">
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                Community Donations
+            </h2>
+            <button type="button"
+                    th:attr="hx-get='/donation/donations/list?communityId=' + ${communityId}"
+                    hx-target="#donations-table-body"
+                    hx-swap="innerHTML"
+                    hx-trigger="click"
+                    class="text-sm text-pink-600 hover:text-pink-800 font-medium flex items-center gap-1"
+                    onclick="this.classList.add('opacity-50');">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+            </button>
+        </div>
+
+        <!-- Donations Table -->
+        <div class="overflow-x-auto rounded-lg border border-gray-100">
+            <table class="w-full" id="communityDonationsTable">
+                <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Donor</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Amount</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Message</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Date</th>
+                </tr>
+                </thead>
+                <tbody id="donations-table-body">
+                <tr id="donations-loading-row">
+                    <td colspan="5" class="py-8 text-center text-gray-400">
+                        <div class="flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            <p class="text-sm">Loading donations...</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+            </div><!-- END donations tab -->
 
         </div><!-- END manage-tab-content -->
     </div><!-- END manage-tab-container -->
@@ -2548,6 +2664,61 @@
                     const tbody = document.getElementById('subscriptions-table-body');
                     if (tbody) {
                         tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-red-400 text-sm">Error loading subscriptions.</td></tr>';
+                    }
+                });
+        })();
+    </script>
+
+    <!-- Donate modal scripts -->
+    <script>
+        function openDonateModal() {
+            document.getElementById('donateModal').style.display = 'flex';
+        }
+        function closeDonateModal() {
+            document.getElementById('donateModal').style.display = 'none';
+        }
+    </script>
+
+    <!-- Donations auto-load script (Admin only) -->
+    <script th:if="${isAdmin}" th:inline="javascript">
+        (function() {
+            const communityId = /*[[${communityId}]]*/ null;
+            if (!communityId) return;
+
+            fetch('/donation/donations/list?communityId=' + communityId)
+                .then(r => r.json())
+                .then(donations => {
+                    const tbody = document.getElementById('donations-table-body');
+                    if (!tbody) return;
+
+                    if (!donations || donations.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-400"><div class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><p class="text-sm">No donations found for this community.</p></div></td></tr>';
+                        return;
+                    }
+
+                    let html = '';
+                    donations.forEach(don => {
+                        const fullName = ((don.firstName || '') + ' ' + (don.lastName || '')).trim() || 'Unknown';
+                        const email = don.email || '—';
+                        const amount = don.amount != null ? '₦' + Number(don.amount).toFixed(2) : '₦0.00';
+                        const message = don.message || '—';
+                        const donatedAt = don.donatedAt ? new Date(don.donatedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'N/A';
+
+                        html += '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+                        html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
+                        html += '<td class="py-3 px-4 text-gray-600 text-sm">' + email + '</td>';
+                        html += '<td class="py-3 px-4 text-sm font-medium text-pink-600">' + amount + '</td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + message + '</td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + donatedAt + '</td>';
+                        html += '</tr>';
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error('Error loading donations:', err);
+                    const tbody = document.getElementById('donations-table-body');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-red-400 text-sm">Error loading donations.</td></tr>';
                     }
                 });
         })();

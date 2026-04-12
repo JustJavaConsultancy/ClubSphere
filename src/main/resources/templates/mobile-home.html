@@ -604,6 +604,62 @@
         </div>
     </div>
 
+    <!-- Community Donation Banner -->
+    <div th:if="${selectedCommunityId != null}" class="mobile-card" style="background: linear-gradient(135deg, rgba(253,242,248,0.95), rgba(255,241,242,0.95)); border: 1px solid rgba(252,231,243,0.5);">
+        <div style="padding: 16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <svg style="width:20px;height:20px;color:#ec4899;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                <span style="font-weight:700; font-size:15px; color:#1f2937;">Donate to this Community</span>
+            </div>
+            <p style="font-size:13px; color:#6b7280; margin:0 0 14px 0;">Show your appreciation with a one-time donation.</p>
+            <button type="button" onclick="openMobileDonateModal()"
+                    style="width:100%; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:12px; border:none; border-radius:14px; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 12px rgba(219,39,119,0.25);">
+                <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                Donate Now
+            </button>
+        </div>
+        <div id="mobileHomeDonationFeedback" style="padding:0 16px 8px;"></div>
+    </div>
+
+    <!-- Mobile Donate Modal (bottom-sheet) -->
+    <div id="mobileDonateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:flex-end;"
+         onclick="if(event.target===this) closeMobileDonateModal()">
+        <div style="background:#fff; border-radius:20px 20px 0 0; width:100%; padding:24px 20px 32px; transform:translateY(0); transition:transform 0.3s ease;">
+            <div style="width:40px; height:4px; background:#d1d5db; border-radius:4px; margin:0 auto 16px;"></div>
+            <h3 style="font-size:18px; font-weight:700; color:#1f2937; margin-bottom:8px;">Donate to Community</h3>
+            <p style="font-size:14px; color:#6b7280; margin-bottom:20px;">Enter the amount you'd like to donate. You can also include an optional message.</p>
+            <form hx-post="/donation/donate"
+                  hx-target="#mobileHomeDonationFeedback"
+                  hx-swap="innerHTML"
+                  onsubmit="closeMobileDonateModal()">
+                <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Donation Amount</label>
+                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                           style="width:100%; padding:14px 16px; border:2px solid #e5e7eb; border-radius:14px; font-size:1.1rem; font-weight:600; text-align:center; outline:none; -webkit-appearance:none;"
+                           required>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Message (optional)</label>
+                    <textarea name="message" rows="2" placeholder="Leave a message..."
+                              style="width:100%; padding:10px 14px; border:2px solid #e5e7eb; border-radius:14px; font-size:14px; resize:vertical; outline:none;"></textarea>
+                </div>
+                <button type="submit"
+                        style="width:100%; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:12px; border:none; border-radius:14px; font-weight:600; font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(219,39,119,0.25);">
+                    Confirm Donation
+                </button>
+                <button type="button" onclick="closeMobileDonateModal()"
+                        style="width:100%; padding:12px; margin-top:10px; background:#f3f4f6; border:none; border-radius:14px; font-size:15px; font-weight:500; color:#6b7280; cursor:pointer;">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Create Post Card (only for community admins/creators) -->
     <div th:if="${canUserPost}" class="mobile-card touch-feedback">
         <form hx-post="/mobile/create-post"
@@ -916,6 +972,14 @@
         }
         function closeMobileSubscribeModal() {
             var modal = document.getElementById('mobileSubscribeModal');
+            if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+        }
+        function openMobileDonateModal() {
+            var modal = document.getElementById('mobileDonateModal');
+            if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+        }
+        function closeMobileDonateModal() {
+            var modal = document.getElementById('mobileDonateModal');
             if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
         }
 

@@ -313,6 +313,13 @@
                     Subscriptions
                 </a>
 
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/donation/my-donations}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/donation/my-donations'} ? ' bg-pink-50 text-pink-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-heart w-5"></i>
+                    Donations
+                </a>
+
                 <a th:href="@{/settings}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/settings'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
@@ -506,6 +513,13 @@
                    th:classappend="${currentPath == '/subscription/my-subscriptions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-credit-card w-5"></i>
                     Subscriptions
+                </a>
+
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/donation/my-donations}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/donation/my-donations'} ? ' bg-pink-50 text-pink-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-heart w-5"></i>
+                    Donations
                 </a>
 
                 <a th:href="@{/settings}"
