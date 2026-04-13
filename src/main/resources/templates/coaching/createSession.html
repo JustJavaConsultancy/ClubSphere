@@ -1712,30 +1712,6 @@
                 console.log(`Loaded ${participants.length} eligible participants for ${selectedCommunityId ? 'community ' + selectedCommunityName : 'general session'}`);
             } catch (err) {
                 console.error("Error loading session participants:", err);
-                // Fallback to general user endpoint if mycommunity-specific fails
-                try {
-                    const response = await fetch("/api-v/publicUsers");
-                    if (!response.ok) throw new Error("Failed to fetch users");
-                    const users = await response.json();
-
-                    participants = users.map(u => {
-                        const userId = u.userId || u.id;
-                        if (!userId) return null;
-
-                        return {
-                            id: userId,
-                            name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
-                            email: u.email || '',
-                            avatar: u.avatar && u.avatar.length === 1
-                                ? `https://ui-avatars.com/api/?name=${u.avatar}&background=random`
-                                : (u.avatar || `https://ui-avatars.com/api/?name=${u.firstName}+${u.lastName}&background=random`)
-                        };
-                    }).filter(p => p !== null);
-
-                    console.log("Fallback: Loaded general participants:", participants);
-                } catch (fallbackErr) {
-                    console.error("Fallback participant loading also failed:", fallbackErr);
-                }
             }
         }
 

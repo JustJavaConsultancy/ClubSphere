@@ -193,6 +193,12 @@ public class MeetingController {
         Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
         String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
 
+        // Require community context — redirect to organizations if not in a community
+        if (selectedCommunityId == null) {
+            request.getSession().setAttribute("redirectAfterSelect", "/create-meeting");
+            return "redirect:/organizations";
+        }
+
         System.out.println("Create meeting page - Community context:");
         System.out.println("Selected Community ID: " + selectedCommunityId);
         System.out.println("Selected Community Name: " + selectedCommunityName);

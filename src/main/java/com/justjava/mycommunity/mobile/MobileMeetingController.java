@@ -2,11 +2,13 @@ package com.justjava.mycommunity.mobile;
 
 import com.justjava.mycommunity.chat.dto.CreatSessionVO;
 import com.justjava.mycommunity.chat.dto.SessionDTO;
+import com.justjava.mycommunity.community.CommunityService;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.organization.OrganizationService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.userManagement.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -37,6 +39,7 @@ public class MobileMeetingController {
     private final OrganizationService organizationService;
     private final UserService userService;
     private final EventService eventService;
+    private final CommunityService communityService;
 
     @Value("${sendgrid.from-email}")
     String fromEmail;
@@ -45,10 +48,11 @@ public class MobileMeetingController {
     String apiKey;
 
     public MobileMeetingController(OrganizationService organizationService, UserService userService,
-                                   EventService eventService) {
+                                   EventService eventService, CommunityService communityService) {
         this.organizationService = organizationService;
         this.userService = userService;
         this.eventService = eventService;
+        this.communityService = communityService;
     }
 
     @GetMapping("/meetings")
@@ -184,13 +188,24 @@ public class MobileMeetingController {
     }
 
     @GetMapping("/create-meeting")
-    public String createMeeting(Model model) {
-        // No modules needed for meetings
+    public String createMeeting(Model model, HttpServletRequest request) {
+        // Get selected community context from session
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
+
+        // Require community context — redirect to organizations if not in a community
+        if (selectedCommunityId == null) {
+            request.getSession().setAttribute("redirectAfterSelect", "/mobile/create-meeting");
+            return "redirect:/mobile/organizations";
+        }
+
+        model.addAttribute("selectedCommunityId", selectedCommunityId);
+        model.addAttribute("selectedCommunityName", selectedCommunityName);
         return "meeting/mobile-createMeeting";
     }
 
     @PostMapping("/create-meeting")
-    public String createMeeting(@ModelAttribute CreatSessionVO createSessionVO) {
+    public String createMeeting(@ModelAttribute CreatSessionVO createSessionVO, HttpServletRequest request) {
         System.out.println("===== Mobile Meeting Creation Form Submission =====");
         List<String> allUserIds = createSessionVO.getUsers();
 
@@ -198,10 +213,21 @@ public class MobileMeetingController {
             sendMeetingNotifications(allUserIds);
         }
 
-        // Create organization and meeting (without module requirement)
+        // Get selected community ID from session for community-specific meeting creation
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
+
+        // Create organization and meeting
         Organization organization = organizationService.createDefault();
         System.out.println(createSessionVO + " This is the mobile meeting created");
-        eventService.createMeetingForOrganization(createSessionVO, organization);
+
+        if (selectedCommunityId != null) {
+            eventService.createMeetingForOrganization(createSessionVO, organization, selectedCommunityId);
+            System.out.println("Mobile meeting created for community: " + selectedCommunityName + " (ID: " + selectedCommunityId + ")");
+        } else {
+            eventService.createMeetingForOrganization(createSessionVO, organization);
+            System.out.println("Mobile meeting created as general meeting (no specific community)");
+        }
 
         return "redirect:/mobile/meetings";
     }

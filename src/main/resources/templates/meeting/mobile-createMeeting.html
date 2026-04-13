@@ -531,12 +531,24 @@
         const participantsList = document.getElementById('participants-list');
         const participantsHidden = document.getElementById('participants-hidden');
 
+        // Get community context from the page
+        const selectedCommunityId = /*[[${selectedCommunityId}]]*/ null;
+        const selectedCommunityName = /*[[${selectedCommunityName}]]*/ null;
+
         async function loadParticipants() {
             try {
-                const response = await fetch("/api-v/publicUsers");
+                // Use community-aware endpoint for meeting participants
+                let url = "/api/meeting-participants";
+                if (selectedCommunityId) {
+                    url += `?communityId=${selectedCommunityId}`;
+                }
+
+                console.log("Loading participants from:", url);
+                const response = await fetch(url);
                 if (!response.ok) throw new Error("Failed to fetch users");
                 const users = await response.json();
 
+                console.log("Loaded", users.length, "eligible participants");
                 participants = users.map(u => ({
                     id: u.userId,
                     name: `${u.firstName} ${u.lastName}`,

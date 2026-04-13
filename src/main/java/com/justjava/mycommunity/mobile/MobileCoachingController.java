@@ -11,6 +11,7 @@ import com.justjava.mycommunity.organization.OrganizationService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.userManagement.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -190,8 +191,20 @@ public class MobileCoachingController {
     }
 
     @GetMapping("/create-session")
-    public String createSession(Model model){
-        model.addAttribute("modules",moduleService.getModules());
+    public String createSession(Model model, HttpServletRequest request){
+        // Get selected community context from session
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
+
+        // Require community context — redirect to organizations if not in a community
+        if (selectedCommunityId == null) {
+            request.getSession().setAttribute("redirectAfterSelect", "/mobile/create-session");
+            return "redirect:/mobile/organizations";
+        }
+
+        model.addAttribute("modules", moduleService.getModules());
+        model.addAttribute("selectedCommunityId", selectedCommunityId);
+        model.addAttribute("selectedCommunityName", selectedCommunityName);
         return "coaching/mobile-createSession";
     }
 
@@ -223,7 +236,7 @@ public class MobileCoachingController {
     }
 
     @PostMapping("/create-session")
-    public String createSession(@ModelAttribute CreatSessionVO createSessionVO) {
+    public String createSession(@ModelAttribute CreatSessionVO createSessionVO, HttpServletRequest request) {
         System.out.println("===== Mobile Form Submission =====");
         List<String> allUserIds = createSessionVO.getUsers();
 
@@ -251,9 +264,21 @@ public class MobileCoachingController {
         variables.put("emailBody", emailBody);
         variables.put("apiKey", apiKey);
 
+        // Get selected community ID from session for community-specific session creation
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
+
         Organization organization = organizationService.createDefault();
         System.out.println(createSessionVO + "This is the mobile session created");
-        eventService.createSessionForOrganization(createSessionVO,organization);
+
+        if (selectedCommunityId != null) {
+            eventService.createSessionForOrganization(createSessionVO, organization, selectedCommunityId);
+            System.out.println("Mobile session created for community: " + selectedCommunityName + " (ID: " + selectedCommunityId + ")");
+        } else {
+            eventService.createSessionForOrganization(createSessionVO, organization);
+            System.out.println("Mobile session created as general session (no specific community)");
+        }
+
         return "redirect:/mobile/sessions";
     }
 }

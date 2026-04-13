@@ -273,6 +273,12 @@ public class CoachingController {
         Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
         String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
 
+        // Require community context — redirect to organizations if not in a community
+        if (selectedCommunityId == null) {
+            request.getSession().setAttribute("redirectAfterSelect", "/create-session");
+            return "redirect:/organizations";
+        }
+
         System.out.println("Create session page - Community context:");
         System.out.println("Selected Community ID: " + selectedCommunityId);
         System.out.println("Selected Community Name: " + selectedCommunityName);
