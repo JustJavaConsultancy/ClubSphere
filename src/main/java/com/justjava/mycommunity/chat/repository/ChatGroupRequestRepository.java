@@ -15,4 +15,8 @@ public interface ChatGroupRequestRepository extends JpaRepository<ChatGroupReque
 
     ChatGroupRequest findByChatGroup_IdAndUser_UserId(Long chatGroupId, String userUserId);
 
+    // Community-scoped queries
+    List<ChatGroupRequest> findByChatGroup_AdminUser_UserIdAndChatGroup_Community_IdAndStatus(
+            String userId, Long communityId, String status);
+
 }

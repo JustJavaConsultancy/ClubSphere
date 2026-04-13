@@ -66,12 +66,25 @@ public class UserController {
         return ResponseEntity.ok().body(users);
     }
     @GetMapping("/publicNetworkUsers")
-    public ResponseEntity<List<UserDTO>> getPublicNetworkUsers(){
+    public ResponseEntity<List<UserDTO>> getPublicNetworkUsers(
+            @RequestParam(value = "communityId", required = false) Long communityId){
         String currentUserId = (String) authenticationManager.get("sub");
-        List<UserDTO> users = chatService.getPublicUsers();
 
-        // Get current user's network
-        List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId);
+        // Get users scoped to community if communityId is provided
+        List<UserDTO> users;
+        if (communityId != null) {
+            users = communityService.getCommunityMembersExcludingUser(communityId, currentUserId);
+        } else {
+            users = chatService.getPublicUsers();
+        }
+
+        // Get current user's network (community-scoped if communityId provided)
+        List<UserDTO> networkUsers;
+        if (communityId != null) {
+            networkUsers = networkService.getChatGroupUsers(currentUserId, communityId);
+        } else {
+            networkUsers = networkService.getChatGroupUsers(currentUserId);
+        }
 
         // Create a Set of network user IDs for faster lookup
         Set<String> networkUserIds = networkUsers.stream()

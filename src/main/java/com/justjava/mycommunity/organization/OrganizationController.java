@@ -240,7 +240,14 @@ public class OrganizationController {
             return "redirect:/organizations?error=community_not_found";
         }
 
-        // Redirect to mycommunity-specific home page
+        // Check if there's a pending redirect (e.g., user was trying to access /network or /messages)
+        String redirectAfterSelect = (String) request.getSession().getAttribute("redirectAfterSelect");
+        if (redirectAfterSelect != null) {
+            request.getSession().removeAttribute("redirectAfterSelect");
+            return "redirect:" + redirectAfterSelect;
+        }
+
+        // Default: redirect to community-specific home page
         return "redirect:/";
     }
 

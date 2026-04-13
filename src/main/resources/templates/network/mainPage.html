@@ -73,6 +73,17 @@
 </head>
 <body>
 <div layout:fragment="content" >
+    <!-- Hidden field for community context -->
+    <input type="hidden" id="selectedCommunityId" th:value="${selectedCommunityId}" />
+
+    <!-- Community context banner -->
+    <div th:if="${selectedCommunityName != null}" class="mb-4 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <span class="text-sm font-medium text-indigo-800">Network for: <strong th:text="${selectedCommunityName}">Community</strong></span>
+    </div>
+
     <!-- Search section in main content -->
     <div class="modern-card bg-white p-6 rounded-xl shadow-sm mb-8">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Find People to Connect With</h2>
@@ -207,8 +218,12 @@
             searchResults.innerHTML = '<div class="loading-indicator">Searching...</div>';
             searchResults.style.display = 'block';
 
-            // Always fetch all users first
-            const response = await fetch('/api-v/publicNetworkUsers');
+            // Fetch community-scoped users
+            const communityId = document.getElementById('selectedCommunityId')?.value || '';
+            const url = communityId
+                ? '/api-v/publicNetworkUsers?communityId=' + communityId
+                : '/api-v/publicNetworkUsers';
+            const response = await fetch(url);
             const users = await response.json();
 
             // --- Client-side filtering (case-insensitive) ---

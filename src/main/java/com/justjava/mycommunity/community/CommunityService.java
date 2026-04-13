@@ -268,6 +268,17 @@ public class CommunityService {
         return communityMembers;
     }
 
+    /**
+     * Get all approved community members excluding the specified user.
+     * Used for network page to show potential connections within the same community.
+     */
+    @Transactional(readOnly = true)
+    public List<UserDTO> getCommunityMembersExcludingUser(Long communityId, String excludeUserId) {
+        return getCommunityMembers(communityId).stream()
+                .filter(dto -> !dto.getUserId().equals(excludeUserId))
+                .toList();
+    }
+
     @Transactional
     public void requestToJoinCommunity(String requestingUserId, Long communityId) {
 

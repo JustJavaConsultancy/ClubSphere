@@ -400,12 +400,20 @@ public class HomeController {
         if(authenticationManager.isSupportAdmin()){
             return "redirect:/support/dashboard";
         }
-        Object communityResponse = communityService.getCommunity();
-        Map<String, Object> normalizedCommunity = extractCommunityData(communityResponse);
-        Long communityId = (Long) normalizedCommunity.get("id");
+
+        // Determine which community ID to use for groups
+        Long communityIdForGroups;
+        if (selectedCommunityId != null) {
+            communityIdForGroups = selectedCommunityId;
+        } else {
+            Object communityResponse = communityService.getCommunity();
+            Map<String, Object> normalizedCommunity = extractCommunityData(communityResponse);
+            communityIdForGroups = (Long) normalizedCommunity.get("id");
+        }
+
         List<Map<String, Object>> processedGroups = new ArrayList<>();
         try {
-            List<CreateChatDTO> groupsResponse = communityGroupService.getCommunityGroupsByCommunityId(communityId);
+            List<CreateChatDTO> groupsResponse = communityGroupService.getCommunityGroupsByCommunityId(communityIdForGroups);
             System.out.println("Groups response: " + groupsResponse);
             System.out.println("Groups response type: " + (groupsResponse != null ? groupsResponse.getClass().getName() : "null"));
 
@@ -426,22 +434,30 @@ public class HomeController {
             System.out.println("Error getting groups: " + e.getMessage());
             e.printStackTrace();
         }
-        System.out.println("This is the total number of mycommunity " + normalizedCommunity.size());
         System.out.println("This is the total number of groups " + processedGroups.size());
 
 
         request.getSession(true).setAttribute("isAdmin", authenticationManager.isAdmin());
         request.getSession(true).setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         request.getSession().setAttribute("userId", authenticationManager.get("sub"));
-        System.out.println("Normalized Community number: " + normalizedCommunity.size());
 
         // Get user's communities for correct count
         List<Map<String, Object>> userCommunities = communityService.getUserCommunities(currentUserId);
 
-        // Add attributes to the model
-        model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId).size());
-        model.addAttribute("community", userCommunities.size()); // Fixed: use user's communities count
-        model.addAttribute("groups", processedGroups.size());
+        // Add attributes to the model - community-scoped when inside a specific community
+        if (selectedCommunityId != null) {
+            // Community-specific stats
+            model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId, selectedCommunityId).size());
+            model.addAttribute("community", null); // Hide communities card when inside a community
+            model.addAttribute("groups", processedGroups.size());
+            model.addAttribute("insideCommunity", true);
+        } else {
+            // Aggregated stats across all communities
+            model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId).size());
+            model.addAttribute("community", userCommunities.size());
+            model.addAttribute("groups", processedGroups.size());
+            model.addAttribute("insideCommunity", false);
+        }
         model.addAttribute("userId",authenticationManager.get("sub"));
         model.addAttribute("usersName", authenticationManager.get("name"));
         model.addAttribute("upcomingEventNum", upcomingEvents.size());

@@ -750,7 +750,7 @@
 
     <!-- Stats Section -->
     <section class="stats-grid">
-        <div class="card stat-card card-hover">
+        <div th:if="${!insideCommunity}" class="card stat-card card-hover">
             <div class="stat-info">
                 <p class="text-gray-500 text-sm">Communities</p>
                 <h3 th:text="${community}">5</h3>

@@ -15,4 +15,11 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup, Long> {
     List<ChatGroup> findAllByCommunity_Id(Long communityId);
 
     void deleteByAdminUser(User adminUser);
+
+    // Community-scoped queries for per-community network connections
+    Optional<ChatGroup> findByAdminUser_UserIdAndCommunity_Id(String adminUserUserId, Long communityId);
+
+    boolean existsByAdminUserAndCommunity_Id(User adminUser, Long communityId);
+
+    List<ChatGroup> findAllByAdminUser_UserId(String adminUserUserId);
 }

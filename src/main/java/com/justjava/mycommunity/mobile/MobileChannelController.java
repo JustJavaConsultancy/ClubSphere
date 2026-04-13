@@ -261,7 +261,14 @@ public class MobileChannelController {
             System.err.println("Error getting mycommunity details: " + e.getMessage());
         }
 
-        // Redirect to mycommunity-specific home page
+        // Check if there's a pending redirect (e.g., user was trying to access /mobile/network or /mobile/messages)
+        String redirectAfterSelect = (String) request.getSession().getAttribute("redirectAfterSelect");
+        if (redirectAfterSelect != null) {
+            request.getSession().removeAttribute("redirectAfterSelect");
+            return "redirect:" + redirectAfterSelect;
+        }
+
+        // Default: redirect to community-specific home page
         return "redirect:/mobile/home";
     }
 

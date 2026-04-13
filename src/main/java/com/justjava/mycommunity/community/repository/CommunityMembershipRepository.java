@@ -72,6 +72,17 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
     """)
     boolean isUserAdminOfAnyCommunity(String userId);
 
+    @Query("""
+        SELECT CASE WHEN COUNT(cm1) > 0 THEN true ELSE false END
+        FROM CommunityMembership cm1, CommunityMembership cm2
+        WHERE cm1.userId = :userId1
+        AND cm2.userId = :userId2
+        AND cm1.communityId = cm2.communityId
+        AND cm1.status = 'APPROVED'
+        AND cm2.status = 'APPROVED'
+    """)
+    boolean areUsersInSameCommunity(String userId1, String userId2);
+
     default Optional<String> findFirstAdmin(Long communityId) {
         List<String> admins = findAdminsByCommunityId(communityId);
         return admins.isEmpty() ? Optional.empty() : Optional.of(admins.get(0));

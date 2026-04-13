@@ -2,8 +2,10 @@ package com.justjava.mycommunity.mobile;
 
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.service.ChatService;
+import com.justjava.mycommunity.community.CommunityService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.network.NetworkService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,44 +19,60 @@ public class MobileNetworkController {
     private final ChatService chatService;
     private final AuthenticationManager authenticationManager;
     private final NetworkService networkService;
+    private final CommunityService communityService;
 
-    public MobileNetworkController(ChatService chatService, AuthenticationManager authenticationManager, NetworkService networkService) {
+    public MobileNetworkController(ChatService chatService, AuthenticationManager authenticationManager,
+                                   NetworkService networkService, CommunityService communityService) {
         this.chatService = chatService;
         this.authenticationManager = authenticationManager;
         this.networkService = networkService;
+        this.communityService = communityService;
     }
 
     @GetMapping
-    public String getNetwork(Model model){
+    public String getNetwork(Model model, HttpServletRequest request){
         String currentUserId = (String) authenticationManager.get("sub");
-        System.out.println(networkService.getChatGroupRequests(currentUserId));
-        List<UserDTO> allUser = chatService.getPublicUsers();
 
-        if (authenticationManager.isAdmin()){
-            allUser = chatService.getUsers();
+        // Get selected community from session - network requires community context
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        if (selectedCommunityId == null) {
+            return "redirect:/mobile/organizations";
         }
 
-        System.out.println("This is the current chat group users:::" + networkService.getChatGroupUsers(currentUserId));
+        String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");
 
-        List <UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId);
-        model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId));
-        model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId));
-        model.addAttribute("networkUsers",networkUsers.size());
+        // Get community members (excluding current user) instead of all public users
+        List<UserDTO> allUser = communityService.getCommunityMembersExcludingUser(selectedCommunityId, currentUserId);
+
+        // Community-scoped network users
+        List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId, selectedCommunityId);
+
+        model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId, selectedCommunityId));
+        model.addAttribute("myNetwork", networkUsers);
+        model.addAttribute("networkUsers", networkUsers.size());
         model.addAttribute("allUser", allUser);
+        model.addAttribute("selectedCommunityId", selectedCommunityId);
+        model.addAttribute("selectedCommunityName", selectedCommunityName);
         model.addAttribute("currentPath", "/network");
         return "network/mobile-network";
     }
 
     @PostMapping("/invite")
-    public ResponseEntity<String> handleConnectionRequest(@RequestParam("userId") String userId) {
+    public ResponseEntity<String> handleConnectionRequest(@RequestParam("userId") String userId,
+                                                          HttpServletRequest request) {
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        if (selectedCommunityId == null) {
+            return ResponseEntity.badRequest().body("No community selected");
+        }
         System.out.println(userId);
-        networkService.requestToJoinChatGroup((String) authenticationManager.get("sub"),userId);
+        networkService.requestToJoinChatGroup((String) authenticationManager.get("sub"), userId, selectedCommunityId);
         return ResponseEntity.ok("Connection request received for user: " + userId);
     }
 
     @PostMapping("/approve/{invitationId}")
     public String handleApproval(@PathVariable String invitationId,
                                  @RequestHeader(value = "HX-Request", required = false) String hxRequest,
+                                 HttpServletRequest request,
                                  Model model) {
         System.out.println("Approving invitation: " + invitationId);
 
@@ -63,12 +81,14 @@ public class MobileNetworkController {
             networkService.approveChatGroupRequest(Long.valueOf(invitationId));
 
             String currentUserId = (String) authenticationManager.get("sub");
-            List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId);
+            Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+
+            List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId, selectedCommunityId);
 
             // Add updated data to model
             model.addAttribute("networkUsers", networkUsers.size());
-            model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId));
-            model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId));
+            model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId, selectedCommunityId));
+            model.addAttribute("myNetwork", networkUsers);
 
             // If it's an HTMX request, return the fragment that updates multiple containers
             if ("true".equals(hxRequest)) {
@@ -94,6 +114,7 @@ public class MobileNetworkController {
     @PostMapping("/reject/{invitationId}")
     public String handleRejection(@PathVariable String invitationId,
                                   @RequestHeader(value = "HX-Request", required = false) String hxRequest,
+                                  HttpServletRequest request,
                                   Model model) {
         System.out.println("Rejecting invitation: " + invitationId);
 
@@ -102,12 +123,14 @@ public class MobileNetworkController {
             networkService.rejectChatGroupRequest(Long.valueOf(invitationId));
 
             String currentUserId = (String) authenticationManager.get("sub");
-            List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId);
+            Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+
+            List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId, selectedCommunityId);
 
             // Add updated data to model
             model.addAttribute("networkUsers", networkUsers.size());
-            model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId));
-            model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId));
+            model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId, selectedCommunityId));
+            model.addAttribute("myNetwork", networkUsers);
 
             // If it's an HTMX request, return the fragment that updates multiple containers
             if ("true".equals(hxRequest)) {
@@ -131,27 +154,30 @@ public class MobileNetworkController {
     }
 
     @GetMapping("/invitations-fragment")
-    public String getInvitationsFragment(Model model) {
+    public String getInvitationsFragment(Model model, HttpServletRequest request) {
         String currentUserId = (String) authenticationManager.get("sub");
-        model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId));
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId, selectedCommunityId));
         return "network/mobile-network-fragments :: invitations-list";
     }
 
     @GetMapping("/network-fragment")
-    public String getNetworkFragment(Model model) {
+    public String getNetworkFragment(Model model, HttpServletRequest request) {
         String currentUserId = (String) authenticationManager.get("sub");
-        model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId));
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId, selectedCommunityId));
         return "network/mobile-network-fragments :: network-list";
     }
 
     @GetMapping("/containers-fragment")
-    public String getContainersFragment(Model model) {
+    public String getContainersFragment(Model model, HttpServletRequest request) {
         String currentUserId = (String) authenticationManager.get("sub");
-        List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId);
+        Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
+        List<UserDTO> networkUsers = networkService.getChatGroupUsers(currentUserId, selectedCommunityId);
 
         model.addAttribute("networkUsers", networkUsers.size());
-        model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId));
-        model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId));
+        model.addAttribute("invitations", networkService.getChatGroupRequests(currentUserId, selectedCommunityId));
+        model.addAttribute("myNetwork", networkUsers);
 
         return "network/mobile-network-fragments :: containers";
     }
