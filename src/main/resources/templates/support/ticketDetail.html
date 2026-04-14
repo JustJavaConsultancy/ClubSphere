@@ -3,130 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <title>Ticket Conversation</title>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2/dist/stomp.min.js"></script>
 </head>
 <body>
 <div class="p-6" th:fragment="ticketDetail">
     <input type="hidden" id="receiverId" th:value="${receiverId}">
     <input type="hidden" id="senderId" th:value="${senderId}">
-    <input type="hidden" id="conversationId" th:value="${ticketId}">
+    <input type="hidden" id="conversationId" th:value="${conversationId}">
+    <input type="hidden" id="ticketId" th:value="${ticketId}">
+
+    <style>
+        /* Chat bubble styles */
+        .message { display: flex; margin-bottom: 12px; }
+        .message.user { justify-content: flex-end; }
+        .message.other { justify-content: flex-start; }
+        .bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: #f1f1f1;
+            position: relative;
+        }
+        .message.user .bubble {
+            background: #2563eb;
+            color: white;
+        }
+        .message.user .bubble .sender { color: #dbeafe; }
+        .message.user .bubble .timestamp { color: #bfdbfe; }
+        .sender {
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+        .timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 4px;
+            text-align: right;
+        }
+        #conversation {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 8px;
+            scroll-behavior: smooth;
+        }
+        .attachment-preview {
+            margin-top: 6px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .attachment-preview img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .attachment-preview a {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            color: inherit;
+        }
+        .message.user .attachment-preview a { color: white; background: rgba(255,255,255,0.2); }
+        #filePreview {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        #filePreview.active { display: flex; }
+        .upload-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #d1d5db;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        .upload-spinner.active { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .ticket-status {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+        .ticket-status.open, .ticket-status.Open { background-color: #DEF7EC; color: #046C4E; }
+        .ticket-status.pending, .ticket-status.Pending { background-color: #FDF6B2; color: #8E4B10; }
+        .ticket-status.closed, .ticket-status.Closed { background-color: #E5E7EB; color: #374151; }
+    </style>
 
     <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-gray-800">Ticket Details</h3>
-        <button class="text-gray-400 hover:text-gray-600" id="close-ticket-modal"
-                _="on click remove .active from #ticket-modal">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+        <div class="flex items-center gap-3">
+            <!-- Close Ticket button (visible only to support admins and when not already closed) -->
+            <button th:if="${isSupportAdmin and !isClosed}"
+                    class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg font-medium hover:bg-red-700"
+                    th:attr="hx-post=@{/support/close-ticket/{id}(id=${ticketId})}"
+                    hx-confirm="Are you sure you want to close this ticket?">
+                Close Ticket
+            </button>
+            <span th:if="${isClosed}" class="ticket-status closed">Closed</span>
+            <button class="text-gray-400 hover:text-gray-600" id="close-ticket-modal"
+                    _="on click remove .active from #ticket-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
     </div>
 
     <div class="bg-gray-50 p-4 rounded-lg mb-6">
         <div class="flex justify-between items-start mb-4">
-            <h4 class="text-lg font-medium text-gray-800" id="modal-ticket-title" th:text="${ticket.subject}">Technical issue with video calls</h4>
-            <span class="ticket-status open" id="modal-ticket-status" th:text="${ticket.status}">Open</span>
+            <h4 class="text-lg font-medium text-gray-800" th:text="${ticket.subject}">Technical issue</h4>
+            <span class="ticket-status" th:classappend="${ticket.status}" th:text="${ticket.status}">Open</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
                 <span class="text-gray-500">Ticket ID:</span>
-                <span class="font-medium ml-2" id="modal-ticket-id" th:text="${ticketId}">CON-2837</span>
-            </div>
-            <div>
-                <span class="text-gray-500">Category:</span>
-                <span class="font-medium ml-2" id="modal-ticket-category">Technical Issue</span>
+                <span class="font-medium ml-2" th:text="${'#TKT-' + ticketId}">TKT-123</span>
             </div>
             <div>
                 <span class="text-gray-500">Created:</span>
-                <span class="font-medium ml-2" id="modal-ticket-created" th:text="${#temporals.format(ticket.dateCreated, 'MMMM dd, yyyy HH:mm')}">June 12, 2023</span>
+                <span class="font-medium ml-2" th:text="${#temporals.format(ticket.dateCreated, 'MMMM dd, yyyy HH:mm')}">June 12, 2023</span>
             </div>
             <div>
                 <span class="text-gray-500">Last Updated:</span>
-                <span class="font-medium ml-2" id="modal-ticket-updated" th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">June 14, 2023</span>
-            </div>
-            <div>
-                <span class="text-gray-500">Priority:</span>
-                <span class="font-medium ml-2" id="modal-ticket-priority" th:text="${ticket.priority}">High</span>
+                <span class="font-medium ml-2" th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">June 14, 2023</span>
             </div>
         </div>
     </div>
 
     <div class="mb-6">
         <h4 class="font-medium text-gray-800 mb-3">Description</h4>
-        <p class="text-gray-700 bg-gray-50 p-4 rounded-lg" id="modal-ticket-description" th:text="${ticket.description}">
-            I'm having trouble with video calls freezing during coaching sessions. This has happened multiple times this week, especially when screen sharing. The issue occurs about 10 minutes into the call and requires me to reconnect.
-        </p>
+        <p class="text-gray-700 bg-gray-50 p-4 rounded-lg" th:text="${ticket.description}">Description here</p>
+        <div th:if="${ticket.attachmentUrl != null}" class="mt-3">
+            <a th:href="${ticket.attachmentUrl}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100">
+                📎 View Attachment
+            </a>
+        </div>
     </div>
 
     <div class="mb-6">
         <h4 class="font-medium text-gray-800 mb-4">Conversation</h4>
         <div id="conversation" class="space-y-4">
+            <div th:if="${#lists.isEmpty(messages)}" class="text-center text-gray-400 py-8">
+                <p>No messages yet. Start the conversation below.</p>
+            </div>
             <div th:each="msg : ${messages}" th:classappend="${msg.sender} ? ' message user' : ' message other'">
                 <div class="bubble">
-                    <div class="sender" th:text="${msg.sender} ? 'You' : 'User'"></div>
+                    <div class="sender" th:text="${msg.sender} ? 'You' : (${isSupportAdmin} ? 'User' : 'Support Agent')"></div>
                     <p th:text="${msg.content}">Message content</p>
+                    <!-- Attachment display -->
+                    <div th:if="${msg.attachmentUrl != null}" class="attachment-preview">
+                        <a th:href="${msg.attachmentUrl}" target="_blank" rel="noopener">
+                            📎 View Attachment
+                        </a>
+                    </div>
                     <div class="timestamp" th:text="${msg.sentAt}">Timestamp</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div>
+    <!-- Reply section - hidden when ticket is closed -->
+    <div th:if="${!isClosed}">
         <h4 class="font-medium text-gray-800 mb-3">Add a Reply</h4>
+
+        <!-- File preview bar -->
+        <div id="filePreview">
+            <span>📎</span>
+            <span id="fileName" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+            <div class="upload-spinner" id="uploadSpinner"></div>
+            <button type="button" id="removeFile" class="text-red-500 hover:text-red-700 font-bold">&times;</button>
+        </div>
+
         <textarea id="messageInput" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Type your message here..."></textarea>
-        <div class="flex justify-end mt-3">
-            <button id="sendMessageBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 btn-transition">
+        <div class="flex justify-between items-center mt-3">
+            <div>
+                <label for="fileInput" class="cursor-pointer px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium inline-flex items-center gap-1">
+                    📎 Attach File
+                </label>
+                <input type="file" id="fileInput" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt,.zip">
+            </div>
+            <button id="sendMessageBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
                 Send Message
             </button>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <!-- Closed ticket notice -->
+    <div th:if="${isClosed}" class="bg-gray-100 border border-gray-200 rounded-lg p-4 text-center text-gray-500">
+        <p>This ticket has been closed. No further replies can be sent.</p>
+    </div>
+
     <script>
         (function() {
+            // Check that SockJS and Stomp are available
+            if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+                console.error('SockJS or Stomp not loaded. WebSocket messaging will not work.');
+                return;
+            }
+
             // === WebSocket Manager ===
-            window.ticketSocketManager = window.ticketSocketManager || (function () {
+            // Disconnect any existing connection before setting up a new one
+            if (window.ticketSocketManager) {
+                window.ticketSocketManager.disconnect();
+            }
+
+            window.ticketSocketManager = (function () {
                 let stompClient = null;
 
                 function connect(conversationId, senderId, receiverId, conversationBox) {
                     if (stompClient && stompClient.connected) {
-                        console.log("🔗 WebSocket already connected.");
+                        console.log("WebSocket already connected.");
                         return;
                     }
 
                     const socket = new SockJS('/ws');
                     stompClient = Stomp.over(socket);
+                    stompClient.debug = null; // suppress debug logs
 
                     stompClient.connect({}, function (frame) {
-                        console.log('✅ Connected:', frame);
+                        console.log('Connected:', frame);
                         stompClient.subscribe(`/topic/support/${senderId}`, function (message) {
                             const msg = JSON.parse(message.body);
-                            console.log("📩 Received:", msg);
                             displayMessage(msg, "other", conversationBox);
                         });
                     }, function (error) {
-                        console.error('⚠️ WebSocket connection error:', error);
+                        console.error('WebSocket connection error:', error);
                     });
                 }
 
                 function disconnect() {
                     if (stompClient) {
                         stompClient.disconnect(() => {
-                            console.log("❌ WebSocket connection closed.");
+                            console.log("WebSocket connection closed.");
                         });
                         stompClient = null;
                     }
                 }
 
-                function sendMessage(conversationId, senderId, receiverId, content, conversationBox) {
+                function sendMessage(conversationId, senderId, receiverId, content, attachmentUrl, conversationBox) {
                     if (!stompClient || !stompClient.connected) {
-                        console.warn("⚠️ Cannot send message, WebSocket not connected.");
+                        console.warn("Cannot send message, WebSocket not connected.");
                         return;
                     }
-                    const msg = { conversationId, senderId, receiverId, content };
+                    const msg = { conversationId, senderId, receiverId, content, attachmentUrl };
                     stompClient.send(`/app/support.sendMessage`, {}, JSON.stringify(msg));
-                    console.log("📤 Sent:", msg);
                     displayMessage(msg, "user", conversationBox);
                 }
 
@@ -139,20 +275,38 @@
 
                     const senderName = document.createElement("div");
                     senderName.classList.add("sender");
-                    senderName.textContent = (type === "user") ? "You" : "User";
+                    senderName.textContent = (type === "user") ? "You" : "Support";
 
                     const text = document.createElement("p");
                     text.textContent = msg.content;
+
+                    bubble.appendChild(senderName);
+                    bubble.appendChild(text);
+
+                    // Attachment
+                    if (msg.attachmentUrl) {
+                        const attachDiv = document.createElement("div");
+                        attachDiv.classList.add("attachment-preview");
+                        const link = document.createElement("a");
+                        link.href = msg.attachmentUrl;
+                        link.target = "_blank";
+                        link.rel = "noopener";
+                        link.textContent = "📎 View Attachment";
+                        attachDiv.appendChild(link);
+                        bubble.appendChild(attachDiv);
+                    }
 
                     const timestamp = document.createElement("div");
                     timestamp.classList.add("timestamp");
                     timestamp.textContent = msg.sentAt || new Date().toLocaleString();
 
-                    bubble.appendChild(senderName);
-                    bubble.appendChild(text);
                     bubble.appendChild(timestamp);
-
                     wrapper.appendChild(bubble);
+
+                    // Remove the "no messages" placeholder if present
+                    const emptyMsg = conversationBox.querySelector('.text-center.text-gray-400');
+                    if (emptyMsg) emptyMsg.remove();
+
                     conversationBox.appendChild(wrapper);
                     conversationBox.scrollTop = conversationBox.scrollHeight;
                 }
@@ -163,24 +317,107 @@
             // === Local scoped variables ===
             let receiverId = document.getElementById("receiverId").value;
             let senderId = document.getElementById("senderId").value;
-            let conversationId = document.getElementById("conversationId").value;
+            let conversationId = parseInt(document.getElementById("conversationId").value);
             let conversationBox = document.getElementById("conversation");
+            let pendingAttachmentUrl = null;
 
-            // Connect when modal opens
+            // Auto-scroll conversation to bottom on load
+            setTimeout(() => {
+                conversationBox.scrollTop = conversationBox.scrollHeight;
+            }, 100);
+
+            // Connect WebSocket
             window.ticketSocketManager.connect(conversationId, senderId, receiverId, conversationBox);
 
+            // === File attachment handling ===
+            const fileInput = document.getElementById("fileInput");
+            const filePreview = document.getElementById("filePreview");
+            const fileNameEl = document.getElementById("fileName");
+            const uploadSpinner = document.getElementById("uploadSpinner");
+            const removeFileBtn = document.getElementById("removeFile");
+
+            if (fileInput) {
+                fileInput.addEventListener("change", function() {
+                    const file = this.files[0];
+                    if (!file) return;
+
+                    fileNameEl.textContent = file.name;
+                    filePreview.classList.add("active");
+                    uploadSpinner.classList.add("active");
+                    pendingAttachmentUrl = null;
+
+                    // Upload the file
+                    const formData = new FormData();
+                    formData.append("file", file);
+
+                    fetch("/support/upload-attachment", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        uploadSpinner.classList.remove("active");
+                        if (data.success) {
+                            pendingAttachmentUrl = data.url;
+                            fileNameEl.textContent = data.fileName || file.name;
+                        } else {
+                            alert("Upload failed: " + (data.message || "Unknown error"));
+                            resetFileInput();
+                        }
+                    })
+                    .catch(err => {
+                        uploadSpinner.classList.remove("active");
+                        alert("Upload failed. Please try again.");
+                        resetFileInput();
+                    });
+                });
+            }
+
+            if (removeFileBtn) {
+                removeFileBtn.addEventListener("click", resetFileInput);
+            }
+
+            function resetFileInput() {
+                pendingAttachmentUrl = null;
+                if (fileInput) fileInput.value = "";
+                if (filePreview) filePreview.classList.remove("active");
+                if (fileNameEl) fileNameEl.textContent = "";
+            }
+
             // Handle send button
-            document.getElementById("sendMessageBtn").addEventListener("click", function () {
-                const content = document.getElementById("messageInput").value.trim();
-                if (!content) return;
-                window.ticketSocketManager.sendMessage(conversationId, senderId, receiverId, content, conversationBox);
-                document.getElementById("messageInput").value = "";
-            });
+            const sendBtn = document.getElementById("sendMessageBtn");
+            if (sendBtn) {
+                sendBtn.addEventListener("click", function () {
+                    const content = document.getElementById("messageInput").value.trim();
+                    if (!content && !pendingAttachmentUrl) return;
+
+                    window.ticketSocketManager.sendMessage(
+                        conversationId, senderId, receiverId,
+                        content || "", pendingAttachmentUrl, conversationBox
+                    );
+                    document.getElementById("messageInput").value = "";
+                    resetFileInput();
+                });
+            }
+
+            // Handle Enter key to send
+            const msgInput = document.getElementById("messageInput");
+            if (msgInput) {
+                msgInput.addEventListener("keydown", function(e) {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (sendBtn) sendBtn.click();
+                    }
+                });
+            }
 
             // Handle close modal => disconnect
-            document.getElementById("close-ticket-modal").addEventListener("click", function () {
-                window.ticketSocketManager.disconnect();
-            });
+            const closeBtn = document.getElementById("close-ticket-modal");
+            if (closeBtn) {
+                closeBtn.addEventListener("click", function () {
+                    window.ticketSocketManager.disconnect();
+                });
+            }
         })();
     </script>
 </div>

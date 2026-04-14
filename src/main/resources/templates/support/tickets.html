@@ -57,6 +57,11 @@
           color: #374151;
         }
 
+        .ticket-status.closed {
+          background-color: #E5E7EB;
+          color: #374151;
+        }
+
         .ticket-status.urgent {
           background-color: #FDE8E8;
           color: #9B1C1C;
@@ -129,6 +134,8 @@
         }
     </style>
     <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body>
 <div layout:fragment="content">
@@ -185,7 +192,6 @@
                     <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -203,15 +209,11 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="priority-dot priority-high"></span>
-                            <span class="text-sm text-gray-900" th:text="${ticket.priority}">High</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900" th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">June 14, 2023</div>
 <!--                            <div class="text-sm text-gray-500">2 days ago</div>-->
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="ticket-status open" th:text="${ticket.status}">Open</span>
+                            <span class="ticket-status" th:classappend="${ticket.status.toLowerCase()}" th:text="${ticket.status}">Open</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button class="text-blue-600 hover:text-blue-900 view-ticket-btn"
@@ -228,35 +230,12 @@
 
             <!-- Pagination -->
             <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div class="sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-sm text-gray-700">
-                            Showing
-                            <span class="font-medium">1</span>
-                            to
-                            <span class="font-medium">5</span>
-                            of
-                            <span class="font-medium">12</span>
-                            results
-                        </p>
+                        <p class="text-sm text-gray-700" id="paginationInfo"></p>
                     </div>
                     <div>
-                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Previous</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                </svg>
-                            </a>
-                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</a>
-                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">2</a>
-                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">3</a>
-                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Next</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                                </svg>
-                            </a>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="paginationNav" aria-label="Pagination">
                         </nav>
                     </div>
                 </div>
@@ -267,23 +246,97 @@
     <script>
         // Ticket modal functionality
    const ticketModal = document.getElementById('ticket-modal');
-   const closeTicketModal = document.getElementById('close-ticket-modal');
-   const viewTicketButtons = document.querySelectorAll('.view-ticket-btn');
 
-   viewTicketButtons.forEach(button => {
-     button.addEventListener('click', function() {
-       const ticketId = this.getAttribute('data-ticket');
-       // In a real app, you would fetch ticket data based on the ID
-       // For this example, we'll just show the modal with sample data
-       ticketModal.classList.add('active');
-       document.body.style.overflow = 'hidden';
-     });
+   document.addEventListener('click', function(e) {
+       if (e.target.closest('.view-ticket-btn')) {
+           ticketModal.classList.add('active');
+           document.body.style.overflow = 'hidden';
+       }
    });
 
-   closeTicketModal.addEventListener('click', function() {
-     ticketModal.classList.remove('active');
-     document.body.style.overflow = 'auto';
+   // Use event delegation for the close button (loaded dynamically via HTMX)
+   ticketModal.addEventListener('click', function(e) {
+       if (e.target.closest('#close-ticket-modal')) {
+           ticketModal.classList.remove('active');
+           document.body.style.overflow = 'auto';
+       }
    });
+
+   // === Client-Side Pagination & Search ===
+   (function() {
+       const PAGE_SIZE = 10;
+       let currentPage = 1;
+       const rows = Array.from(document.querySelectorAll('tr.ticket-item'));
+       let filtered = rows;
+       const nav = document.getElementById('paginationNav');
+       const info = document.getElementById('paginationInfo');
+       const searchInput = document.querySelector('input[placeholder="Search tickets..."]');
+
+       function render() {
+           const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+           if (currentPage > totalPages) currentPage = totalPages;
+           const start = (currentPage - 1) * PAGE_SIZE;
+           const end = start + PAGE_SIZE;
+
+           rows.forEach(r => r.style.display = 'none');
+           filtered.forEach((r, i) => r.style.display = (i >= start && i < end) ? '' : 'none');
+
+           // Info text
+           if (info) {
+               if (filtered.length === 0) {
+                   info.textContent = 'No tickets found';
+               } else {
+                   info.innerHTML = 'Showing <span class="font-medium">' + (start + 1) +
+                       '</span> to <span class="font-medium">' + Math.min(end, filtered.length) +
+                       '</span> of <span class="font-medium">' + filtered.length + '</span> results';
+               }
+           }
+
+           // Navigation buttons
+           if (!nav) return;
+           nav.innerHTML = '';
+           if (totalPages <= 1) return;
+
+           // Previous button
+           const prevBtn = document.createElement('button');
+           prevBtn.className = 'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50';
+           prevBtn.innerHTML = '<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+           prevBtn.disabled = currentPage === 1;
+           prevBtn.onclick = function(e) { e.preventDefault(); currentPage--; render(); };
+           nav.appendChild(prevBtn);
+
+           // Page buttons
+           for (let p = 1; p <= totalPages; p++) {
+               const pageBtn = document.createElement('button');
+               pageBtn.textContent = p;
+               pageBtn.className = 'relative inline-flex items-center px-4 py-2 border text-sm font-medium ' +
+                   (p === currentPage
+                       ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                       : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50');
+               pageBtn.onclick = function(e) { e.preventDefault(); currentPage = p; render(); };
+               nav.appendChild(pageBtn);
+           }
+
+           // Next button
+           const nextBtn = document.createElement('button');
+           nextBtn.className = 'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50';
+           nextBtn.innerHTML = '<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>';
+           nextBtn.disabled = currentPage === totalPages;
+           nextBtn.onclick = function(e) { e.preventDefault(); currentPage++; render(); };
+           nav.appendChild(nextBtn);
+       }
+
+       if (searchInput) {
+           searchInput.addEventListener('input', function() {
+               const q = this.value.toLowerCase();
+               filtered = rows.filter(r => r.textContent.toLowerCase().includes(q));
+               currentPage = 1;
+               render();
+           });
+       }
+
+       render();
+   })();
     </script>
 </div>
 </body>

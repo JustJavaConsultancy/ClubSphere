@@ -140,7 +140,6 @@
             <thead>
             <tr class="border-b border-gray-200">
                 <th class="py-3 px-4 text-sm font-semibold text-gray-500">TICKET</th>
-                <th class="py-3 px-4 text-sm font-semibold text-gray-500">PRIORITY</th>
                 <th class="py-3 px-4 text-sm font-semibold text-gray-500">LAST UPDATED</th>
                 <th class="py-3 px-4 text-sm font-semibold text-gray-500">STATUS</th>
             </tr>
@@ -152,13 +151,9 @@
                     <p class="text-sm text-gray-600" th:text="${ticket.subject}">Coaching error</p>
                 </td>
                 <td class="py-4 px-4">
-                    <span class="px-3 py-1 text-xs font-medium priority-medium rounded-full"
-                          th:text="${ticket.priority}">Medium</span>
-                </td>
-                <td class="py-4 px-4">
                     <p class="font-semibold text-gray-800"
                        th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy')}">September 03, 2025</p>
-                    <p class="text-sm text-gray-600" th:text="${#temporals.format(ticket.lastUpdated, 'HH:mm')}">10:30 AM (2 days ago)</p>
+                    <p class="text-sm text-gray-600" th:text="${#temporals.format(ticket.lastUpdated, 'HH:mm')}">10:30 AM</p>
                 </td>
                 <td class="py-4 px-4">
                     <span class="px-3 py-1 text-xs font-medium status-open rounded-full" th:text="${ticket.status}">Open</span>
@@ -168,21 +163,78 @@
             </tbody>
         </table>
     </div>
+    <!-- Pagination -->
     <div class="flex justify-between items-center mt-6">
-        <p class="text-sm text-gray-600">Showing 1 to 3 of 12 results</p>
-        <div class="flex items-center space-x-1">
-            <button class="p-2 rounded-md hover:bg-gray-100 text-gray-400">
-                <span class="material-icons">chevron_left</span>
-            </button>
-            <button class="px-4 py-2 rounded-md bg-blue-600 text-white">1</button>
-            <button class="px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700">2</button>
-            <button class="px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700">3</button>
-            <button class="p-2 rounded-md hover:bg-gray-100 text-gray-700">
-                <span class="material-icons">chevron_right</span>
-            </button>
-        </div>
+        <p class="text-sm text-gray-600" id="dashPaginationInfo"></p>
+        <div class="flex items-center space-x-1" id="dashPaginationNav"></div>
     </div>
 </div>
+<script>
+    (function() {
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+        const rows = Array.from(document.querySelectorAll('tr.ticket-row'));
+        let filtered = rows;
+        const nav = document.getElementById('dashPaginationNav');
+        const info = document.getElementById('dashPaginationInfo');
+        const searchInput = document.querySelector('input[placeholder="Search tickets..."]');
+
+        function render() {
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            if (currentPage > totalPages) currentPage = totalPages;
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+
+            rows.forEach(r => r.style.display = 'none');
+            filtered.forEach((r, i) => r.style.display = (i >= start && i < end) ? '' : 'none');
+
+            if (info) {
+                info.textContent = filtered.length === 0
+                    ? 'No tickets found'
+                    : 'Showing ' + (start + 1) + ' to ' + Math.min(end, filtered.length) + ' of ' + filtered.length + ' results';
+            }
+
+            if (!nav) return;
+            nav.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'p-2 rounded-md hover:bg-gray-100 text-gray-400';
+            prevBtn.innerHTML = '<span class="material-icons">chevron_left</span>';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = function(e) { e.preventDefault(); currentPage--; render(); };
+            nav.appendChild(prevBtn);
+
+            for (let p = 1; p <= totalPages; p++) {
+                const btn = document.createElement('button');
+                btn.textContent = p;
+                btn.className = p === currentPage
+                    ? 'px-4 py-2 rounded-md bg-blue-600 text-white'
+                    : 'px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700';
+                btn.onclick = function(e) { e.preventDefault(); currentPage = p; render(); };
+                nav.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'p-2 rounded-md hover:bg-gray-100 text-gray-700';
+            nextBtn.innerHTML = '<span class="material-icons">chevron_right</span>';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = function(e) { e.preventDefault(); currentPage++; render(); };
+            nav.appendChild(nextBtn);
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const q = this.value.toLowerCase();
+                filtered = rows.filter(r => r.textContent.toLowerCase().includes(q));
+                currentPage = 1;
+                render();
+            });
+        }
+
+        render();
+    })();
+</script>
 </div>
 </body>
 </html>

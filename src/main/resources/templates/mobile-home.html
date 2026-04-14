@@ -531,7 +531,7 @@
                 You currently have no upcoming sessions. Stay tuned for new updates.
             </p>
             <div class="flex justify-between items-center">
-                <button th:if="${!isSupportAdmin}"
+                <button th:if="${!isSupportAdmin and selectedCommunityId != null}"
                         class="secondary-btn touch-feedback"
                         id="support-welcome-btn"
                         style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
@@ -866,90 +866,90 @@
         </div>
     </div>
 
-    <!-- Support Section -->
-    <div class="mobile-card touch-feedback" th:if="${!isSupportAdmin}">
+    <!-- Support Card (only shown when inside a specific community) -->
+    <div th:if="${selectedCommunityId != null and !isSupportAdmin}" class="mobile-card">
         <div class="section-header">
-            <div class="section-icon">
-                <span class="material-icons">support_agent</span>
+            <div class="section-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                <span class="material-icons" style="color:#4f46e5;">support_agent</span>
             </div>
             <h2 class="section-title">Need Help?</h2>
         </div>
-
-        <p class="text-sm text-gray-600 mb-4">Our support team is here to help you with any questions or issues you might have.</p>
-
-        <div class="space-y-3">
-            <button class="brand-btn w-full touch-feedback" id="support-card-btn">
-                <span class="material-icons">chat</span>
-                Contact Support
-            </button>
-            <a th:href="@{/support/my-tickets}" style="text-decoration: none;">
-                <button class="secondary-btn w-full touch-feedback">
-                    View My Tickets
-                </button>
-            </a>
-        </div>
+        <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">
+            Having an issue with <strong th:text="${selectedCommunityName}">this community</strong>? Create a support ticket.
+        </p>
+        <button id="support-card-btn"
+                class="brand-btn w-full touch-feedback"
+                style="background: linear-gradient(135deg, #4f46e5, #6366f1); color:white; padding:12px 16px; border:none; border-radius:12px; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span class="material-icons" style="font-size:20px;">add_circle</span>
+            Create Support Ticket
+        </button>
+        <a href="/mobile/support/my-tickets" style="display:block; text-align:center; margin-top:10px; padding:10px; color:#4f46e5; font-weight:500; font-size:14px; text-decoration:none;">
+            <span class="material-icons" style="font-size:16px; vertical-align:middle; margin-right:4px;">confirmation_number</span>
+            View My Tickets
+        </a>
     </div>
 
-    <!-- Support Modal -->
-    <div class="support-modal" id="support-modal">
+    <!-- Support Ticket Modal (Mobile) -->
+    <div id="support-modal" class="support-modal">
         <div class="support-modal-content">
             <div class="modal-handle"></div>
-
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Contact Support</h3>
-                    <button class="action-btn" id="close-support-modal">
-                        <span class="material-icons">close</span>
+            <div style="padding:20px 20px 32px 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3 style="margin:0; font-size:1.15rem; font-weight:700; color:#1f2937;">
+                        <span class="material-icons" style="color:#4f46e5; vertical-align:middle; margin-right:6px; font-size:22px;">support_agent</span>
+                        Create Support Ticket
+                    </h3>
+                    <button id="close-support-modal" style="background:none; border:none; cursor:pointer; padding:4px;">
+                        <span class="material-icons" style="color:#9ca3af; font-size:24px;">close</span>
                     </button>
                 </div>
-
-                <form id="support-form" hx-post="/support/submit-request">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                        <input type="text" name="subject"
-                               class="form-input"
-                               placeholder="What do you need help with?" required>
+                <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">
+                    Describe your issue for <strong th:text="${selectedCommunityName}">Community</strong> and our team will help you.
+                </p>
+                <form hx-post="/support/submit-request"
+                      hx-target="#mobileSupportFeedback"
+                      hx-swap="innerHTML"
+                      id="mobileSupportForm">
+                    <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                    <input type="hidden" name="attachmentUrl" id="mobileSupportAttachmentUrl">
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Subject</label>
+                        <input type="text" name="subject" placeholder="Brief summary of your issue" class="form-input" required>
                     </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea name="description"
-                                  class="form-input"
-                                  rows="5"
-                                  placeholder="Please describe your issue in detail..." required></textarea>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Description</label>
+                        <textarea name="description" rows="4" placeholder="Provide details about your issue..." class="form-input" style="resize:vertical;" required></textarea>
                     </div>
-
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Priority</label>
-                        <div class="space-y-3">
-                            <label class="flex items-center">
-                                <input type="radio" name="priority" value="low" class="mr-3" checked required>
-                                <span>Low Priority</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="priority" value="medium" class="mr-3" required>
-                                <span>Medium Priority</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="priority" value="high" class="mr-3" required>
-                                <span>High Priority</span>
-                            </label>
+                    <!-- Attachment -->
+                    <div style="margin-bottom:18px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Attachment (optional)</label>
+                        <div id="mobileSupportFilePreview" style="display:none; align-items:center; gap:8px; padding:10px 12px; background:#f3f4f6; border-radius:12px; margin-bottom:8px; font-size:0.85rem;">
+                            <span>📎</span>
+                            <span id="mobileSupportFileName" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+                            <span id="mobileSupportUploadSpinner" style="display:none; width:16px; height:16px; border:2px solid #d1d5db; border-top-color:#4f46e5; border-radius:50%; animation:spin 0.6s linear infinite;"></span>
+                            <button type="button" id="mobileSupportRemoveFile" style="background:none; border:none; color:#ef4444; font-weight:bold; font-size:16px; cursor:pointer;">&times;</button>
                         </div>
+                        <label for="mobileSupportFileInput" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:10px 14px; background:#f3f4f6; border:1px dashed #d1d5db; border-radius:12px; font-size:14px; color:#6b7280; font-weight:500;">
+                            <span class="material-icons" style="font-size:18px;">attach_file</span> Choose File
+                        </label>
+                        <input type="file" id="mobileSupportFileInput" style="display:none;" accept="image/*,.pdf,.doc,.docx,.txt,.zip">
                     </div>
-
-                    <div class="flex gap-3">
-                        <button type="button" class="secondary-btn flex-1 touch-feedback" id="cancel-support">
-                            Cancel
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit"
+                                style="flex:1; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; padding:14px 24px; border:none; border-radius:12px; font-weight:600; font-size:15px; cursor:pointer;">
+                            Submit Ticket
                         </button>
-                        <button type="submit" class="brand-btn flex-1 touch-feedback">
-                            <span class="material-icons">send</span>
-                            Submit
+                        <button type="button" id="cancel-support"
+                                style="padding:14px 20px; background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:12px; font-weight:500; cursor:pointer;">
+                            Cancel
                         </button>
                     </div>
                 </form>
+                <div id="mobileSupportFeedback" style="margin-top:12px;"></div>
             </div>
         </div>
     </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"
             onload="console.log('SockJS loaded')"
@@ -1007,6 +1007,50 @@
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('click', () => toggleSupportModal(false));
             });
+
+            // --- Mobile support ticket attachment handling ---
+            (function() {
+                const fileInput = document.getElementById('mobileSupportFileInput');
+                const filePreview = document.getElementById('mobileSupportFilePreview');
+                const fileNameEl = document.getElementById('mobileSupportFileName');
+                const spinner = document.getElementById('mobileSupportUploadSpinner');
+                const removeBtn = document.getElementById('mobileSupportRemoveFile');
+                const urlField = document.getElementById('mobileSupportAttachmentUrl');
+                if (!fileInput) return;
+
+                fileInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (!file) return;
+                    fileNameEl.textContent = file.name;
+                    filePreview.style.display = 'flex';
+                    spinner.style.display = 'inline-block';
+                    urlField.value = '';
+
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    fetch('/support/upload-attachment', { method: 'POST', body: fd })
+                        .then(r => r.json())
+                        .then(data => {
+                            spinner.style.display = 'none';
+                            if (data.success) {
+                                urlField.value = data.url;
+                                fileNameEl.textContent = data.fileName || file.name;
+                            } else {
+                                alert('Upload failed: ' + (data.message || 'Unknown error'));
+                                resetMobileSupportFile();
+                            }
+                        })
+                        .catch(() => { spinner.style.display = 'none'; alert('Upload failed.'); resetMobileSupportFile(); });
+                });
+
+                function resetMobileSupportFile() {
+                    fileInput.value = '';
+                    filePreview.style.display = 'none';
+                    fileNameEl.textContent = '';
+                    urlField.value = '';
+                }
+                if (removeBtn) removeBtn.addEventListener('click', resetMobileSupportFile);
+            })();
 
             // Time ago formatter
             function formatTimeAgo(dateString) {

@@ -299,11 +299,11 @@
                     Events
                 </a>
 
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/ai-support}"
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/support/my-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/ai-support'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
-                    <i class="fas fa-robot w-5"></i>
-                    AI Support
+                   th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    My Tickets
                 </a>
 
                 <a th:if="${!session.isSupportAdmin}" th:href="@{/subscription/my-subscriptions}"
@@ -501,11 +501,11 @@
                     Events
                 </a>
 
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/ai-support}"
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/support/my-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/ai-support'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
-                    <i class="fas fa-robot w-5"></i>
-                    AI Support
+                   th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    My Tickets
                 </a>
 
                 <a th:if="${!session.isSupportAdmin}" th:href="@{/subscription/my-subscriptions}"

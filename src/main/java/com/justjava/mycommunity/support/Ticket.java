@@ -34,6 +34,10 @@ public class Ticket extends AuditableEntity {
 
     private String agentUserId;
 
+    private Long communityId;
+
+    private String attachmentUrl;
+
     @CreatedDate
     @Column(updatable = false)
     private OffsetDateTime dateCreated;

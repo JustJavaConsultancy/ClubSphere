@@ -24,6 +24,7 @@ public class ConversationDto implements Serializable {
         @Embeddable
     public static class MessageDto implements Serializable {
         String content;
+        String attachmentUrl;
         Boolean sender;
         String sentAt;
     }

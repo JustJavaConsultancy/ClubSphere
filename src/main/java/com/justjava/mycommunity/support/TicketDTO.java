@@ -13,6 +13,7 @@ public class TicketDTO {
     private String description;
     private String priority;
     private String status;
+    private String attachmentUrl;
     private OffsetDateTime dateCreated;
     private OffsetDateTime lastUpdated;
     private String userId;

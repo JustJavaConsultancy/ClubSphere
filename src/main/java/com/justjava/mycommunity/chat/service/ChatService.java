@@ -128,6 +128,7 @@ public class ChatService {
         message.setConversation(conversation);
         message.setSenderId(chatMessage.getSenderId());
         message.setContent(chatMessage.getContent());
+        message.setAttachmentUrl(chatMessage.getAttachmentUrl());
         messageRepository.save(message);
         conversation.getMessages().add(message);
         conversationRepository.save(conversation);
@@ -158,6 +159,7 @@ public class ChatService {
         for (Message m : messages) {
             ConversationDto.MessageDto messageDto = new ConversationDto.MessageDto();
             messageDto.setContent(m.getContent());
+            messageDto.setAttachmentUrl(m.getAttachmentUrl());
             messageDto.setSender(m.getSender(userId));
             messageDto.setSentAt(m.getSentAt());
             messageDtos.add(messageDto);

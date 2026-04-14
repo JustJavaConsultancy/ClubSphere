@@ -1,6 +1,7 @@
 package com.justjava.mycommunity.support;
 
 import com.justjava.mycommunity.account.AuthenticationManager;
+import com.justjava.mycommunity.cloudinary.CloudinaryService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.userManagement.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Controller
@@ -24,13 +28,18 @@ public class SupportController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final AISupportService aISupportService;
+    private final CloudinaryService cloudinaryService;
 
-    public SupportController(SupportService supportService, UserService userService, AuthenticationManager authenticationManager, AISupportService aISupportService){
+    public SupportController(SupportService supportService, UserService userService,
+                             AuthenticationManager authenticationManager, AISupportService aISupportService,
+                             CloudinaryService cloudinaryService){
         this.supportService = supportService;
         this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.aISupportService = aISupportService;
+        this.cloudinaryService = cloudinaryService;
     }
+
     @GetMapping("/dashboard")
     public String getDashboard(HttpServletRequest request, Model model){
         request.getSession(true).setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
@@ -50,7 +59,6 @@ public class SupportController {
 
     @GetMapping("/my-tickets")
     public String getTickets(Model model){
-
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         model.addAttribute("tickets", supportService.getTickets());
         model.addAttribute("currentUserId",authenticationManager.get("sub"));
@@ -62,19 +70,22 @@ public class SupportController {
         String loginUser = (String) authenticationManager.get("sub");
 
         TicketDTO singleTicket = supportService.getSingleTicket(id, loginUser);
-//        System.out.println(singleTicket.getConversation());
 
-        model.addAttribute("ticketId",id);
-        model.addAttribute("senderId", authenticationManager.get("sub"));
+        model.addAttribute("ticketId", id);
+        model.addAttribute("senderId", loginUser);
         model.addAttribute("ticket", singleTicket);
-        model.addAttribute("receiverId",singleTicket.getConversation().getReceiverId());
-        model.addAttribute("messages",singleTicket.getConversation().getMessages());
+        model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
+        // Pass the actual conversation ID instead of ticketId
+        model.addAttribute("conversationId", singleTicket.getConversation().getId());
+        model.addAttribute("receiverId", singleTicket.getConversation().getReceiverId());
+        model.addAttribute("messages", singleTicket.getConversation().getMessages());
+        // Check if ticket is closed
+        model.addAttribute("isClosed", "Closed".equalsIgnoreCase(singleTicket.getStatus()));
         return "support/ticketDetail :: ticketDetail";
     }
 
     @GetMapping("/agent/claim-ticket")
     public String claimTickets(Model model){
-
         model.addAttribute("unAssignedTickets", supportService.getAllUnassignedTicket());
         return "support/agentTicket";
     }
@@ -93,26 +104,58 @@ public class SupportController {
 
     @PostMapping("/submit-request")
     public String submitRequests(@RequestParam Map<String, Object> formData){
-//        System.out.println("This is the submitted request" + formData);
-
         supportService.createTicket(formData);
-
         return "/support/successMessage";
     }
 
     @PostMapping("/submit-claim/{id}")
     public ResponseEntity<Void> submitClaim(@PathVariable Long id){
-        Ticket singleClaimTicket = supportService.getTicketById(id);
-
         if(authenticationManager.isSupportAdmin()){
             String loginUser = (String) authenticationManager.get("sub");
             supportService.claimTicket(id, loginUser);
         }
-        System.out.println("This is the submit claim");
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/support/agent/claim-ticket");
         return ResponseEntity.status(HttpStatus.OK).headers(headers).build();
+    }
+
+    @PostMapping("/close-ticket/{id}")
+    public ResponseEntity<Void> closeTicket(@PathVariable Long id){
+        if(authenticationManager.isSupportAdmin()){
+            supportService.closeTicket(id);
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("HX-Redirect", "/support/my-tickets");
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).build();
+    }
+
+    @PostMapping("/upload-attachment")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> uploadAttachment(@RequestParam("file") MultipartFile file) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (file.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "File is empty");
+                return ResponseEntity.badRequest().body(response);
+            }
+            String url = cloudinaryService.uploadFile(file, "support/attachments");
+            if (url == null) {
+                response.put("success", false);
+                response.put("message", "Failed to upload file");
+                return ResponseEntity.status(500).body(response);
+            }
+            response.put("success", true);
+            response.put("url", url);
+            response.put("fileName", file.getOriginalFilename());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Upload failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 
     @PostMapping("/chat")
@@ -121,5 +164,4 @@ public class SupportController {
         model.addAttribute("response", response);
         return "support/AI-successMessage";
     }
-
 }

@@ -656,72 +656,6 @@
 </head>
 <body th:data-can-user-post="${canUserPost}">
 <div layout:fragment="content">
-    <!-- Support Modal -->
-    <div class="support-modal" id="support-modal">
-        <div class="support-modal-content">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Contact Support</h3>
-                    <button class="text-gray-400 hover:text-gray-600" id="close-support-modal">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <form id="support-form" hx-post="/support/chat">
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">How can we help you?</label>
-                        <textarea name="message" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="5"
-                                  placeholder="Please describe your issue in detail..." required></textarea>
-                    </div>
-
-                    <!--
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                        <input type="text" name="subject"
-                               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="What do you need help with?" required>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea name="description" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="5"
-                                  placeholder="Please describe your issue in detail..." required></textarea>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                        <div class="flex space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="priority" value="low" class="text-blue-600 focus:ring-blue-500" checked required>
-                                <span class="ml-2">Low</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="priority" value="medium" class="text-blue-600 focus:ring-blue-500" required>
-                                <span class="ml-2">Medium</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="priority" value="high" class="text-blue-600 focus:ring-blue-500" required>
-                                <span class="ml-2">High</span>
-                            </label>
-                        </div>
-                    </div>
--->
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" class="btn btn-secondary" id="cancel-support">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            Submit Request
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- Hidden Inputs -->
     <input type="hidden" id="userId" th:value="${userId}">
     <input type="hidden" id="isAdmin" th:value="${isAdmin}">
@@ -1079,30 +1013,6 @@
 
         <!-- Right Column - Sidebar -->
         <div class="content-sidebar">
-            <!-- Support Section -->
-            <div class="sidebar-section" th:if="${!isSupportAdmin}">
-                <div class="card support-card card-hover">
-                    <div class="support-header">
-                        <div class="support-icon">
-                            <i class="fas fa-headset text-xl"></i>
-                        </div>
-                        <h2 class="section-title">Need Help?</h2>
-                    </div>
-                    <div class="support-content">
-                        <p class="text-sm text-gray-600">Our support team is here to help you with any questions or issues you might have.</p>
-                    </div>
-                    <div class="support-actions">
-                        <button class="btn btn-primary" id="support-card-btn">
-                            Contact Support
-                        </button>
-                        <a style="text-decoration:none;" th:href="@{/support/my-tickets}">
-                            <button style="width:100%;" class="btn btn-secondary">
-                                View My Tickets
-                            </button>
-                        </a>
-                    </div>
-                </div>
-            </div>
 
             <!-- Coaching Sessions -->
             <div class="sidebar-section">
@@ -1219,6 +1129,100 @@
                         </a>
                     </div>
                 </div>
+            </div>
+
+            <!-- Support Card (only shown when inside a specific community) -->
+            <div th:if="${selectedCommunityId != null}" class="sidebar-section">
+                <div class="card card-hover support-card">
+                    <div class="support-header">
+                        <div class="support-icon">
+                            <i class="fas fa-headset text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="section-title" style="margin:0;">Need Help?</h2>
+                            <p class="text-xs text-gray-500 mt-1">Get support for <span th:text="${selectedCommunityName}" class="font-medium text-blue-600">this community</span></p>
+                        </div>
+                    </div>
+                    <div class="support-content">
+                        <p class="text-sm text-gray-600">Having an issue or question? Create a support ticket and our team will get back to you.</p>
+                    </div>
+                    <div class="support-actions">
+                        <button id="support-card-btn" class="btn btn-primary w-full" style="background: linear-gradient(135deg, #4f46e5, #6366f1); border:none; color:white; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer;">
+                            <i class="fas fa-plus-circle mr-2"></i> Create Support Ticket
+                        </button>
+                        <a href="/support/my-tickets" class="btn btn-secondary w-full text-center" style="text-decoration:none; display:block; padding:10px 16px; border-radius:10px; font-weight:500;">
+                            <i class="fas fa-ticket-alt mr-2"></i> View My Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Ticket Modal -->
+    <div id="support-modal" class="support-modal">
+        <div class="support-modal-content">
+            <div style="padding:24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0; font-size:1.25rem; font-weight:700; color:#1f2937;">
+                        <i class="fas fa-headset text-indigo-500 mr-2"></i>Create Support Ticket
+                    </h3>
+                    <button id="close-support-modal" style="background:none; border:none; cursor:pointer; padding:4px;">
+                        <svg style="width:20px;height:20px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">
+                    Describe your issue and we'll connect you with a support agent for
+                    <strong th:text="${selectedCommunityName}">Community</strong>.
+                </p>
+                <form hx-post="/support/submit-request"
+                      hx-target="#supportTicketFeedback"
+                      hx-swap="innerHTML"
+                      id="supportTicketForm">
+                    <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                    <input type="hidden" name="attachmentUrl" id="supportAttachmentUrl">
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Subject</label>
+                        <input type="text" name="subject" placeholder="Brief summary of your issue"
+                               style="width:100%; padding:10px 14px; border:2px solid #e5e7eb; border-radius:10px; font-size:14px; outline:none;"
+                               onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
+                               required>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Description</label>
+                        <textarea name="description" rows="4" placeholder="Provide details about your issue..."
+                                  style="width:100%; padding:10px 14px; border:2px solid #e5e7eb; border-radius:10px; font-size:14px; outline:none; resize:vertical;"
+                                  onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
+                                  required></textarea>
+                    </div>
+                    <!-- Attachment -->
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Attachment (optional)</label>
+                        <div id="supportFilePreview" style="display:none; align-items:center; gap:8px; padding:8px 12px; background:#f3f4f6; border-radius:10px; margin-bottom:8px; font-size:0.85rem;">
+                            <span>📎</span>
+                            <span id="supportFileName" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+                            <span id="supportUploadSpinner" style="display:none; width:16px; height:16px; border:2px solid #d1d5db; border-top-color:#6366f1; border-radius:50%; animation:spin 0.6s linear infinite;"></span>
+                            <button type="button" id="supportRemoveFile" style="background:none; border:none; color:#ef4444; font-weight:bold; font-size:16px; cursor:pointer;">&times;</button>
+                        </div>
+                        <label for="supportFileInput" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#f3f4f6; border:1px dashed #d1d5db; border-radius:10px; font-size:13px; color:#6b7280; font-weight:500;">
+                            <i class="fas fa-paperclip"></i> Choose File
+                        </label>
+                        <input type="file" id="supportFileInput" style="display:none;" accept="image/*,.pdf,.doc,.docx,.txt,.zip">
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit"
+                                style="flex:1; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; padding:10px 24px; border:none; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer;">
+                            Submit Ticket
+                        </button>
+                        <button type="button" id="cancel-support"
+                                style="padding:10px 20px; background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-weight:500; cursor:pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+                <div id="supportTicketFeedback" style="margin-top:12px;"></div>
             </div>
         </div>
     </div>
@@ -1676,6 +1680,50 @@
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('click', () => toggleSupportModal(false));
             });
+
+            // --- Support ticket attachment handling ---
+            (function() {
+                const fileInput = document.getElementById('supportFileInput');
+                const filePreview = document.getElementById('supportFilePreview');
+                const fileNameEl = document.getElementById('supportFileName');
+                const spinner = document.getElementById('supportUploadSpinner');
+                const removeBtn = document.getElementById('supportRemoveFile');
+                const urlField = document.getElementById('supportAttachmentUrl');
+                if (!fileInput) return;
+
+                fileInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (!file) return;
+                    fileNameEl.textContent = file.name;
+                    filePreview.style.display = 'flex';
+                    spinner.style.display = 'inline-block';
+                    urlField.value = '';
+
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    fetch('/support/upload-attachment', { method: 'POST', body: fd })
+                        .then(r => r.json())
+                        .then(data => {
+                            spinner.style.display = 'none';
+                            if (data.success) {
+                                urlField.value = data.url;
+                                fileNameEl.textContent = data.fileName || file.name;
+                            } else {
+                                alert('Upload failed: ' + (data.message || 'Unknown error'));
+                                resetSupportFile();
+                            }
+                        })
+                        .catch(() => { spinner.style.display = 'none'; alert('Upload failed.'); resetSupportFile(); });
+                });
+
+                function resetSupportFile() {
+                    fileInput.value = '';
+                    filePreview.style.display = 'none';
+                    fileNameEl.textContent = '';
+                    urlField.value = '';
+                }
+                if (removeBtn) removeBtn.addEventListener('click', resetSupportFile);
+            })();
 
             // --- Time ago formatter ---
             function formatTimeAgo(dateString) {

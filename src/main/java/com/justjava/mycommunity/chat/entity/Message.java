@@ -36,6 +36,8 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private String attachmentUrl;
+
     private Instant sentAt = Instant.now();
 
     public boolean getSender(String userId) {

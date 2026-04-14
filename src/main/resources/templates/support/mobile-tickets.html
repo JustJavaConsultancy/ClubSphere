@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Tickets</title>
+    <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        .ticket-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #f3f4f6;
+            transition: all 0.2s ease;
+        }
+        .ticket-card:active { transform: scale(0.98); }
+        .ticket-status {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ticket-status.open { background-color: #DEF7EC; color: #046C4E; }
+        .ticket-status.pending { background-color: #FDF6B2; color: #8E4B10; }
+        .ticket-status.closed { background-color: #E5E7EB; color: #374151; }
+        .ticket-status.resolved { background-color: #E5E7EB; color: #374151; }
+        .ticket-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .ticket-modal.active { display: flex; }
+        .ticket-modal-content {
+            background-color: white;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 16px;
+            border: 2px dashed #e5e7eb;
+        }
+        /* Pagination */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 12px 0;
+        }
+        .pagination-bar button {
+            min-width: 36px; height: 36px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+        }
+        .pagination-bar button.active {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border-color: transparent;
+        }
+        .pagination-bar button:disabled { opacity: 0.4; cursor: default; }
+        .pagination-info { text-align: center; font-size: 13px; color: #6b7280; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Ticket Detail Modal -->
+    <div class="ticket-modal" id="ticket-modal">
+        <div class="ticket-modal-content"></div>
+    </div>
+
+    <!-- Page Header -->
+    <div style="margin-bottom: 20px;">
+        <h1 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin: 0 0 4px 0;">My Tickets</h1>
+        <p style="font-size: 13px; color: #6b7280; margin: 0;">View and manage your support requests</p>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(tickets)}" class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 12px;">📭</div>
+        <h2 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin: 0 0 6px 0;">No tickets yet</h2>
+        <p style="font-size: 14px; color: #6b7280; margin: 0;">When you need help, create a support ticket from your community home page.</p>
+    </div>
+
+    <!-- Tickets List -->
+    <div th:if="${!#lists.isEmpty(tickets)}">
+        <!-- Search -->
+        <div style="margin-bottom: 14px;">
+            <input id="ticketSearch" type="text" placeholder="Search tickets..."
+                   style="width:100%; padding:12px 16px; border:1px solid #e5e7eb; border-radius:12px; font-size:15px; background:white; outline:none;">
+        </div>
+
+        <!-- Ticket Cards -->
+        <div id="ticketList">
+            <div th:each="ticket : ${tickets}" class="ticket-card ticket-item"
+                 th:attr="data-subject=${ticket.subject}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                    <span style="font-size:12px; color:#9ca3af; font-weight:500;" th:text="${'#TKT-' + ticket.id}">#TKT-1</span>
+                    <span class="ticket-status" th:classappend="${ticket.status.toLowerCase()}" th:text="${ticket.status}">Open</span>
+                </div>
+                <h3 style="font-size:15px; font-weight:600; color:#1f2937; margin:0 0 6px 0;" th:text="${ticket.subject}">Subject</h3>
+                <div style="font-size:13px; color:#6b7280;" th:text="${#temporals.format(ticket.lastUpdated, 'MMM dd, yyyy HH:mm')}">June 14</div>
+                <button class="view-ticket-btn"
+                        th:hx-get="@{/mobile/support/single-ticket/{id}(id=${ticket.id})}"
+                        hx-target="#ticket-modal .ticket-modal-content"
+                        hx-swap="innerHTML"
+                        style="display:block; width:100%; margin-top:12px; padding:10px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; font-weight:500; color:#4f46e5; cursor:pointer; text-align:center;">
+                    View Conversation
+                </button>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" id="paginationBar"></div>
+        <div class="pagination-info" id="paginationInfo"></div>
+    </div>
+
+    <script>
+        // === Ticket Modal ===
+        const ticketModal = document.getElementById('ticket-modal');
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-ticket-btn')) {
+                ticketModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            if (e.target.closest('#close-ticket-modal')) {
+                ticketModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+        // Close on backdrop click
+        ticketModal.addEventListener('click', function(e) {
+            if (e.target === ticketModal) {
+                ticketModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                if (window.ticketSocketManager) window.ticketSocketManager.disconnect();
+            }
+        });
+
+        // === Client-Side Pagination ===
+        (function() {
+            const PAGE_SIZE = 6;
+            let currentPage = 1;
+            const items = Array.from(document.querySelectorAll('.ticket-item'));
+            let filtered = items;
+            const bar = document.getElementById('paginationBar');
+            const info = document.getElementById('paginationInfo');
+            const searchInput = document.getElementById('ticketSearch');
+
+            function render() {
+                const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+                if (currentPage > totalPages) currentPage = totalPages;
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+
+                items.forEach(el => el.style.display = 'none');
+                filtered.forEach((el, i) => el.style.display = (i >= start && i < end) ? '' : 'none');
+
+                // Info
+                if (info) info.textContent = filtered.length === 0
+                    ? 'No tickets found'
+                    : `Showing ${start + 1}–${Math.min(end, filtered.length)} of ${filtered.length}`;
+
+                // Buttons
+                if (!bar) return;
+                bar.innerHTML = '';
+                if (totalPages <= 1) return;
+
+                const prev = document.createElement('button');
+                prev.textContent = '‹';
+                prev.disabled = currentPage === 1;
+                prev.onclick = () => { currentPage--; render(); };
+                bar.appendChild(prev);
+
+                for (let p = 1; p <= totalPages; p++) {
+                    const btn = document.createElement('button');
+                    btn.textContent = p;
+                    if (p === currentPage) btn.classList.add('active');
+                    btn.onclick = () => { currentPage = p; render(); };
+                    bar.appendChild(btn);
+                }
+
+                const next = document.createElement('button');
+                next.textContent = '›';
+                next.disabled = currentPage === totalPages;
+                next.onclick = () => { currentPage++; render(); };
+                bar.appendChild(next);
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.toLowerCase();
+                    filtered = items.filter(el => {
+                        const subject = (el.getAttribute('data-subject') || '').toLowerCase();
+                        const text = el.textContent.toLowerCase();
+                        return subject.includes(q) || text.includes(q);
+                    });
+                    currentPage = 1;
+                    render();
+                });
+            }
+
+            render();
+        })();
+    </script>
+</div>
+</body>
+</html>
+
+

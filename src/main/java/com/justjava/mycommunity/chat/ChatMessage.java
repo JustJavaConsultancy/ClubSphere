@@ -14,6 +14,7 @@ public class ChatMessage {
     private String senderId;
     private String receiverId;
     private String content;
+    private String attachmentUrl;
     private String receiverName;
     private String senderName;
     private Boolean channel;

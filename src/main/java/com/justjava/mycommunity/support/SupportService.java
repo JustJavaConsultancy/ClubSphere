@@ -117,13 +117,23 @@ public class SupportService {
                 agentUserId, ticket.getSubject()+": "+ ticket.getDescription(), conversation.getId());
     }
 
+    @Transactional
+    public void closeTicket(Long ticketId) {
+        Ticket ticket = getTicketById(ticketId);
+        if (ticket == null) throw new EntityNotFoundException("Ticket Not Found");
+        ticket.setStatus("Closed");
+        ticketRepository.save(ticket);
+    }
+
     public TicketDTO mapTicketToDTO(Ticket currentTicket){
         TicketDTO ticketDto = new TicketDTO();
+        ticketDto.setId(currentTicket.getId());
         ticketDto.setSubject(currentTicket.getSubject());
         ticketDto.setDescription(currentTicket.getDescription());
         ticketDto.setPriority(currentTicket.getPriority());
         ticketDto.setStatus(currentTicket.getStatus());
         ticketDto.setUserId(currentTicket.getUserId());
+        ticketDto.setAttachmentUrl(currentTicket.getAttachmentUrl());
         ticketDto.setDateCreated(currentTicket.getDateCreated());
         ticketDto.setLastUpdated(currentTicket.getLastUpdated());
         ticketDto.setAgentUserId(currentTicket.getAgentUserId());

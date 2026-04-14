@@ -29,6 +29,7 @@ public class AISupportService {
         Conversation conversation = conversationRepository.findById(conversationId).orElse(null);
         if(conversation == null) return;
         String response = getAIResponse(prompt);
+        if(response.isEmpty()) return;
 
         Message message = new Message();
         message.setConversation(conversation);
@@ -51,9 +52,13 @@ public class AISupportService {
         Map<String, String> map = new HashMap<>();
         map.put("userPrompt", prompt);
 
-        String response = supportFeignClient.getAiTicketResponse(map);
-        if (response != null){
-            return response;
+        try {
+            String response = supportFeignClient.getAiTicketResponse(map);
+            if (response != null){
+                return response;
+            }
+        } catch (Exception e) {
+            System.err.println("AI Support API unavailable: " + e.getMessage());
         }
         return "";
     }
@@ -64,9 +69,13 @@ public class AISupportService {
         map.put("userPrompt", prompt);
 
         System.out.println("Calling AI Support API");
-        String response = supportFeignClient.supportChat(map);
-        if (response != null){
-            return response;
+        try {
+            String response = supportFeignClient.supportChat(map);
+            if (response != null){
+                return response;
+            }
+        } catch (Exception e) {
+            System.err.println("AI Support API unavailable: " + e.getMessage());
         }
         return "";
     }
