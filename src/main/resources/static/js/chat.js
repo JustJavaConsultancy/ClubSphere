@@ -169,6 +169,8 @@ function updateConversationList(conversationId) {
             conversationItem.dataset.chatId = conversation.groupId;
             conversationItem.dataset.chatName = conversation.groupName;
         } else {
+            const connInfo = (typeof userConnectionInfo !== 'undefined') ? userConnectionInfo[conversation.userId] : null;
+            const communityLabel = connInfo ? connInfo.communityName : '';
             conversationItem.innerHTML = `
                 <div class="relative">
                     <div class="w-10 h-10 rounded-full mr-3 flex items-center justify-center bg-blue-500 text-white font-medium">${conversation.userInitials}</div>
@@ -176,6 +178,7 @@ function updateConversationList(conversationId) {
                 </div>
                 <div class="flex-1">
                     <div class="font-medium">${conversation.userName}</div>
+                    ${communityLabel ? `<div class="text-xs text-indigo-400" style="margin-top:1px;">${communityLabel}</div>` : ''}
                     <div class="text-sm text-gray-400 flex items-center">
                         <span class="truncate">${lastMessage.isSent ? 'You: ' : ''}${lastMessage.content}</span>
                     </div>
@@ -528,7 +531,14 @@ function loadChatFromConversation(conversationElement) {
         userChatName.textContent = currentChat.name;
         userAvatarContainer.textContent = conversation.userInitials;
 
-        if (conversation.isOnline) {
+        // Show community name if available
+        const connInfo = (typeof userConnectionInfo !== 'undefined') ? userConnectionInfo[conversation.userId] : null;
+        if (connInfo && connInfo.communityName) {
+            userChatStatus.textContent = connInfo.communityName;
+            userChatStatus.classList.remove('text-gray-400', 'text-green-400');
+            userChatStatus.classList.add('text-indigo-500');
+            userOnlineStatus.classList.add('hidden');
+        } else if (conversation.isOnline) {
             userChatStatus.textContent = "Online";
             userChatStatus.classList.remove('text-gray-400');
             userChatStatus.classList.add('text-green-400');

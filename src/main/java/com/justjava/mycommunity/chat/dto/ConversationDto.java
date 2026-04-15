@@ -17,6 +17,10 @@ public class ConversationDto implements Serializable {
     String receiverName;
     String createdAt;
 
+    /** The network this conversation originated from (null for non-network chats). */
+    String networkName;
+    Long networkId;
+
     @Embedded
     List<MessageDto> messages;
 

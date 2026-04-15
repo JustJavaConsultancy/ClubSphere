@@ -5,6 +5,8 @@ import com.justjava.mycommunity.chat.dto.CreateChatDTO;
 import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.service.ChatService;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.network.NetworkDTO;
+import com.justjava.mycommunity.network.NetworkNewService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,8 @@ public class CommunityController {
     private CommunityGroupService communityGroupService;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private NetworkNewService networkNewService;
 
     @GetMapping("/select")
     public String communitySelectionPage(Model model) {
@@ -69,7 +73,8 @@ public class CommunityController {
     }
 
     @GetMapping
-    public String communityPage(@RequestParam(value = "communityId", required = false) Long communityId, Model model) {
+    public String communityPage(@RequestParam(value = "communityId", required = false) Long communityId,
+                                Model model, HttpServletRequest request) {
         try {
             // If no mycommunity ID provided, redirect to selection page
             if (communityId == null) {
@@ -79,12 +84,19 @@ public class CommunityController {
             String currentUserId = (String) authenticationManager.get("sub");
             boolean isAdmin = authenticationManager.isAdmin();
 
+            // Keep session in sync so /networks and other session-dependent pages
+            // always reference the community the user is currently managing
+            request.getSession().setAttribute("selectedCommunityId", communityId);
+
             CommunityDTO community = communityService.getCommunityById(communityId);
 
             if (community == null) {
                 model.addAttribute("errorMessage", "Community not found or access denied.");
                 return "redirect:/my-community/select";
             }
+
+            // Also store the community name in session
+            request.getSession().setAttribute("selectedCommunityName", community.getName());
 
             List<UserDTO> communityMembers = communityService.getCommunityMembers(communityId);
             List<UserDTO> availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
@@ -125,6 +137,17 @@ public class CommunityController {
                 System.out.println("Error checking subscription status: " + e.getMessage());
             }
             model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+
+            // Networks within this community
+            List<NetworkDTO> communityNetworks = new ArrayList<>();
+            try {
+                communityNetworks = isAdmin
+                        ? networkNewService.getAllNetworksInCommunity(communityId, currentUserId)
+                        : networkNewService.getUserNetworksInCommunity(currentUserId, communityId);
+            } catch (Exception e) {
+                System.out.println("Error loading networks: " + e.getMessage());
+            }
+            model.addAttribute("communityNetworks", communityNetworks);
 
         } catch (Exception e) {
             e.printStackTrace();

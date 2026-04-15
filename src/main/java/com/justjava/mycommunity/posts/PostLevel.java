@@ -8,6 +8,7 @@ import java.util.Arrays;
 public enum PostLevel {
     COMMUNITY("COMMUNITY"),
     GROUP("GROUP"),
+    NETWORK("NETWORK"),
     GENERAL("GENERAL");
 
     private final String value;

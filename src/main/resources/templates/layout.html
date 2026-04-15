@@ -194,6 +194,13 @@
                     My Network
                 </a>
 
+                <a th:href="@{/networks}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/networks'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-project-diagram w-5"></i>
+                    Networks
+                </a>
+
                 <!-- Messages -->
                 <a th:if="${!session.isSupportAdmin}" th:href="@{/messages}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
@@ -399,6 +406,13 @@
                    th:classappend="${currentPath == '/network'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-user-friends w-5"></i>
                     My Network
+                </a>
+
+                <a th:href="@{/networks}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/networks'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-project-diagram w-5"></i>
+                    Networks
                 </a>
 
                 <!-- Messages -->
@@ -609,5 +623,6 @@
         });
     });
 </script>
+<th:block layout:fragment="scripts"></th:block>
 </body>
 </html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Networks</title>
+    <style>
+        .networks-container { max-width: 960px; margin: 0 auto; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+        .section-subtitle { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
+
+        .btn-primary {
+            background: #4f46e5; color: white; padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #4338ca; }
+
+        .network-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+
+        .network-card {
+            background: white; border-radius: 0.75rem; padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;
+            transition: box-shadow 0.2s, transform 0.15s; cursor: pointer;
+        }
+        .network-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
+
+        .network-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .network-icon {
+            width: 40px; height: 40px; border-radius: 0.5rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .network-icon svg { width: 20px; height: 20px; color: white; }
+
+        .network-name { font-weight: 600; font-size: 1rem; color: #1f2937; }
+        .network-desc { font-size: 0.8125rem; color: #6b7280; margin-bottom: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .network-meta { display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: #9ca3af; }
+        .network-meta span { display: flex; align-items: center; gap: 0.25rem; }
+        .network-role {
+            font-size: 0.6875rem; font-weight: 600; padding: 0.125rem 0.5rem;
+            border-radius: 999px; text-transform: uppercase;
+        }
+        .role-owner { background: #fef3c7; color: #92400e; }
+        .role-member { background: #dbeafe; color: #1e40af; }
+
+        .empty-state {
+            text-align: center; padding: 3rem 1rem; background: white;
+            border-radius: 0.75rem; border: 2px dashed #e5e7eb;
+        }
+        .empty-state svg { width: 64px; height: 64px; color: #d1d5db; margin: 0 auto 1rem; }
+        .empty-state h3 { font-size: 1.125rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+        .empty-state p { color: #6b7280; font-size: 0.875rem; max-width: 400px; margin: 0 auto; }
+
+        /* Pending requests banner */
+        .pending-banner {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #f59e0b; border-radius: 0.75rem;
+            padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .pending-banner-icon { color: #d97706; font-size: 1.25rem; }
+        .pending-banner-text { font-size: 0.875rem; color: #92400e; }
+        .pending-banner-count { font-weight: 700; }
+
+        /* Create modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white; border-radius: 1rem; padding: 2rem; width: 90%; max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
+        .form-input {
+            width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #d1d5db;
+            border-radius: 0.5rem; font-size: 0.875rem; outline: none; transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .form-textarea { resize: vertical; min-height: 80px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+        .btn-cancel {
+            padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 500;
+            font-size: 0.875rem; border: 1px solid #d1d5db; background: white;
+            color: #374151; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-cancel:hover { background: #f9fafb; }
+
+        .request-card {
+            background: white; border-radius: 0.75rem; padding: 1rem;
+            border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .request-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #4f46e5; color: white; display: flex;
+            align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        .request-info { flex: 1; }
+        .request-name { font-weight: 600; font-size: 0.875rem; color: #1f2937; }
+        .request-network { font-size: 0.75rem; color: #6b7280; }
+        .request-actions { display: flex; gap: 0.5rem; }
+        .btn-accept {
+            padding: 0.375rem 0.75rem; border-radius: 0.375rem;
+            background: #10b981; color: white; font-size: 0.75rem; font-weight: 600;
+            border: none; cursor: pointer;
+        }
+        .btn-accept:hover { background: #059669; }
+        .btn-reject {
+            padding: 0.375rem 0.75rem; border-radius: 0.375rem;
+            background: #ef4444; color: white; font-size: 0.75rem; font-weight: 600;
+            border: none; cursor: pointer;
+        }
+        .btn-reject:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="p-6 networks-container">
+
+    <!-- Community context -->
+    <div class="mb-2 text-sm text-gray-500">
+        <i class="fas fa-building mr-1"></i>
+        <span th:text="${selectedCommunityName}">Community Name</span>
+    </div>
+
+    <!-- Section header -->
+    <div class="section-header">
+        <div>
+            <h1 class="section-title">Networks</h1>
+            <p class="section-subtitle">Manage and explore your professional networks</p>
+        </div>
+        <button th:if="${isAdmin}" class="btn-primary" onclick="openCreateModal()">
+            <i class="fas fa-plus"></i> Create Network
+        </button>
+    </div>
+
+    <!-- Pending connection requests banner -->
+    <div th:if="${!#lists.isEmpty(pendingConnectionRequests)}" class="pending-banner">
+        <i class="fas fa-user-clock pending-banner-icon"></i>
+        <div class="pending-banner-text">
+            You have <span class="pending-banner-count" th:text="${#lists.size(pendingConnectionRequests)}">0</span>
+            pending connection request(s)
+        </div>
+    </div>
+
+    <!-- Pending connection requests list -->
+    <div th:if="${!#lists.isEmpty(pendingConnectionRequests)}" class="mb-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Pending Requests</h2>
+        <div th:each="req : ${pendingConnectionRequests}" class="request-card">
+            <div class="request-avatar"
+                 th:text="${#strings.substring(req.requesterName,0,1)}">J</div>
+            <div class="request-info">
+                <div class="request-name" th:text="${req.requesterName}">John Doe</div>
+                <div class="request-network">
+                    <i class="fas fa-project-diagram" style="font-size:0.625rem;"></i>
+                    <span th:text="${req.networkName}">Network Name</span>
+                </div>
+            </div>
+            <div class="request-actions">
+                <button class="btn-accept" th:data-id="${req.id}" onclick="acceptRequest(this)">Accept</button>
+                <button class="btn-reject" th:data-id="${req.id}" onclick="rejectRequest(this)">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Networks (admin view) -->
+    <div th:if="${isAdmin}" class="mb-8">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">All Networks in Community</h2>
+        <div th:if="${#lists.isEmpty(allNetworks)}" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            <h3>No networks yet</h3>
+            <p>Create your first network to organize members into focused groups for collaboration.</p>
+        </div>
+        <div th:if="${!#lists.isEmpty(allNetworks)}" class="network-grid">
+            <a th:each="net : ${allNetworks}" th:href="@{'/networks/' + ${net.id}}" class="network-card" style="text-decoration:none;">
+                <div class="network-card-header">
+                    <div class="network-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="network-name" th:text="${net.name}">Network Name</div>
+                        <span th:if="${net.currentUserRole != null}"
+                              class="network-role"
+                              th:classappend="${net.currentUserRole == 'OWNER'} ? ' role-owner' : ' role-member'"
+                              th:text="${net.currentUserRole}">OWNER</span>
+                    </div>
+                </div>
+                <div class="network-desc" th:text="${net.description ?: 'No description'}">Network description goes here.</div>
+                <div class="network-meta">
+                    <span><i class="fas fa-users"></i> <span th:text="${net.memberCount}">0</span> members</span>
+                    <span><i class="fas fa-user"></i> Created by <span th:text="${net.createdByName}">Admin</span></span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- My Networks (all users) -->
+    <div th:if="${!isAdmin}" class="mb-8">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">My Networks</h2>
+        <div th:if="${#lists.isEmpty(myNetworks)}" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            <h3>You're not in any networks yet</h3>
+            <p>Ask your community admin to add you to a network, or wait for an invitation.</p>
+        </div>
+        <div th:if="${!#lists.isEmpty(myNetworks)}" class="network-grid">
+            <a th:each="net : ${myNetworks}" th:href="@{'/networks/' + ${net.id}}" class="network-card" style="text-decoration:none;">
+                <div class="network-card-header">
+                    <div class="network-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="network-name" th:text="${net.name}">Network Name</div>
+                        <span th:if="${net.currentUserRole != null}"
+                              class="network-role"
+                              th:classappend="${net.currentUserRole == 'OWNER'} ? ' role-owner' : ' role-member'"
+                              th:text="${net.currentUserRole}">MEMBER</span>
+                    </div>
+                </div>
+                <div class="network-desc" th:text="${net.description ?: 'No description'}">Network description goes here.</div>
+                <div class="network-meta">
+                    <span><i class="fas fa-users"></i> <span th:text="${net.memberCount}">0</span> members</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Create Network Modal -->
+    <div id="createNetworkModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 class="modal-title"><i class="fas fa-plus-circle text-indigo-600 mr-2"></i>Create New Network</h2>
+            <form id="createNetworkForm" onsubmit="return submitCreateNetwork(event)">
+                <div class="form-group">
+                    <label class="form-label" for="networkName">Network Name *</label>
+                    <input class="form-input" id="networkName" type="text" placeholder="e.g., Sales Team, Engineering" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="networkDesc">Description</label>
+                    <textarea class="form-input form-textarea" id="networkDesc" placeholder="Describe the purpose of this network..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="createBtn">
+                        <i class="fas fa-check"></i> Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+    const selectedCommunityId = /*[[${selectedCommunityId}]]*/ null;
+
+    function openCreateModal() {
+        document.getElementById('createNetworkModal').classList.add('active');
+    }
+    function closeCreateModal() {
+        document.getElementById('createNetworkModal').classList.remove('active');
+        document.getElementById('createNetworkForm').reset();
+    }
+
+    async function submitCreateNetwork(e) {
+        e.preventDefault();
+        const btn = document.getElementById('createBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+        try {
+            const res = await fetch('/networks/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('networkName').value,
+                    description: document.getElementById('networkDesc').value,
+                    communityId: selectedCommunityId
+                })
+            });
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                const text = await res.text();
+                alert('Error: ' + text);
+            }
+        } catch (err) {
+            alert('Failed to create network: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Create';
+        }
+    }
+
+    async function acceptRequest(btn) {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        try {
+            const res = await fetch('/networks/api/connection-requests/' + id + '/accept', { method: 'POST' });
+            if (res.ok) {
+                btn.closest('.request-card').remove();
+            } else {
+                alert('Failed to accept request');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function rejectRequest(btn) {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        try {
+            const res = await fetch('/networks/api/connection-requests/' + id + '/reject', { method: 'POST' });
+            if (res.ok) {
+                btn.closest('.request-card').remove();
+            } else {
+                alert('Failed to reject request');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // Close modal on overlay click
+    document.getElementById('createNetworkModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeCreateModal();
+    });
+</script>
+</th:block>
+</body>
+</html>
+

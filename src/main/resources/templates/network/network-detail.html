@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${network.name}">Network Detail</title>
+    <style>
+        .detail-container { max-width: 960px; margin: 0 auto; }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            color: #4f46e5; font-size: 0.875rem; font-weight: 500;
+            text-decoration: none; margin-bottom: 1rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .detail-header {
+            background: white; border-radius: 0.75rem; padding: 1.5rem;
+            border: 1px solid #e5e7eb; margin-bottom: 1.5rem;
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .detail-header-left { display: flex; gap: 1rem; align-items: flex-start; }
+        .detail-icon {
+            width: 56px; height: 56px; border-radius: 0.75rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .detail-icon svg { width: 28px; height: 28px; color: white; }
+        .detail-name { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+        .detail-desc { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
+        .detail-stats { display: flex; gap: 1.5rem; margin-top: 0.5rem; font-size: 0.8125rem; color: #9ca3af; }
+        .detail-stats span { display: flex; align-items: center; gap: 0.25rem; }
+
+        .btn-primary {
+            background: #4f46e5; color: white; padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-danger {
+            background: #ef4444; color: white; padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm {
+            padding: 0.375rem 0.75rem; font-size: 0.75rem; border-radius: 0.375rem;
+            font-weight: 600; border: none; cursor: pointer;
+        }
+        .btn-connect { background: #4f46e5; color: white; }
+        .btn-connect:hover { background: #4338ca; }
+        .btn-remove { background: #fee2e2; color: #dc2626; }
+        .btn-remove:hover { background: #fecaca; }
+
+        .tabs {
+            display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.25rem; font-size: 0.875rem; font-weight: 500;
+            color: #6b7280; cursor: pointer; border: none; background: none;
+            border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s;
+        }
+        .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+        .tab-btn:hover:not(.active) { color: #374151; }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Members */
+        .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem; }
+        .member-card {
+            background: white; border-radius: 0.75rem; padding: 1rem;
+            border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.75rem;
+        }
+        .member-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #4f46e5; color: white; display: flex;
+            align-items: center; justify-content: center; font-weight: 600; font-size: 0.8125rem;
+            flex-shrink: 0;
+        }
+        .member-info { flex: 1; min-width: 0; }
+        .member-name { font-weight: 600; font-size: 0.875rem; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .member-role { font-size: 0.6875rem; color: #9ca3af; }
+
+        /* Posts */
+        .post-card {
+            background: white; border-radius: 0.75rem; padding: 1.25rem;
+            border: 1px solid #e5e7eb; margin-bottom: 1rem;
+        }
+        .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .post-author { font-weight: 600; font-size: 0.875rem; color: #1f2937; }
+        .post-date { font-size: 0.75rem; color: #9ca3af; }
+        .post-content { font-size: 0.875rem; color: #374151; line-height: 1.6; }
+        .post-image { max-width: 100%; border-radius: 0.5rem; margin-top: 0.75rem; }
+        .post-comments { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #f3f4f6; }
+        .comment-item { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .comment-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #e5e7eb; color: #6b7280; display: flex;
+            align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 600;
+            flex-shrink: 0;
+        }
+        .comment-bubble { background: #f9fafb; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.8125rem; }
+        .comment-author { font-weight: 600; font-size: 0.75rem; color: #1f2937; }
+
+        /* Connection requests section */
+        .request-card {
+            background: white; border-radius: 0.75rem; padding: 1rem;
+            border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .request-name { font-weight: 600; font-size: 0.875rem; color: #1f2937; }
+        .request-network { font-size: 0.75rem; color: #6b7280; }
+        .request-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+        .btn-accept { padding: 0.375rem 0.75rem; border-radius: 0.375rem; background: #10b981; color: white; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; }
+        .btn-reject { padding: 0.375rem 0.75rem; border-radius: 0.375rem; background: #ef4444; color: white; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; }
+
+        .empty-section {
+            text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.875rem;
+        }
+
+        /* Add member modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white; border-radius: 1rem; padding: 2rem; width: 90%; max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;
+        }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+        .btn-cancel {
+            padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 500;
+            font-size: 0.875rem; border: 1px solid #d1d5db; background: white;
+            color: #374151; cursor: pointer;
+        }
+
+        .add-member-list { max-height: 300px; overflow-y: auto; }
+        .add-member-item {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.625rem 0; border-bottom: 1px solid #f3f4f6;
+        }
+        .add-member-item:last-child { border-bottom: none; }
+
+        /* Post form */
+        .post-form {
+            background: white; border-radius: 0.75rem; padding: 1rem;
+            border: 1px solid #e5e7eb; margin-bottom: 1rem;
+        }
+        .post-textarea {
+            width: 100%; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            padding: 0.75rem; font-size: 0.875rem; resize: vertical; min-height: 60px;
+            outline: none;
+        }
+        .post-textarea:focus { border-color: #4f46e5; }
+        .post-form-actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="p-6 detail-container">
+
+    <!-- Back link -->
+    <a th:href="@{/networks}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Networks
+    </a>
+
+    <!-- Network header -->
+    <div class="detail-header">
+        <div class="detail-header-left">
+            <div class="detail-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="detail-name" th:text="${network.name}">Network Name</h1>
+                <p class="detail-desc" th:text="${network.description ?: 'No description'}">Description</p>
+                <div class="detail-stats">
+                    <span><i class="fas fa-users"></i> <span th:text="${network.memberCount}">0</span> members</span>
+                    <span><i class="fas fa-user"></i> Created by <span th:text="${network.createdByName}">Admin</span></span>
+                </div>
+            </div>
+        </div>
+        <div th:if="${isAdmin}" style="display:flex; gap:0.5rem;">
+            <button class="btn-primary" onclick="openAddMemberModal()">
+                <i class="fas fa-user-plus"></i> Add Member
+            </button>
+            <button class="btn-danger" th:data-id="${network.id}" onclick="deleteNetwork(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('members')">
+            <i class="fas fa-users"></i> Members (<span th:text="${#lists.size(members)}">0</span>)
+        </button>
+        <button class="tab-btn" onclick="switchTab('posts')">
+            <i class="fas fa-newspaper"></i> Posts (<span th:text="${#lists.size(posts)}">0</span>)
+        </button>
+        <button class="tab-btn" onclick="switchTab('connections')">
+            <i class="fas fa-link"></i> My Connections (<span th:text="${#lists.size(connectedUsers)}">0</span>)
+        </button>
+        <button th:if="${!#lists.isEmpty(pendingConnectionRequests)}" class="tab-btn" onclick="switchTab('requests')">
+            <i class="fas fa-user-clock"></i> Requests (<span th:text="${#lists.size(pendingConnectionRequests)}">0</span>)
+        </button>
+    </div>
+
+    <!-- TAB: Members -->
+    <div id="tab-members" class="tab-panel active">
+        <div th:if="${#lists.isEmpty(members)}" class="empty-section">
+            <i class="fas fa-users" style="font-size:2rem; margin-bottom:0.5rem; display:block;"></i>
+            No members yet. Add members to get started.
+        </div>
+        <div th:if="${!#lists.isEmpty(members)}" class="member-grid">
+            <div th:each="m : ${members}" class="member-card">
+                <div class="member-avatar"
+                     th:text="${(m.firstName != null ? #strings.substring(m.firstName,0,1) : '?') + (m.lastName != null ? #strings.substring(m.lastName,0,1) : '')}">JD</div>
+                <div class="member-info">
+                    <div class="member-name" th:text="${(m.firstName ?: '') + ' ' + (m.lastName ?: '')}">John Doe</div>
+                    <div class="member-role">Member</div>
+                </div>
+                <!-- Connect button (if not already connected and not self) -->
+                <button th:if="${unconnectedMembers.contains(m)}" class="btn-sm btn-connect"
+                        th:data-user-id="${m.userId}" onclick="sendConnect(this)">
+                    Connect
+                </button>
+                <!-- Admin: remove member -->
+                <button th:if="${isAdmin}" class="btn-sm btn-remove"
+                        th:data-user-id="${m.userId}" onclick="removeMember(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Posts -->
+    <div id="tab-posts" class="tab-panel">
+        <!-- Create post form (only for members) -->
+        <div th:if="${network.currentUserRole != null}" class="post-form">
+            <form id="postForm" onsubmit="return submitPost(event)">
+                <textarea class="post-textarea" id="postContent" placeholder="Share something with this network..." required></textarea>
+                <div class="post-form-actions">
+                    <button type="submit" class="btn-primary btn-sm" style="padding:0.5rem 1rem;">
+                        <i class="fas fa-paper-plane"></i> Post
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div th:if="${#lists.isEmpty(posts)}" class="empty-section">
+            <i class="fas fa-newspaper" style="font-size:2rem; margin-bottom:0.5rem; display:block;"></i>
+            No posts yet. Be the first to share something!
+        </div>
+
+        <div th:each="post : ${posts}" class="post-card">
+            <div class="post-header">
+                <div class="member-avatar" style="width:36px;height:36px;font-size:0.75rem;"
+                     th:text="${#strings.substring(post.userFullName,0,1)}">J</div>
+                <div>
+                    <div class="post-author" th:text="${post.userFullName}">John Doe</div>
+                    <div class="post-date" th:text="${post.dateCreated}">April 15, 2026</div>
+                </div>
+            </div>
+            <div class="post-content" th:text="${post.content}">Post content here...</div>
+            <img th:if="${post.picture != null}" class="post-image"
+                 th:src="'data:image/jpeg;base64,' + ${post.picture}" alt="Post image"/>
+
+            <!-- Comments -->
+            <div th:if="${post.comments != null && !post.comments.isEmpty()}" class="post-comments">
+                <div th:each="c : ${post.comments}" class="comment-item">
+                    <div class="comment-avatar"
+                         th:text="${#strings.substring(c.senderFullName ?: '?',0,1)}">J</div>
+                    <div class="comment-bubble">
+                        <div class="comment-author" th:text="${c.senderFullName}">User</div>
+                        <span th:text="${c.comment}">Comment text</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: My Connections -->
+    <div id="tab-connections" class="tab-panel">
+        <div th:if="${#lists.isEmpty(connectedUsers)}" class="empty-section">
+            <i class="fas fa-link" style="font-size:2rem; margin-bottom:0.5rem; display:block;"></i>
+            No connections yet. Connect with other network members to start messaging.
+        </div>
+        <div th:if="${!#lists.isEmpty(connectedUsers)}" class="member-grid">
+            <div th:each="cu : ${connectedUsers}" class="member-card">
+                <div class="member-avatar"
+                     th:text="${(cu.firstName != null ? #strings.substring(cu.firstName,0,1) : '?') + (cu.lastName != null ? #strings.substring(cu.lastName,0,1) : '')}">JD</div>
+                <div class="member-info">
+                    <div class="member-name" th:text="${(cu.firstName ?: '') + ' ' + (cu.lastName ?: '')}">Jane Smith</div>
+                    <div class="member-role" style="color:#10b981;"><i class="fas fa-check-circle"></i> Connected</div>
+                </div>
+                <a th:href="@{/messages}" class="btn-sm btn-connect" style="text-decoration:none;">
+                    <i class="fas fa-comment"></i> Message
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Pending Requests -->
+    <div id="tab-requests" class="tab-panel">
+        <div th:if="${#lists.isEmpty(pendingConnectionRequests)}" class="empty-section">
+            No pending requests.
+        </div>
+        <div th:each="req : ${pendingConnectionRequests}" class="request-card">
+            <div class="member-avatar"
+                 th:text="${#strings.substring(req.requesterName,0,1)}">J</div>
+            <div>
+                <div class="request-name" th:text="${req.requesterName}">John Doe</div>
+                <div class="request-network">wants to connect</div>
+            </div>
+            <div class="request-actions">
+                <button class="btn-accept" th:data-id="${req.id}" onclick="acceptReq(this)">Accept</button>
+                <button class="btn-reject" th:data-id="${req.id}" onclick="rejectReq(this)">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal (admin) -->
+    <div id="addMemberModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 class="modal-title"><i class="fas fa-user-plus text-indigo-600 mr-2"></i>Add Members</h2>
+            <p style="font-size:0.8125rem; color:#6b7280; margin-bottom:1rem;">
+                Select community members to add to this network.
+            </p>
+            <div id="addMemberList" class="add-member-list">
+                <div class="empty-section">Loading community members...</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeAddMemberModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+    const networkId = /*[[${network.id}]]*/ null;
+    const existingMemberIds = /*[[${members.![userId]}]]*/ [];
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    // Post creation
+    async function submitPost(e) {
+        e.preventDefault();
+        const content = document.getElementById('postContent').value;
+        const formData = new FormData();
+        formData.append('content', content);
+
+        try {
+            const res = await fetch('/networks/api/' + networkId + '/posts', {
+                method: 'POST', body: formData
+            });
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to create post');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
+    // Connection request
+    async function sendConnect(btn) {
+        const userId = btn.dataset.userId;
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        try {
+            const res = await fetch('/networks/api/' + networkId + '/connect/' + userId, { method: 'POST' });
+            if (res.ok) {
+                btn.textContent = 'Sent!';
+                btn.style.background = '#10b981';
+            } else {
+                const text = await res.text();
+                alert(text);
+                btn.textContent = 'Connect';
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.textContent = 'Connect';
+            btn.disabled = false;
+        }
+    }
+
+    // Accept / reject requests
+    async function acceptReq(btn) {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        const res = await fetch('/networks/api/connection-requests/' + id + '/accept', { method: 'POST' });
+        if (res.ok) btn.closest('.request-card').remove();
+        else { alert('Failed'); btn.disabled = false; }
+    }
+    async function rejectReq(btn) {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        const res = await fetch('/networks/api/connection-requests/' + id + '/reject', { method: 'POST' });
+        if (res.ok) btn.closest('.request-card').remove();
+        else { alert('Failed'); btn.disabled = false; }
+    }
+
+    // Admin: remove member
+    async function removeMember(btn) {
+        const userId = btn.dataset.userId;
+        if (!confirm('Remove this member from the network?')) return;
+        btn.disabled = true;
+        try {
+            const res = await fetch('/networks/api/' + networkId + '/members/' + userId, { method: 'DELETE' });
+            if (res.ok) {
+                btn.closest('.member-card').remove();
+            } else {
+                alert('Failed to remove member');
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.disabled = false;
+        }
+    }
+
+    // Admin: delete network
+    async function deleteNetwork(btn) {
+        if (!confirm('Delete this entire network? This cannot be undone.')) return;
+        btn.disabled = true;
+        try {
+            const res = await fetch('/networks/api/' + networkId, { method: 'DELETE' });
+            if (res.ok) {
+                window.location.href = '/networks';
+            } else {
+                alert('Failed to delete network');
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.disabled = false;
+        }
+    }
+
+    // Admin: add member modal
+    function openAddMemberModal() {
+        document.getElementById('addMemberModal').classList.add('active');
+        loadCommunityMembers();
+    }
+    function closeAddMemberModal() {
+        document.getElementById('addMemberModal').classList.remove('active');
+    }
+
+    async function loadCommunityMembers() {
+        const listEl = document.getElementById('addMemberList');
+        listEl.innerHTML = '<div class="empty-section">Loading...</div>';
+
+        try {
+            const res = await fetch('/networks/api/' + networkId + '/available-members');
+            if (!res.ok) {
+                listEl.innerHTML = '<div class="empty-section">Could not load members</div>';
+                return;
+            }
+            const available = await res.json();
+
+            if (available.length === 0) {
+                listEl.innerHTML = '<div class="empty-section">All community members are already in this network</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            available.forEach(u => {
+                const initials = (u.firstName ? u.firstName[0] : '?') + (u.lastName ? u.lastName[0] : '');
+                const name = ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || u.userId;
+                const div = document.createElement('div');
+                div.className = 'add-member-item';
+                div.innerHTML = `
+                    <div class="member-avatar" style="width:36px;height:36px;font-size:0.75rem;">${initials}</div>
+                    <div class="member-info">
+                        <div class="member-name">${name}</div>
+                    </div>
+                    <button class="btn-sm btn-connect" data-user-id="${u.userId}" onclick="addMember(this)">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                `;
+                listEl.appendChild(div);
+            });
+        } catch (err) {
+            listEl.innerHTML = '<div class="empty-section">Error loading members</div>';
+        }
+    }
+
+    async function addMember(btn) {
+        const userId = btn.dataset.userId;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        try {
+            const res = await fetch('/networks/api/' + networkId + '/members/' + userId, { method: 'POST' });
+            if (res.ok) {
+                btn.innerHTML = '<i class="fas fa-check"></i> Added';
+                btn.style.background = '#10b981';
+                // Reload after a brief delay so the user sees the success state
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                const text = await res.text();
+                alert(text);
+                btn.innerHTML = '<i class="fas fa-plus"></i> Add';
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.innerHTML = '<i class="fas fa-plus"></i> Add';
+            btn.disabled = false;
+        }
+    }
+
+    // Close modals on overlay click
+    document.getElementById('addMemberModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeAddMemberModal();
+    });
+</script>
+</th:block>
+</body>
+</html>
+
+
+

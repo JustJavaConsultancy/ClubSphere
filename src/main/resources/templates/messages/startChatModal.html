@@ -20,6 +20,9 @@
                     </div>
                     <div class="flex-1">
                         <div class="font-medium text-gray-900" th:text="${user.firstName + ' ' + user.lastName}"></div>
+                        <div th:if="${userCommunityMap != null && userCommunityMap.containsKey(user.userId)}"
+                             class="text-xs text-indigo-500 font-medium"
+                             th:text="${userCommunityMap.get(user.userId)}"></div>
                         <div class="text-sm text-gray-500" th:text="${user.email}"></div>
                     </div>
                 </div>

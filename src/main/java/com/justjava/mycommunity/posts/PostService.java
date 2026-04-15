@@ -218,8 +218,11 @@ public class PostService {
                 if (post.getPostLevel() == PostLevel.GROUP) {
                     // Send group posts to group-specific channel
                     messagingTemplate.convertAndSend("/topic/group/" + post.getPostLevelId() + "/posts", postDTO);
+                } else if (post.getPostLevel() == PostLevel.NETWORK) {
+                    // Send network posts to network-specific channel
+                    messagingTemplate.convertAndSend("/topic/network/" + post.getPostLevelId() + "/posts", postDTO);
                 } else {
-                    // Send mycommunity and general posts to general channel for all users to receive
+                    // Send community and general posts to general channel for all users to receive
                     messagingTemplate.convertAndSend("/topic/posts/", postDTO);
                 }
             }
@@ -250,9 +253,10 @@ public class PostService {
     @Transactional
     public List<PostDTO> getPosts() {
         List<Post> posts = postRepository.findAllByOrderByDateCreatedDesc();
-        // Filter out GROUP posts for home page - show COMMUNITY and GENERAL posts
+        // Filter out GROUP and NETWORK posts for home page - show COMMUNITY and GENERAL posts
         List<Post> visiblePosts = posts.stream()
-                .filter(post -> post.getPostLevel() != PostLevel.GROUP)
+                .filter(post -> post.getPostLevel() != PostLevel.GROUP
+                        && post.getPostLevel() != PostLevel.NETWORK)
                 .toList();
         return mapPosts(visiblePosts);
     }
@@ -260,9 +264,10 @@ public class PostService {
     @Transactional
     public List<PostDTO> getPostsByUser(String userId) {
         List<Post> posts = postRepository.findPostsForUser(userId);
-        // Filter out GROUP posts for home page - show COMMUNITY and GENERAL posts
+        // Filter out GROUP and NETWORK posts for home page - show COMMUNITY and GENERAL posts
         List<Post> visiblePosts = posts.stream()
-                .filter(post -> post.getPostLevel() != PostLevel.GROUP)
+                .filter(post -> post.getPostLevel() != PostLevel.GROUP
+                        && post.getPostLevel() != PostLevel.NETWORK)
                 .toList();
         return mapPosts(visiblePosts);
     }
@@ -513,6 +518,8 @@ public class PostService {
         String commentDestination;
         if (post.getPostLevel() == PostLevel.GROUP) {
             commentDestination = "/topic/group/" + post.getPostLevelId() + "/comment";
+        } else if (post.getPostLevel() == PostLevel.NETWORK) {
+            commentDestination = "/topic/network/" + post.getPostLevelId() + "/comment";
         } else {
             commentDestination = "/topic/comment/";
         }
