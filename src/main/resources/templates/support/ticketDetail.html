@@ -106,6 +106,14 @@
     <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-gray-800">Ticket Details</h3>
         <div class="flex items-center gap-3">
+            <!-- Start Meeting button (visible only to support admins and when not closed) -->
+            <button th:if="${isSupportAdmin and !isClosed}"
+                    id="startMeetingBtn"
+                    class="px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg font-medium hover:bg-emerald-700 inline-flex items-center gap-1"
+                    onclick="startTicketMeeting()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Start Meeting
+            </button>
             <!-- Close Ticket button (visible only to support admins and when not already closed) -->
             <button th:if="${isSupportAdmin and !isClosed}"
                     class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg font-medium hover:bg-red-700"
@@ -165,7 +173,7 @@
             <div th:each="msg : ${messages}" th:classappend="${msg.sender} ? ' message user' : ' message other'">
                 <div class="bubble">
                     <div class="sender" th:text="${msg.sender} ? 'You' : (${isSupportAdmin} ? 'User' : 'Support Agent')"></div>
-                    <p th:text="${msg.content}">Message content</p>
+                    <p th:utext="${msg.content}">Message content</p>
                     <!-- Attachment display -->
                     <div th:if="${msg.attachmentUrl != null}" class="attachment-preview">
                         <a th:href="${msg.attachmentUrl}" target="_blank" rel="noopener">
@@ -179,6 +187,21 @@
     </div>
 
     <!-- Reply section - hidden when ticket is closed -->
+    <div th:if="${isClosed}" class="mb-4">
+        <script>
+            // Disable all meeting join links when ticket is closed
+            document.querySelectorAll('#conversation a[href*="/videocall"]').forEach(function(link) {
+                link.removeAttribute('href');
+                link.removeAttribute('target');
+                link.style.color = '#9ca3af';
+                link.style.textDecoration = 'line-through';
+                link.style.cursor = 'not-allowed';
+                link.style.fontWeight = '400';
+                link.title = 'This ticket is closed — meeting is no longer available';
+                link.addEventListener('click', function(e) { e.preventDefault(); });
+            });
+        </script>
+    </div>
     <div th:if="${!isClosed}">
         <h4 class="font-medium text-gray-800 mb-3">Add a Reply</h4>
 
@@ -278,7 +301,12 @@
                     senderName.textContent = (type === "user") ? "You" : "Support";
 
                     const text = document.createElement("p");
-                    text.textContent = msg.content;
+                    // If content contains an HTML link (meeting message), render as HTML
+                    if (msg.content && msg.content.includes('<a ')) {
+                        text.innerHTML = msg.content;
+                    } else {
+                        text.textContent = msg.content;
+                    }
 
                     bubble.appendChild(senderName);
                     bubble.appendChild(text);
@@ -419,6 +447,35 @@
                 });
             }
         })();
+
+        // Start a live meeting session for this ticket
+        function startTicketMeeting() {
+            const ticketId = document.getElementById('ticketId').value;
+            const btn = document.getElementById('startMeetingBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> Creating…';
+
+            fetch(`/support/create-meeting/${ticketId}`, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // Open the meeting in a new tab
+                        window.open(data.meetingUrl, '_blank');
+                        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Rejoin Meeting';
+                        btn.disabled = false;
+                    } else {
+                        alert('Failed to create meeting: ' + (data.message || 'Unknown error'));
+                        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Start Meeting';
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error creating meeting:', err);
+                    alert('Error creating meeting session');
+                    btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Start Meeting';
+                    btn.disabled = false;
+                });
+        }
     </script>
 </div>
 </body>

@@ -3,7 +3,9 @@ package com.justjava.mycommunity.support;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.entity.Conversation;
+import com.justjava.mycommunity.chat.entity.Message;
 import com.justjava.mycommunity.chat.repository.ConversationRepository;
+import com.justjava.mycommunity.chat.repository.MessageRepository;
 import com.justjava.mycommunity.chat.service.ChatService;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,10 +26,11 @@ public class SupportService {
     private final ConversationRepository conversationRepository;
     private final ChatService chatService;
     private final AISupportService aISupportService;
+    private final MessageRepository messageRepository;
 
     public SupportService(TicketRepository ticketRepository, AuthenticationManager authenticationManager,
                           ObjectMapper objectMapper, UserRepository userRepository, ConversationRepository conversationRepository,
-                          ChatService chatService, AISupportService aISupportService){
+                          ChatService chatService, AISupportService aISupportService, MessageRepository messageRepository){
 
         this.ticketRepository = ticketRepository;
         this.authenticationManager = authenticationManager;
@@ -36,6 +39,7 @@ public class SupportService {
         this.conversationRepository = conversationRepository;
         this.chatService = chatService;
         this.aISupportService = aISupportService;
+        this.messageRepository = messageRepository;
     }
 
     @Transactional
@@ -139,5 +143,16 @@ public class SupportService {
         ticketDto.setAgentUserId(currentTicket.getAgentUserId());
 
         return ticketDto;
+    }
+
+    @Transactional
+    public void sendSystemMessage(Long conversationId, String senderId, String content) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new EntityNotFoundException("Conversation not found"));
+        Message message = new Message();
+        message.setConversation(conversation);
+        message.setSenderId(senderId);
+        message.setContent(content);
+        messageRepository.save(message);
     }
 }

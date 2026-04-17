@@ -130,6 +130,64 @@ public class SupportController {
         return ResponseEntity.status(HttpStatus.OK).headers(headers).build();
     }
 
+    @PostMapping("/create-meeting/{ticketId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createTicketMeeting(@PathVariable Long ticketId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (!authenticationManager.isSupportAdmin()) {
+                response.put("success", false);
+                response.put("message", "Only support admins can create meetings");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            Ticket ticket = supportService.getTicketById(ticketId);
+            if (ticket == null) {
+                response.put("success", false);
+                response.put("message", "Ticket not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            if ("Closed".equalsIgnoreCase(ticket.getStatus())) {
+                response.put("success", false);
+                response.put("message", "Cannot create meeting for a closed ticket");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String agentUserId = (String) authenticationManager.get("sub");
+            String agentName = (String) authenticationManager.get("name");
+
+            // Generate a unique room ID for this ticket
+            String roomId = "support_ticket_" + ticketId + "_" + System.currentTimeMillis();
+            String meetingUrl = "/videocall?roomID=" + roomId
+                    + "&userName=" + java.net.URLEncoder.encode(agentName != null ? agentName : "Support Agent", "UTF-8")
+                    + "&userID=" + java.net.URLEncoder.encode(agentUserId, "UTF-8")
+                    + "&meetingName=" + java.net.URLEncoder.encode("Support: " + ticket.getSubject(), "UTF-8");
+
+            // Build a shareable link for the ticket user (no userID/userName so they get prompted)
+            String userMeetingLink = "/videocall?roomID=" + roomId
+                    + "&meetingName=" + java.net.URLEncoder.encode("Support: " + ticket.getSubject(), "UTF-8");
+
+            // Send the meeting link as a message in the ticket conversation
+            if (ticket.getConversation() != null) {
+                String meetingMessage = "📹 A live meeting session has been started for this ticket. Click <a href=\""
+                        + userMeetingLink + "\" target=\"_blank\" style=\"color:#2563eb;font-weight:600;text-decoration:underline;\">here</a> to join.";
+                supportService.sendSystemMessage(ticket.getConversation().getId(), agentUserId, meetingMessage);
+            }
+
+            response.put("success", true);
+            response.put("meetingUrl", meetingUrl);
+            response.put("roomId", roomId);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Error creating meeting: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     @PostMapping("/upload-attachment")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> uploadAttachment(@RequestParam("file") MultipartFile file) {
