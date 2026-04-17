@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${community.name} + ' — Dashboard'">Community Dashboard</title>
+    <style>
+        .m-dash { padding: 16px; max-width: 100%; }
+        .m-dash-header { margin-bottom: 20px; }
+        .m-dash-back { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 14px; text-decoration: none; margin-bottom: 12px; }
+        .m-dash-title { font-size: 22px; font-weight: 800; color: #1e293b; }
+        .m-dash-subtitle { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+
+        .m-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .m-stat-card { border-radius: 16px; padding: 16px; color: white; position: relative; overflow: hidden; }
+        .m-stat-card .m-stat-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 40px; opacity: .15; }
+        .m-stat-label { font-size: 11px; font-weight: 500; opacity: .85; text-transform: uppercase; letter-spacing: .3px; }
+        .m-stat-value { font-size: 24px; font-weight: 800; margin-top: 2px; }
+        .m-stat-sub { font-size: 10px; opacity: .7; margin-top: 2px; }
+
+        .m-chart-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        .m-chart-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .m-chart-container { position: relative; width: 100%; }
+        .m-chart-container canvas { width: 100% !important; }
+
+        .m-table { width: 100%; text-align: left; font-size: 13px; }
+        .m-table th { color: #94a3b8; font-weight: 600; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+        .m-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="m-dash">
+        <!-- Header -->
+        <div class="m-dash-header">
+            <a th:href="@{/mobile/my-community}" class="m-dash-back">
+                <span class="material-icons" style="font-size:18px">arrow_back</span> Back
+            </a>
+            <div class="m-dash-title">
+                <span class="material-icons" style="font-size:24px; color:#3b82f6; vertical-align:middle">dashboard</span>
+                Dashboard
+            </div>
+            <div class="m-dash-subtitle" th:text="${community.name} + ' — Overview'">Community Overview</div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="m-stat-grid">
+            <div class="m-stat-card" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+                <span class="material-icons m-stat-icon">groups</span>
+                <div class="m-stat-label">Members</div>
+                <div class="m-stat-value" th:text="${totalMembers}">0</div>
+                <div class="m-stat-sub">Approved</div>
+            </div>
+            <div class="m-stat-card" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <span class="material-icons m-stat-icon">account_balance_wallet</span>
+                <div class="m-stat-label">Revenue</div>
+                <div class="m-stat-value">₦<span th:text="${#numbers.formatDecimal(totalRevenue,1,'COMMA',0,'POINT')}">0</span></div>
+                <div class="m-stat-sub">Total</div>
+            </div>
+            <div class="m-stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                <span class="material-icons m-stat-icon">volunteer_activism</span>
+                <div class="m-stat-label">Donations</div>
+                <div class="m-stat-value">₦<span th:text="${#numbers.formatDecimal(totalDonations,1,'COMMA',0,'POINT')}">0</span></div>
+                <div class="m-stat-sub" th:text="${donationCount} + ' total'">0</div>
+            </div>
+            <div class="m-stat-card" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                <span class="material-icons m-stat-icon">credit_card</span>
+                <div class="m-stat-label">Active Subs</div>
+                <div class="m-stat-value" th:text="${activeSubscriptions}">0</div>
+                <div class="m-stat-sub" th:text="${totalSubscriptions} + ' total'">0</div>
+            </div>
+        </div>
+
+        <!-- Revenue Trend -->
+        <div class="m-chart-card">
+            <div class="m-chart-title">
+                <span class="material-icons" style="color:#10b981; font-size:18px">show_chart</span>
+                Monthly Revenue
+            </div>
+            <div class="m-chart-container" style="height:220px">
+                <canvas id="mRevenueTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Revenue Split -->
+        <div class="m-chart-card" style="text-align:center">
+            <div class="m-chart-title" style="justify-content:center">
+                <span class="material-icons" style="color:#8b5cf6; font-size:18px">pie_chart</span>
+                Revenue Split
+            </div>
+            <div class="m-chart-container" style="height:200px; max-width:200px; margin:0 auto">
+                <canvas id="mRevenueSplitChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Donations Bar -->
+        <div class="m-chart-card">
+            <div class="m-chart-title">
+                <span class="material-icons" style="color:#f59e0b; font-size:18px">bar_chart</span>
+                Monthly Donations
+            </div>
+            <div class="m-chart-container" style="height:200px">
+                <canvas id="mDonationsBarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Donations -->
+        <div class="m-chart-card">
+            <div class="m-chart-title">
+                <span class="material-icons" style="color:#ec4899; font-size:18px">receipt_long</span>
+                Recent Donations
+            </div>
+            <table class="m-table">
+                <thead><tr><th>Donor</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody id="mRecentDonationsBody">
+                    <tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:24px">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+(function() {
+    const communityId = /*[[${communityId}]]*/ 0;
+
+    fetch(`/my-community/dashboard/api/chart-data?communityId=${communityId}`)
+        .then(r => r.json())
+        .then(data => {
+            // Revenue Trend
+            new Chart(document.getElementById('mRevenueTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: data.months,
+                    datasets: [
+                        { label: 'Donations', data: data.donations, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.1)', fill: true, tension: .4, pointRadius: 3 },
+                        { label: 'Subscriptions', data: data.subscriptions, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,.1)', fill: true, tension: .4, pointRadius: 3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₦' + Number(v).toLocaleString(), font: { size: 10 } } }, x: { ticks: { font: { size: 9 }, maxRotation: 45 } } } }
+            });
+
+            // Revenue Split
+            const split = data.revenueSplit;
+            new Chart(document.getElementById('mRevenueSplitChart'), {
+                type: 'doughnut',
+                data: { labels: ['Donations', 'Subscriptions'], datasets: [{ data: [split.donations, split.subscriptions], backgroundColor: ['#f59e0b', '#8b5cf6'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+            });
+
+            // Donations Bar
+            new Chart(document.getElementById('mDonationsBarChart'), {
+                type: 'bar',
+                data: { labels: data.months, datasets: [{ data: data.donations, backgroundColor: 'rgba(245,158,11,.7)', borderRadius: 4, maxBarThickness: 24 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₦' + Number(v).toLocaleString(), font: { size: 10 } } }, x: { ticks: { font: { size: 9 }, maxRotation: 45 } } } }
+            });
+
+            // Recent Donations
+            const tbody = document.getElementById('mRecentDonationsBody');
+            const donations = data.recentDonations || [];
+            if (donations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:24px">No donations yet</td></tr>';
+            } else {
+                tbody.innerHTML = donations.map(d => `<tr><td style="font-weight:500">${d.firstName || ''} ${d.lastName || ''}</td><td style="color:#059669; font-weight:600">₦${Number(d.amount).toLocaleString()}</td><td style="color:#94a3b8; font-size:11px">${d.donatedAt ? new Date(d.donatedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—'}</td></tr>`).join('');
+            }
+        })
+        .catch(err => console.error('Dashboard error:', err));
+})();
+</script>
+</th:block>
+</body>
+</html>
+

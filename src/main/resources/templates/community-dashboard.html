@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${community.name} + ' — Dashboard'">Community Dashboard</title>
+    <style>
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            transition: transform .15s, box-shadow .15s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+        }
+        .stat-card .stat-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 56px;
+            opacity: .15;
+        }
+        .stat-label { font-size: 13px; font-weight: 500; opacity: .85; text-transform: uppercase; letter-spacing: .5px; }
+        .stat-value { font-size: 32px; font-weight: 800; margin-top: 4px; }
+        .stat-sub   { font-size: 12px; opacity: .7; margin-top: 4px; }
+        .chart-container { position: relative; width: 100%; }
+        .chart-container canvas { width: 100% !important; }
+
+        /* Dark-mode support */
+        [data-theme="dark"] .dashboard-card { background: #1e293b; color: #e2e8f0; }
+        [data-theme="dark"] .table-row:hover { background: #334155; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Page header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">
+                <span class="material-icons align-middle text-blue-600 mr-1" style="font-size:32px">dashboard</span>
+                <span th:text="${community.name}">Community</span> Dashboard
+            </h1>
+            <p class="text-gray-500 mt-1">Overview of contributions, donations &amp; membership activity</p>
+        </div>
+        <a th:href="@{/my-community(communityId=${communityId}, view='manage')}"
+           class="mt-4 md:mt-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition">
+            <span class="material-icons text-sm">arrow_back</span> Back to Community
+        </a>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <!-- Total Members -->
+        <div class="stat-card" style="background: linear-gradient(135deg,#3b82f6,#2563eb)">
+            <span class="material-icons stat-icon">groups</span>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-value" th:text="${totalMembers}">0</div>
+            <div class="stat-sub">Approved members</div>
+        </div>
+        <!-- Total Revenue -->
+        <div class="stat-card" style="background: linear-gradient(135deg,#10b981,#059669)">
+            <span class="material-icons stat-icon">account_balance_wallet</span>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value">₦<span th:text="${#numbers.formatDecimal(totalRevenue,1,'COMMA',2,'POINT')}">0</span></div>
+            <div class="stat-sub">Donations + Subscriptions</div>
+        </div>
+        <!-- Total Donations -->
+        <div class="stat-card" style="background: linear-gradient(135deg,#f59e0b,#d97706)">
+            <span class="material-icons stat-icon">volunteer_activism</span>
+            <div class="stat-label">Total Donations</div>
+            <div class="stat-value">₦<span th:text="${#numbers.formatDecimal(totalDonations,1,'COMMA',2,'POINT')}">0</span></div>
+            <div class="stat-sub" th:text="${donationCount} + ' donation(s)'">0 donations</div>
+        </div>
+        <!-- Active Subscriptions -->
+        <div class="stat-card" style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)">
+            <span class="material-icons stat-icon">credit_card</span>
+            <div class="stat-label">Active Subscriptions</div>
+            <div class="stat-value" th:text="${activeSubscriptions}">0</div>
+            <div class="stat-sub" th:text="${totalSubscriptions} + ' total subscriptions'">0 total</div>
+        </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Revenue Trend (large) -->
+        <div class="dashboard-card lg:col-span-2">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">
+                <span class="material-icons align-middle text-green-500 mr-1">show_chart</span>
+                Monthly Revenue Trend
+            </h2>
+            <div class="chart-container" style="height:320px">
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Revenue Split (doughnut) -->
+        <div class="dashboard-card flex flex-col items-center justify-center">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">
+                <span class="material-icons align-middle text-purple-500 mr-1">pie_chart</span>
+                Revenue Split
+            </h2>
+            <div class="chart-container" style="height:260px; max-width:260px">
+                <canvas id="revenueSplitChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second charts row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Donations bar chart -->
+        <div class="dashboard-card">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">
+                <span class="material-icons align-middle text-amber-500 mr-1">bar_chart</span>
+                Monthly Donations
+            </h2>
+            <div class="chart-container" style="height:280px">
+                <canvas id="donationsBarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Subscription status -->
+        <div class="dashboard-card flex flex-col items-center justify-center">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">
+                <span class="material-icons align-middle text-indigo-500 mr-1">donut_large</span>
+                Subscription Status
+            </h2>
+            <div class="chart-container" style="height:260px; max-width:280px">
+                <canvas id="subscriptionStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Donations Table -->
+    <div class="dashboard-card mb-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">
+            <span class="material-icons align-middle text-pink-500 mr-1">receipt_long</span>
+            Recent Donations
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm" id="recentDonationsTable">
+                <thead class="text-gray-500 border-b">
+                    <tr>
+                        <th class="py-3 px-4 font-semibold">Donor</th>
+                        <th class="py-3 px-4 font-semibold">Amount</th>
+                        <th class="py-3 px-4 font-semibold">Message</th>
+                        <th class="py-3 px-4 font-semibold">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="recentDonationsBody">
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-gray-400">Loading…</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart initialization script -->
+<th:block layout:fragment="scripts">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+(function() {
+    const communityId = /*[[${communityId}]]*/ 0;
+
+    fetch(`/my-community/dashboard/api/chart-data?communityId=${communityId}`)
+        .then(r => r.json())
+        .then(data => {
+            renderRevenueTrend(data);
+            renderRevenueSplit(data);
+            renderDonationsBar(data);
+            renderSubscriptionStatus(data);
+            renderRecentDonations(data);
+        })
+        .catch(err => console.error('Dashboard chart error:', err));
+
+    function renderRevenueTrend(data) {
+        new Chart(document.getElementById('revenueTrendChart'), {
+            type: 'line',
+            data: {
+                labels: data.months,
+                datasets: [
+                    {
+                        label: 'Donations',
+                        data: data.donations,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,.12)',
+                        fill: true,
+                        tension: .4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Subscriptions',
+                        data: data.subscriptions,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,.12)',
+                        fill: true,
+                        tension: .4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.dataset.label}: ₦${Number(ctx.raw).toLocaleString()}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: v => '₦' + Number(v).toLocaleString() }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderRevenueSplit(data) {
+        const split = data.revenueSplit;
+        new Chart(document.getElementById('revenueSplitChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Donations', 'Subscriptions'],
+                datasets: [{
+                    data: [split.donations, split.subscriptions],
+                    backgroundColor: ['#f59e0b', '#8b5cf6'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.label}: ₦${Number(ctx.raw).toLocaleString()}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderDonationsBar(data) {
+        new Chart(document.getElementById('donationsBarChart'), {
+            type: 'bar',
+            data: {
+                labels: data.months,
+                datasets: [{
+                    label: 'Donations',
+                    data: data.donations,
+                    backgroundColor: 'rgba(245,158,11,.7)',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `₦${Number(ctx.raw).toLocaleString()}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: v => '₦' + Number(v).toLocaleString() }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderSubscriptionStatus(data) {
+        const status = data.subscriptionStatus;
+        new Chart(document.getElementById('subscriptionStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Active', 'Cancelled', 'Expired'],
+                datasets: [{
+                    data: [status.active, status.cancelled, status.expired],
+                    backgroundColor: ['#10b981', '#ef4444', '#6b7280'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    function renderRecentDonations(data) {
+        const tbody = document.getElementById('recentDonationsBody');
+        const donations = data.recentDonations || [];
+
+        if (donations.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-gray-400">No donations yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = donations.map(d => `
+            <tr class="table-row border-b hover:bg-gray-50 transition">
+                <td class="py-3 px-4 font-medium">${d.firstName || ''} ${d.lastName || ''}</td>
+                <td class="py-3 px-4 text-green-600 font-semibold">₦${Number(d.amount).toLocaleString()}</td>
+                <td class="py-3 px-4 text-gray-500">${d.message || '—'}</td>
+                <td class="py-3 px-4 text-gray-400 text-xs">${d.donatedAt ? new Date(d.donatedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—'}</td>
+            </tr>
+        `).join('');
+    }
+})();
+</script>
+</th:block>
+</body>
+</html>
+
+
+
+

@@ -1520,6 +1520,16 @@
         <p class="mobile-header-subtitle" th:text="${isAdmin ? 'Manage your community settings, groups, and members all in one place.' : 'View your community information and participate in groups.'}">Manage your community settings, groups, and members all in one place.</p>
     </div>
 
+    <!-- Admin Dashboard Link -->
+    <div th:if="${isAdmin}" style="margin-bottom: 16px;">
+        <a th:href="@{/mobile/my-community/dashboard(communityId=${communityId})}"
+           style="display:flex; align-items:center; gap:10px; padding:16px 20px; background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; border-radius:16px; font-weight:600; font-size:15px; text-decoration:none; box-shadow:0 4px 15px rgba(37,99,235,.3);">
+            <span class="material-icons" style="font-size:22px">dashboard</span>
+            View Dashboard &amp; Analytics
+            <span class="material-icons" style="margin-left:auto; font-size:18px">arrow_forward</span>
+        </a>
+    </div>
+
     <!-- Non-admin message -->
     <div th:if="${!isAdmin}" class="non-admin-message">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

@@ -6,7 +6,14 @@ import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.service.ChatService;
 import com.justjava.mycommunity.community.CommunityGroupService;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.Donation;
+import com.justjava.mycommunity.community.MembershipStatus;
+import com.justjava.mycommunity.community.MembershipSubscription;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.community.dto.SubscriptionStatus;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
+import com.justjava.mycommunity.community.repository.DonationRepository;
+import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
 import com.justjava.mycommunity.network.NetworkService;
 import com.justjava.mycommunity.posts.PostService;
 import com.justjava.mycommunity.userManagement.UserDTO;
@@ -21,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +46,9 @@ public class MobileCommunityController {
     private final CommunityGroupService communityGroupService;
     private final AuthenticationManager authenticationManager;
     private final PostService postService;
+    private final DonationRepository donationRepository;
+    private final MembershipSubscriptionRepository membershipSubscriptionRepository;
+    private final CommunityMembershipRepository communityMembershipRepository;
 
     @GetMapping
     public String mobileCommunityPage(HttpServletRequest request, Model model) {
@@ -565,4 +576,55 @@ public class MobileCommunityController {
             return "fragments/mobile-groups :: groups-list";
         }
     }
+
+    @GetMapping("/dashboard")
+    public String mobileDashboard(@RequestParam("communityId") Long communityId, Model model, HttpServletRequest request) {
+        try {
+            boolean isAdmin = authenticationManager.isAdmin();
+            if (!isAdmin) {
+                return "redirect:/mobile/my-community";
+            }
+
+            CommunityDTO community = communityService.getCommunityById(communityId);
+            if (community == null) {
+                return "redirect:/mobile/organizations";
+            }
+
+            request.getSession().setAttribute("selectedCommunityId", communityId);
+            request.getSession().setAttribute("selectedCommunityName", community.getName());
+
+            int totalMembers = communityMembershipRepository
+                    .findByCommunityIdAndStatus(communityId, MembershipStatus.APPROVED).size();
+
+            List<Donation> donations = donationRepository.findByCommunityId(communityId);
+            BigDecimal totalDonations = donations.stream()
+                    .map(Donation::getAmount).filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByCommunityId(communityId);
+            long activeSubscriptions = subscriptions.stream()
+                    .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE).count();
+            BigDecimal totalSubscriptionRevenue = subscriptions.stream()
+                    .map(MembershipSubscription::getAmount).filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal totalRevenue = totalDonations.add(totalSubscriptionRevenue);
+
+            model.addAttribute("community", community);
+            model.addAttribute("communityId", communityId);
+            model.addAttribute("isAdmin", isAdmin);
+            model.addAttribute("totalMembers", totalMembers);
+            model.addAttribute("totalDonations", totalDonations);
+            model.addAttribute("donationCount", donations.size());
+            model.addAttribute("activeSubscriptions", activeSubscriptions);
+            model.addAttribute("totalSubscriptions", subscriptions.size());
+            model.addAttribute("totalRevenue", totalRevenue);
+
+            return "mobile-community-dashboard";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/mobile/my-community";
+        }
+    }
 }
+
