@@ -88,10 +88,6 @@ public class CommunityController {
             // always reference the community the user is currently managing
             request.getSession().setAttribute("selectedCommunityId", communityId);
 
-            // Admins land on the dashboard first unless they explicitly opt out
-            if (isAdmin && request.getParameter("view") == null) {
-                return "redirect:/my-community/dashboard?communityId=" + communityId;
-            }
 
             CommunityDTO community = communityService.getCommunityById(communityId);
 

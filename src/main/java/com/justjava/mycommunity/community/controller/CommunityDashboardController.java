@@ -87,7 +87,7 @@ public class CommunityDashboardController {
             return "community-dashboard";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/my-community?communityId=" + communityId + "&view=manage";
+            return "redirect:/my-community?communityId=" + communityId;
         }
     }
 
