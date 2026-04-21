@@ -64,10 +64,16 @@
                             </div>
                             <div class="flex flex-wrap gap-6 text-sm text-gray-500">
                                 <span class="flex items-center gap-1">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
                                     <span th:text="${don['donatedAt'] != null ? #temporals.format(don['donatedAt'], 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</span>
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <svg class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span th:text="${don['eventTitle'] != null ? don['eventTitle'] : 'Unknown Event'}">Event Title</span>
                                 </span>
                             </div>
                             <div th:if="${don['message'] != null and !don['message'].isEmpty()}" class="mt-3">

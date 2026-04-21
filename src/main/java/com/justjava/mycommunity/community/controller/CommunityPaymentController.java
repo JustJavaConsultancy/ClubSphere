@@ -140,11 +140,12 @@ public class CommunityPaymentController {
     @PostMapping("/donation/donate")
     @ResponseBody
     public String donate(@RequestParam("communityId") Long communityId,
+                         @RequestParam("eventId") Long eventId,
                          @RequestParam("amount") BigDecimal amount,
                          @RequestParam(value = "message", required = false) String message) {
         try {
             String userId = (String) authenticationManager.get("sub");
-            communityService.makeDonation(userId, communityId, amount, message);
+            communityService.makeDonation(userId, communityId, eventId, amount, message);
             return "<div class='text-green-600 font-medium'>✅ Donation made successfully! Thank you for your generosity.</div>";
         } catch (IllegalArgumentException e) {
             return "<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>";

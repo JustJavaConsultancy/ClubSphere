@@ -16,6 +16,8 @@ import com.justjava.mycommunity.community.repository.CommunityMembershipReposito
 import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
 import com.justjava.mycommunity.community.repository.PaymentTransactionRepository;
+import com.justjava.mycommunity.event.Event;
+import com.justjava.mycommunity.chat.repository.EventRepository;
 import com.justjava.mycommunity.organization.Channel;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.organization.TownHall;
@@ -53,6 +55,7 @@ public class CommunityService {
     private final MembershipSubscriptionRepository membershipSubscriptionRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final DonationRepository donationRepository;
+    private final EventRepository eventRepository;
 
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
@@ -1138,7 +1141,7 @@ public class CommunityService {
     // ══════════════════ DONATIONS ══════════════════
 
     @Transactional
-    public void makeDonation(String userId, Long communityId, BigDecimal amount, String message) {
+    public void makeDonation(String userId, Long communityId, Long eventId, BigDecimal amount, String message) {
 
         // Validate membership
         boolean isMember = communityMembershipRepository
@@ -1152,6 +1155,14 @@ public class CommunityService {
             throw new SecurityException("User must be a member before donating");
         }
 
+        // Validate event
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        if (!event.getCommunity().getId().equals(communityId)) {
+            throw new IllegalArgumentException("Event does not belong to this community");
+        }
+
         if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
             throw new IllegalArgumentException("Donation amount must be at least ₦1");
         }
@@ -1160,6 +1171,7 @@ public class CommunityService {
         Donation donation = new Donation();
         donation.setUserId(userId);
         donation.setCommunityId(communityId);
+        donation.setEventId(eventId);
         donation.setAmount(amount);
         donation.setMessage(message != null && !message.isBlank() ? message.trim() : null);
         donation.setDonatedAt(java.time.LocalDateTime.now());
@@ -1195,8 +1207,20 @@ public class CommunityService {
                 .stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
 
+        // Fetch events in batch
+        List<Long> eventIds = donations.stream()
+                .map(Donation::getEventId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, Event> eventMap = eventRepository.findAllById(eventIds)
+                .stream()
+                .collect(Collectors.toMap(Event::getId, e -> e));
+
         for (Donation don : donations) {
             User user = userMap.get(don.getUserId());
+            Event event = eventMap.get(don.getEventId());
 
             Map<String, Object> data = new HashMap<>();
             data.put("donationId", don.getId());
@@ -1204,6 +1228,8 @@ public class CommunityService {
             data.put("firstName", user != null ? user.getFirstName() : null);
             data.put("lastName", user != null ? user.getLastName() : null);
             data.put("email", user != null ? user.getEmail() : null);
+            data.put("eventId", don.getEventId());
+            data.put("eventTitle", event != null ? event.getTitle() : "Unknown Event");
             data.put("amount", don.getAmount());
             data.put("message", don.getMessage());
             data.put("donatedAt", don.getDonatedAt());
@@ -1239,13 +1265,27 @@ public class CommunityService {
                 .stream()
                 .collect(Collectors.toMap(Community::getId, c -> c));
 
+        // Fetch events in batch
+        List<Long> eventIds = donations.stream()
+                .map(Donation::getEventId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, Event> eventMap = eventRepository.findAllById(eventIds)
+                .stream()
+                .collect(Collectors.toMap(Event::getId, e -> e));
+
         for (Donation don : donations) {
             Community community = communityMap.get(don.getCommunityId());
+            Event event = eventMap.get(don.getEventId());
 
             Map<String, Object> data = new HashMap<>();
             data.put("donationId", don.getId());
             data.put("communityId", don.getCommunityId());
             data.put("communityName", community != null ? community.getName() : "Unknown Community");
+            data.put("eventId", don.getEventId());
+            data.put("eventTitle", event != null ? event.getTitle() : "Unknown Event");
             data.put("amount", don.getAmount());
             data.put("message", don.getMessage());
             data.put("donatedAt", don.getDonatedAt());

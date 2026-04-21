@@ -4,6 +4,7 @@ import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.CreateChatDTO;
 import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.service.ChatService;
+import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.network.NetworkDTO;
 import com.justjava.mycommunity.network.NetworkNewService;
@@ -41,6 +42,8 @@ public class CommunityController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private NetworkNewService networkNewService;
+    @Autowired
+    private EventService eventService;
 
     @GetMapping("/select")
     public String communitySelectionPage(Model model) {
@@ -149,6 +152,7 @@ public class CommunityController {
                 System.out.println("Error loading networks: " + e.getMessage());
             }
             model.addAttribute("communityNetworks", communityNetworks);
+            model.addAttribute("communityEvents", eventService.getCommunityEvents(communityId));
 
         } catch (Exception e) {
             e.printStackTrace();

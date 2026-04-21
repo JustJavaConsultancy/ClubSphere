@@ -75,8 +75,15 @@
             </div>
         </div>
 
-        <div class="text-xs text-gray-500 mb-1">
-            <span th:text="${don['donatedAt'] != null ? #temporals.format(don['donatedAt'], 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</span>
+        <div class="text-xs text-gray-500 mb-1 flex flex-col gap-1">
+            <span class="flex items-center gap-1">
+                <i class="far fa-calendar-alt text-pink-400"></i>
+                <span th:text="${don['donatedAt'] != null ? #temporals.format(don['donatedAt'], 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</span>
+            </span>
+            <span class="flex items-center gap-1">
+                <i class="fas fa-info-circle text-blue-400"></i>
+                <span th:text="${don['eventTitle'] != null ? don['eventTitle'] : 'Unknown Event'}">Event Title</span>
+            </span>
         </div>
 
         <div th:if="${don['message'] != null and !don['message'].isEmpty()}" class="mt-2">

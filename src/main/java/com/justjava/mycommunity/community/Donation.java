@@ -20,6 +20,7 @@ public class Donation {
 
     private String userId;
     private Long communityId;
+    private Long eventId;
 
     private BigDecimal amount;
 
