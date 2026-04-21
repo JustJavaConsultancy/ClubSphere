@@ -60,6 +60,11 @@ public class HomeController {
         this.eventService = eventService;
     }
 
+    @GetMapping("/landing")
+    public String landing() {
+        return "landing";
+    }
+
     private Map<String, Object> extractCommunityData(Object communityResponse) {
         Map<String, Object> normalizedCommunity = new HashMap<>();
 

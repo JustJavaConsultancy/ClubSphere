@@ -45,11 +45,14 @@ public class Oauth2SecurityConfig {
                 .csrf(CsrfConfigurer::disable)
 //                .oauth2Login(Customizer.withDefaults())
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/landing")
                         .successHandler(oidcAuthenticationSuccessHandler()))
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .authorizeHttpRequests(
                         authorize -> authorize
                                 .requestMatchers(new MvcRequestMatcher(introspector, "/login"))
+                                .permitAll()
+                                .requestMatchers(new MvcRequestMatcher(introspector, "/landing"))
                                 .permitAll()
                                 .requestMatchers(new MvcRequestMatcher(introspector, "/swagger-ui/**"))
                                 .permitAll()

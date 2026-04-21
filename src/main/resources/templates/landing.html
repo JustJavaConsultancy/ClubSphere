@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MyCommunity – Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Animated background orbs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            animation: float 8s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        body::before {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #6c63ff, transparent);
+            top: -150px; left: -150px;
+        }
+        body::after {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #f857a6, transparent);
+            bottom: -100px; right: -100px;
+            animation-delay: 2s;
+        }
+        @keyframes float {
+            from { transform: translateY(0) scale(1); }
+            to   { transform: translateY(40px) scale(1.08); }
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 56px;
+            animation: fadeUp 0.7s ease both;
+        }
+        .logo-ring {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6c63ff, #f857a6);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 40px rgba(108, 99, 255, 0.5);
+        }
+        .logo-ring svg { width: 40px; height: 40px; fill: #fff; }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+        }
+        .hero h1 span {
+            background: linear-gradient(90deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: 400;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 22px;
+            width: 100%;
+            max-width: 980px;
+        }
+
+        /* Card */
+        .card {
+            position: relative;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            animation: fadeUp 0.6s ease both;
+        }
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Individual card accent colours */
+        .card.community::before        { background: linear-gradient(135deg, rgba(108,99,255,0.18), transparent); }
+        .card.mobile::before           { background: linear-gradient(135deg, rgba(16,185,129,0.18), transparent); }
+        .card.project-client::before   { background: linear-gradient(135deg, rgba(245,158,11,0.18), transparent); }
+        .card.project-admin::before    { background: linear-gradient(135deg, rgba(239,68,68,0.18), transparent); }
+        .card.clubs::before            { background: linear-gradient(135deg, rgba(244,114,182,0.18), transparent); }
+
+        .card:hover:not(.disabled) {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.22);
+            background: rgba(255,255,255,0.1);
+        }
+        .card:hover:not(.disabled)::before { opacity: 1; }
+
+        .card.disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        /* Icon badge */
+        .card-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .card-icon svg { width: 26px; height: 26px; }
+
+        .card.community      .card-icon { background: rgba(108,99,255,0.25); }
+        .card.mobile         .card-icon { background: rgba(16,185,129,0.25); }
+        .card.project-client .card-icon { background: rgba(245,158,11,0.25); }
+        .card.project-admin  .card-icon { background: rgba(239,68,68,0.25); }
+        .card.clubs          .card-icon { background: rgba(244,114,182,0.25); }
+
+        .card-icon svg { fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .card.community      .card-icon svg { stroke: #a78bfa; }
+        .card.mobile         .card-icon svg { stroke: #34d399; }
+        .card.project-client .card-icon svg { stroke: #fbbf24; }
+        .card.project-admin  .card-icon svg { stroke: #f87171; }
+        .card.clubs          .card-icon svg { stroke: #f472b6; }
+
+        .card-body { display: flex; flex-direction: column; gap: 6px; }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            align-self: flex-start;
+            margin-top: 4px;
+        }
+        .badge.soon {
+            background: rgba(244,114,182,0.18);
+            color: #f472b6;
+            border: 1px solid rgba(244,114,182,0.3);
+        }
+
+        /* Arrow */
+        .card-arrow {
+            position: absolute;
+            right: 24px;
+            bottom: 28px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .card:hover:not(.disabled) .card-arrow {
+            background: rgba(255,255,255,0.18);
+            transform: translateX(3px);
+        }
+        .card-arrow svg { width: 14px; height: 14px; stroke: rgba(255,255,255,0.7); stroke-width: 2; fill: none; }
+
+        /* Footer */
+        .footer {
+            margin-top: 52px;
+            text-align: center;
+            color: rgba(255,255,255,0.25);
+            font-size: 0.8rem;
+            animation: fadeUp 0.8s ease 0.6s both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .cards-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="logo-ring">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+            </svg>
+        </div>
+        <h1>Welcome to <span>MyCommunity</span></h1>
+        <p>Choose your portal below to sign in and connect with your community.</p>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards-grid">
+
+        <!-- Community -->
+        <a th:href="@{/oauth2/authorization/keycloak}" class="card community">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="card-body">
+                <span class="card-title">Community Portal</span>
+                <span class="card-subtitle">Join your community, connect with members and participate in groups.</span>
+            </div>
+            <div class="card-arrow">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+        </a>
+
+        <!-- Mobile -->
+        <a th:href="@{/oauth2/authorization/keycloak-mobile}" class="card mobile">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="card-body">
+                <span class="card-title">Mobile Access</span>
+                <span class="card-subtitle">Access your community on the go via the mobile-optimised experience.</span>
+            </div>
+            <div class="card-arrow">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+        </a>
+
+        <!-- Project Client -->
+        <a th:href="@{/oauth2/authorization/keycloak-project-client}" class="card project-client">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="card-body">
+                <span class="card-title">Project Client</span>
+                <span class="card-subtitle">Sign in as a project client to manage and track your active projects.</span>
+            </div>
+            <div class="card-arrow">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+        </a>
+
+        <!-- Project Admin -->
+        <a th:href="@{/oauth2/authorization/keycloak-project-admin}" class="card project-admin">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="card-body">
+                <span class="card-title">Project Admin</span>
+                <span class="card-subtitle">Administrator access for managing projects, users and platform settings.</span>
+            </div>
+            <div class="card-arrow">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+        </a>
+
+        <!-- Clubs / Associations — Coming Soon -->
+        <div class="card clubs disabled">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="card-body">
+                <span class="card-title">Clubs &amp; Associations</span>
+                <span class="card-subtitle">A dedicated portal for clubs, associations and interest groups. Launching soon.</span>
+                <span class="badge soon">Coming Soon</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2026 MyCommunity &nbsp;&middot;&nbsp; All rights reserved
+    </div>
+
+</body>
+</html>
+
