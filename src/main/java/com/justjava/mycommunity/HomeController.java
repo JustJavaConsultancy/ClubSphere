@@ -8,6 +8,7 @@ import com.justjava.mycommunity.chat.dto.SessionDTO;
 import com.justjava.mycommunity.chat.model.PostMessage;
 import com.justjava.mycommunity.community.CommunityGroupService;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.network.NetworkService;
 import com.justjava.mycommunity.posts.Post;
@@ -45,6 +46,8 @@ public class HomeController {
     private CommunityGroupService communityGroupService;
     @Autowired
     private NetworkService networkService;
+    @Autowired
+    private CommunityMembershipRepository communityMembershipRepository;
     private final AuthenticationManager authenticationManager;
     private final SupportFeignClient supportFeignClient;
     private final PostService postService;
@@ -445,6 +448,9 @@ public class HomeController {
         request.getSession(true).setAttribute("isAdmin", authenticationManager.isAdmin());
         request.getSession(true).setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         request.getSession().setAttribute("userId", authenticationManager.get("sub"));
+
+        boolean isCommunityAdmin = communityMembershipRepository.isUserAdminOfAnyCommunity(currentUserId);
+        request.getSession().setAttribute("isCommunityAdmin", isCommunityAdmin);
 
         // Get user's communities for correct count
         List<Map<String, Object>> userCommunities = communityService.getUserCommunities(currentUserId);

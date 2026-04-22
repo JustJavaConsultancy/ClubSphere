@@ -451,6 +451,30 @@ public class CommunityService {
         return userCommunities;
     }
 
+    /**
+     * Returns only communities where the current user has an ADMIN role.
+     * For platform-level admins, returns all communities.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getAdminManagedCommunities(String userId) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            boolean isPlatformAdmin = authenticationManager.isAdmin();
+            if (isPlatformAdmin) {
+                communityRepository.findAll().forEach(c -> result.add(mapCommunity(c)));
+                return result;
+            }
+            // Non-platform admin: only communities where the user holds ADMIN/CREATOR role
+            List<Long> adminCommunityIds = communityMembershipRepository.findAdminCommunityIdsByUserId(userId);
+            if (!adminCommunityIds.isEmpty()) {
+                communityRepository.findAllById(adminCommunityIds).forEach(c -> result.add(mapCommunity(c)));
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting admin-managed communities for user " + userId + ": " + e.getMessage());
+        }
+        return result;
+    }
+
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getAllCommunitiesForAdmin(String userId) {
         List<Map<String, Object>> allCommunities = new ArrayList<>();

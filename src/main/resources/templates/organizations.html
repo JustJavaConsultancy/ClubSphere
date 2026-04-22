@@ -898,6 +898,10 @@
                                         <i class="fas fa-calendar-alt" style="font-size: 0.8rem;"></i>
                                         <span th:text="${don['donatedAt'] != null ? #temporals.format(don['donatedAt'], 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</span>
                                     </span>
+                                    <span style="display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-ticket-alt" style="font-size: 0.8rem; color: #ec4899;"></i>
+                                        <span th:text="${don['eventTitle'] != null ? don['eventTitle'] : 'Unknown Event'}">Event Title</span>
+                                    </span>
                                 </div>
                                 <div th:if="${don['message'] != null and !don['message'].isEmpty()}" style="margin-top: 0.75rem;">
                                     <p style="font-size: 0.85rem; color: #6b7280; font-style: italic; margin: 0;">"<span th:text="${don['message']}">message</span>"</p>

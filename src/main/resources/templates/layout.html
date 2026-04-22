@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -165,7 +165,7 @@
                 </a>
 
                 <!-- Community & Network -->
-                <a th:if="${session.isAdmin}" th:href="@{/my-community}"
+                <a th:if="${session.isAdmin or session.isCommunityAdmin}" th:href="@{/my-community}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-handshake w-5"></i>
@@ -299,9 +299,9 @@
                 </a>
 
                 <!-- Additional Features -->
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/events}"
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/sessions}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/events'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                   th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-calendar-alt w-5"></i>
                     Events
                 </a>
@@ -387,7 +387,7 @@
                 </a>
 
                 <!-- Community & Network -->
-                <a th:if="${session.isAdmin}" th:href="@{/my-community}"
+                <a th:if="${session.isAdmin or session.isCommunityAdmin}" th:href="@{/my-community}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-handshake w-5"></i>
@@ -508,9 +508,9 @@
                 </a>
 
                 <!-- Additional Features -->
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/events}"
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/sessions}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/events'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                   th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-calendar-alt w-5"></i>
                     Events
                 </a>

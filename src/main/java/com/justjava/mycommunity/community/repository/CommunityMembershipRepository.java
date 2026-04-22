@@ -73,6 +73,15 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
     boolean isUserAdminOfAnyCommunity(String userId);
 
     @Query("""
+        SELECT DISTINCT cm.communityId
+        FROM CommunityMembership cm
+        WHERE cm.userId = :userId
+        AND cm.status = 'APPROVED'
+        AND (cm.role = 'ADMIN' OR cm.role = 'CREATOR')
+    """)
+    List<Long> findAdminCommunityIdsByUserId(String userId);
+
+    @Query("""
         SELECT CASE WHEN COUNT(cm1) > 0 THEN true ELSE false END
         FROM CommunityMembership cm1, CommunityMembership cm2
         WHERE cm1.userId = :userId1

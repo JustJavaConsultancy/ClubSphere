@@ -1792,7 +1792,7 @@
             <form hx-post="/donation/donate"
                   hx-target="#mobileDonationFeedback"
                   hx-swap="innerHTML"
-                  onsubmit="closeMobileDonateModal()">
+                  hx-on::after-request="handleMobileCommunityDonationResponse(event)">
                 <input type="hidden" name="communityId" th:value="${communityId}">
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Donation Amount</label>
@@ -3111,6 +3111,19 @@
             modal.classList.remove('active');
             document.body.style.overflow = '';
         }
+        function handleMobileCommunityDonationResponse(event) {
+            var response = event.detail.xhr.responseText;
+            var isSuccess = response.includes('successfully') || response.includes('text-green');
+            if (isSuccess) {
+                closeMobileDonateModal();
+                showDonationToast('Donation made successfully! Thank you for your generosity.', true);
+                document.getElementById('mobileDonationFeedback').innerHTML = '';
+            } else {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = response;
+                showDonationToast(tmp.textContent || 'Something went wrong. Please try again.', false);
+            }
+        }
 
         // ── Mobile Group Members Modal ──
         function viewMobileGroupMembers(groupId, groupName) {
@@ -3198,7 +3211,7 @@
                         const email = sub.email || '';
                         const status = sub.status || 'UNKNOWN';
                         const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'N/A';
-                        const totalPaid = sub.totalPaid != null ? '₦' + Number(sub.totalPaid).toFixed(2) : '₦0.00';
+                        const totalPaid = sub.amount != null ? '₦' + Number(sub.amount).toFixed(2) : '₦0.00';
 
                         let statusColor = '#6b7280';
                         let statusBg = '#f3f4f6';
@@ -3300,6 +3313,25 @@
                 });
             });
         });
+    </script>
+
+    <!-- Donation Toast Notification -->
+    <div id="donationToast" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:9999; min-width:280px; max-width:90vw; padding:14px 20px; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.18); font-size:14px; font-weight:600; text-align:center; transition:opacity 0.4s;"></div>
+    <script>
+        function showDonationToast(message, isSuccess) {
+            var toast = document.getElementById('donationToast');
+            toast.innerHTML = (isSuccess ? '✅ ' : '❌ ') + message;
+            toast.style.background = isSuccess ? '#d1fae5' : '#fee2e2';
+            toast.style.color = isSuccess ? '#065f46' : '#991b1b';
+            toast.style.border = isSuccess ? '1.5px solid #6ee7b7' : '1.5px solid #fca5a5';
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            clearTimeout(window._donationToastTimer);
+            window._donationToastTimer = setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() { toast.style.display = 'none'; toast.style.opacity = '1'; }, 400);
+            }, 4000);
+        }
     </script>
 </div>
 </body>

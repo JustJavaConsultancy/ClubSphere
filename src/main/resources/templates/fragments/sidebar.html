@@ -40,7 +40,7 @@
                 Dashboard
             </a>
 
-            <a th:if="${session.isAdmin}" th:href="@{/my-community}"
+            <a th:if="${session.isAdmin or session.isCommunityAdmin}" th:href="@{/my-community}"
                class="flex items-center py-2 px-4 rounded-lg font-medium text-gray-700"
                th:classappend="${currentPath == '/my-community'} ? ' bg-blue-600 text-white'">
                 <span class="material-icons mr-3">handshake</span>

@@ -803,49 +803,26 @@
                 </div>
             </div>
 
-            <!-- Community Donation Banner -->
-            <div th:if="${selectedCommunityId != null}" class="card mb-4" style="background: linear-gradient(135deg, #fdf2f8 0%, #fff1f2 100%); border: 1px solid #fce7f3;">
-                <div class="p-5">
-                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-                        <div style="flex:1; min-width:200px;">
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                                <svg style="width:20px;height:20px;color:#ec4899;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                </svg>
-                                <span style="font-weight:700; font-size:15px; color:#1f2937;">Donate to this Community</span>
-                            </div>
-                            <p style="font-size:13px; color:#6b7280; margin:0;">Show your appreciation with a one-time donation. You choose the amount.</p>
-                        </div>
-                        <button type="button" onclick="openDonateModal()"
-                                style="background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:10px 22px; border:none; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; box-shadow:0 4px 12px rgba(219,39,119,0.25);">
-                            <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                            </svg>
-                            Donate Now
-                        </button>
-                    </div>
-                    <div id="homeDonationFeedback" style="margin-top:8px;"></div>
-                </div>
-            </div>
-
-            <!-- Donate Modal -->
+            <!-- Donate Modal (event-attached) -->
             <div id="donateModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;"
                  onclick="if(event.target===this) closeDonateModal()">
                 <div style="background:white; border-radius:16px; padding:32px; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="margin:0; font-size:1.25rem; font-weight:700; color:#1f2937;">Donate to Community</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <h3 style="margin:0; font-size:1.25rem; font-weight:700; color:#1f2937;">Donate to Event</h3>
                         <button onclick="closeDonateModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
                             <svg style="width:20px;height:20px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
-                    <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Enter the amount you'd like to donate. You can also include an optional message.</p>
+                    <p id="donateModalEventName" style="font-size:13px; color:#ec4899; font-weight:600; margin-bottom:12px;"></p>
+                    <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Enter the amount you'd like to donate to this event. You can also include an optional message.</p>
                     <form hx-post="/donation/donate"
                           hx-target="#homeDonationFeedback"
                           hx-swap="innerHTML"
-                          onsubmit="closeDonateModal()">
+                          hx-on::after-request="handleDonationResponse(event, 'closeDonateModal')">
                         <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                        <input type="hidden" name="eventId" id="donateModalEventId">
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Donation Amount</label>
                             <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
@@ -870,6 +847,7 @@
                             </button>
                         </div>
                     </form>
+                    <div id="homeDonationFeedback" style="margin-top:8px;"></div>
                 </div>
             </div>
 
@@ -1070,6 +1048,19 @@
                                         <span class="button-content">Join Session</span>
                                     </button>
                                 </div>
+                                <!-- Donate to Event button (only when inside a community) -->
+                                <div th:if="${selectedCommunityId != null}" style="margin-top:8px;">
+                                    <button type="button"
+                                            th:data-event-id="${upcomingSession.id}"
+                                            th:data-event-name="${upcomingSession.moduleName}"
+                                            onclick="openDonateModal(this.dataset.eventId, this.dataset.eventName)"
+                                            style="width:100%; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:8px 16px; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                        </svg>
+                                        Donate to this Event
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1264,13 +1255,18 @@
             var modal = document.getElementById('subscribeModal');
             if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
         }
-        function openDonateModal() {
+        function openDonateModal(eventId, eventName) {
             var modal = document.getElementById('donateModal');
+            var eventIdInput = document.getElementById('donateModalEventId');
+            var eventNameLabel = document.getElementById('donateModalEventName');
+            if (eventIdInput) eventIdInput.value = eventId || '';
+            if (eventNameLabel) eventNameLabel.textContent = eventName ? '🎟 ' + eventName : '';
             if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
         }
         function closeDonateModal() {
             var modal = document.getElementById('donateModal');
             if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+            document.getElementById('homeDonationFeedback').innerHTML = '';
         }
 
         (function () {
@@ -1844,6 +1840,38 @@
             updateConnectionStatus();
 
         })(); // IIFE
+    </script>
+
+    <!-- Donation Toast Notification -->
+    <div id="donationToast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9999; min-width:300px; max-width:480px; padding:14px 20px; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.18); font-size:15px; font-weight:600; text-align:center; transition:opacity 0.4s;"></div>
+    <script>
+        function showDonationToast(message, isSuccess) {
+            var toast = document.getElementById('donationToast');
+            toast.innerHTML = (isSuccess ? '✅ ' : '❌ ') + message;
+            toast.style.background = isSuccess ? '#d1fae5' : '#fee2e2';
+            toast.style.color = isSuccess ? '#065f46' : '#991b1b';
+            toast.style.border = isSuccess ? '1.5px solid #6ee7b7' : '1.5px solid #fca5a5';
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            clearTimeout(window._donationToastTimer);
+            window._donationToastTimer = setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() { toast.style.display = 'none'; toast.style.opacity = '1'; }, 400);
+            }, 4000);
+        }
+        function handleDonationResponse(event, closeFn) {
+            var response = event.detail.xhr.responseText;
+            var isSuccess = response.includes('successfully') || response.includes('text-green');
+            if (isSuccess) {
+                window[closeFn]();
+                showDonationToast('Donation made successfully! Thank you for your generosity.', true);
+            } else {
+                // strip HTML tags for toast
+                var tmp = document.createElement('div');
+                tmp.innerHTML = response;
+                showDonationToast(tmp.textContent || 'Something went wrong. Please try again.', false);
+            }
+        }
     </script>
 </div>
 </body>

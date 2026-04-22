@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.SessionDTO;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.posts.PostService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,15 +48,18 @@ public class MobileHomeController {
     private final PostService postService;
     private final EventService eventService;
     private final CommunityService communityService;
+    private final CommunityMembershipRepository communityMembershipRepository;
 
     public MobileHomeController(AuthenticationManager authenticationManager,
                                 PostService postService,
                                 EventService eventService,
-                                CommunityService communityService) {
+                                CommunityService communityService,
+                                CommunityMembershipRepository communityMembershipRepository) {
         this.authenticationManager = authenticationManager;
         this.postService = postService;
         this.eventService = eventService;
         this.communityService = communityService;
+        this.communityMembershipRepository = communityMembershipRepository;
     }
 
     /**
@@ -139,6 +143,8 @@ public class MobileHomeController {
         session.setAttribute("isSupportAdmin", isSupportAdmin);
         session.setAttribute("userId", currentUserId);
         session.setAttribute("loggedInUser", authenticationManager.get("name"));
+        boolean isCommunityAdmin = communityMembershipRepository.isUserAdminOfAnyCommunity(currentUserId);
+        session.setAttribute("isCommunityAdmin", isCommunityAdmin);
     }
 
     private List<SessionDTO> mergeUserAndAdminSessions(List<SessionDTO> userSessions, List<SessionDTO> adminSessions) {

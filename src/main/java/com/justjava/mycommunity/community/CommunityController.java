@@ -6,6 +6,9 @@ import com.justjava.mycommunity.chat.dto.CreateCommunityVO;
 import com.justjava.mycommunity.chat.service.ChatService;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
+import com.justjava.mycommunity.community.Role;
+import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.network.NetworkDTO;
 import com.justjava.mycommunity.network.NetworkNewService;
 import com.justjava.mycommunity.userManagement.UserDTO;
@@ -44,6 +47,8 @@ public class CommunityController {
     private NetworkNewService networkNewService;
     @Autowired
     private EventService eventService;
+    @Autowired
+    private CommunityMembershipRepository communityMembershipRepository;
 
     @GetMapping("/select")
     public String communitySelectionPage(Model model) {
@@ -57,8 +62,8 @@ public class CommunityController {
                 return "community-selection";
             }
 
-            // Get user's communities
-            List<Map<String, Object>> userCommunities = communityService.getUserCommunities(currentUserId);
+            // Get only communities where this user has an admin role
+            List<Map<String, Object>> userCommunities = communityService.getAdminManagedCommunities(currentUserId);
             boolean isAdmin = authenticationManager.isAdmin();
 
             model.addAttribute("userCommunities", userCommunities);
@@ -86,6 +91,12 @@ public class CommunityController {
 
             String currentUserId = (String) authenticationManager.get("sub");
             boolean isAdmin = authenticationManager.isAdmin();
+
+            // Also treat community-level admins as admin for this community
+            if (!isAdmin) {
+                isAdmin = communityMembershipRepository.existsByUserIdAndCommunityIdAndRoleAndStatus(
+                        currentUserId, communityId, Role.ADMIN, MembershipStatus.APPROVED);
+            }
 
             // Keep session in sync so /networks and other session-dependent pages
             // always reference the community the user is currently managing

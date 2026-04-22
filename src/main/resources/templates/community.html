@@ -1434,13 +1434,13 @@
             <form hx-post="/donation/donate"
                   hx-target="#donationFeedback"
                   hx-swap="innerHTML"
-                  onsubmit="closeDonateModal()">
+                  hx-on::after-request="handleCommunityDonationResponse(event)">
                 <input type="hidden" name="communityId" th:value="${communityId}">
                 <div style="margin-bottom: 16px;">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Select Event</label>
                     <select name="eventId" class="sub-amount-input" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: white;">
                         <option value="" disabled selected>-- Select an Event --</option>
-                        <option th:each="event : ${communityEvents}" th:value="${event.id}" th:text="${event.title}"></option>
+                        <option th:each="event : ${communityEvents}" th:value="${event.id}" th:text="${event.moduleName}"></option>
                     </select>
                 </div>
                 <div style="margin-bottom: 16px;">
@@ -2769,7 +2769,7 @@
                         const status = sub.status || 'UNKNOWN';
                         const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
                         const nextBilling = sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
-                        const totalPaid = sub.totalPaid != null ? '₦' + Number(sub.totalPaid).toFixed(2) : '₦0.00';
+                        const totalPaid = sub.amount != null ? '₦' + Number(sub.amount).toFixed(2) : '₦0.00';
 
                         let statusClass = 'bg-gray-100 text-gray-600';
                         if (status === 'ACTIVE') statusClass = 'bg-green-100 text-green-700';
@@ -2803,6 +2803,33 @@
         }
         function closeDonateModal() {
             document.getElementById('donateModal').style.display = 'none';
+            document.getElementById('donationFeedback').innerHTML = '';
+        }
+        function handleCommunityDonationResponse(event) {
+            var response = event.detail.xhr.responseText;
+            var isSuccess = response.includes('successfully') || response.includes('text-green');
+            if (isSuccess) {
+                closeDonateModal();
+                showDonationToast('Donation made successfully! Thank you for your generosity.', true);
+            } else {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = response;
+                showDonationToast(tmp.textContent || 'Something went wrong. Please try again.', false);
+            }
+        }
+        function showDonationToast(message, isSuccess) {
+            var toast = document.getElementById('donationToast');
+            toast.innerHTML = (isSuccess ? '✅ ' : '❌ ') + message;
+            toast.style.background = isSuccess ? '#d1fae5' : '#fee2e2';
+            toast.style.color = isSuccess ? '#065f46' : '#991b1b';
+            toast.style.border = isSuccess ? '1.5px solid #6ee7b7' : '1.5px solid #fca5a5';
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            clearTimeout(window._donationToastTimer);
+            window._donationToastTimer = setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() { toast.style.display = 'none'; toast.style.opacity = '1'; }, 400);
+            }, 4000);
         }
     </script>
 
@@ -2953,6 +2980,9 @@
             }
         }
     </script>
+
+    <!-- Donation Toast Notification -->
+    <div id="donationToast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9999; min-width:300px; max-width:480px; padding:14px 20px; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.18); font-size:15px; font-weight:600; text-align:center; transition:opacity 0.4s;"></div>
 
 </div>
 </body>
