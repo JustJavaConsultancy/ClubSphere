@@ -146,6 +146,8 @@ public class SupportService {
         ticketDto.setDateCreated(currentTicket.getDateCreated());
         ticketDto.setLastUpdated(currentTicket.getLastUpdated());
         ticketDto.setAgentUserId(currentTicket.getAgentUserId());
+        ticketDto.setCommunityId(currentTicket.getCommunityId());
+        ticketDto.setCommunityGroupId(currentTicket.getCommunityGroupId());
 
         return ticketDto;
     }

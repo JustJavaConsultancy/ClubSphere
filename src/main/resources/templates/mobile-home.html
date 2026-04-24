@@ -906,6 +906,7 @@
                       hx-swap="innerHTML"
                       id="mobileSupportForm">
                     <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                    <input type="hidden" name="communityGroupId" id="supportCommunityGroupId">
                     <input type="hidden" name="attachmentUrl" id="mobileSupportAttachmentUrl">
                     <div style="margin-bottom:14px;">
                         <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Subject</label>
@@ -991,11 +992,32 @@
 
             // Support modal functionality
             const supportModal = $('#support-modal');
-            const toggleSupportModal = (show = null) => {
+            const toggleSupportModal = (show = null, groupId = null) => {
                 if (!supportModal) return;
                 const active = show === null ? !supportModal.classList.contains('active') : !!show;
                 supportModal.classList.toggle('active', active);
                 document.body.style.overflow = active ? 'hidden' : 'auto';
+
+                if (active) {
+                    if (groupId) {
+                        const groupInput = document.getElementById('supportCommunityGroupId');
+                        if (groupInput) groupInput.value = groupId;
+                    } else {
+                        const groupInput = document.getElementById('supportCommunityGroupId');
+                        if (groupInput) groupInput.value = '';
+                    }
+                } else {
+                    const form = document.getElementById('mobileSupportForm');
+                    if (form) form.reset();
+                    const feedback = document.getElementById('mobileSupportFeedback');
+                    if (feedback) feedback.innerHTML = '';
+                    const preview = document.getElementById('mobileSupportFilePreview');
+                    if (preview) preview.style.display = 'none';
+                    const attachmentInput = document.getElementById('mobileSupportAttachmentUrl');
+                    if (attachmentInput) attachmentInput.value = '';
+                    const groupInput = document.getElementById('supportCommunityGroupId');
+                    if (groupInput) groupInput.value = '';
+                }
             };
 
             // Support modal triggers

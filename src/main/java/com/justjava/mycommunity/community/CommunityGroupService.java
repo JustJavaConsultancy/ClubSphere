@@ -66,16 +66,22 @@ public class CommunityGroupService {
                 .filter(cm -> cm.getStatus() == MembershipStatus.APPROVED);
     }
 
-    private void addMembershipToGroup(CommunityGroup group, CommunityMembership communityMembership) {
+    private void addMembershipToGroup(CommunityGroup group, CommunityMembership communityMembership, Role role) {
         Optional<CommunityGroupMembership> existing = communityGroupMembershipRepository
                 .findByCommunityGroupAndCommunityMembership(group, communityMembership);
         if (existing.isPresent()) {
+            CommunityGroupMembership existingMembership = existing.get();
+            if (role != null && existingMembership.getRole() != role) {
+                existingMembership.setRole(role);
+                communityGroupMembershipRepository.save(existingMembership);
+            }
             return;
         }
 
         CommunityGroupMembership groupMembership = new CommunityGroupMembership();
         groupMembership.setCommunityGroup(group);
         groupMembership.setCommunityMembership(communityMembership);
+        groupMembership.setRole(role != null ? role : Role.MEMBER);
         communityGroupMembershipRepository.save(groupMembership);
     }
 
@@ -233,7 +239,7 @@ public class CommunityGroupService {
         try {
             String creatorUserId = (String) authenticationManager.get("sub");
             if (creatorUserId != null) {
-                addUserToCommunityGroup(creatorUserId, savedGroup.getId());
+                addUserToCommunityGroup(creatorUserId, savedGroup.getId(), Role.ADMIN);
             }
         } catch (Exception e) {
             System.err.println("Error auto-adding creator to group: " + e.getMessage());
@@ -245,6 +251,11 @@ public class CommunityGroupService {
 
     @Transactional
     public void addUserToCommunityGroup(String userId, Long communityGroupId) {
+        addUserToCommunityGroup(userId, communityGroupId, Role.MEMBER);
+    }
+
+    @Transactional
+    public void addUserToCommunityGroup(String userId, Long communityGroupId, Role role) {
         CommunityGroup communityGroup = communityGroupRepository.findById(communityGroupId)
                 .orElseThrow(() -> new EntityNotFoundException("Community Group does not exist"));
 
@@ -258,7 +269,7 @@ public class CommunityGroupService {
         CommunityMembership communityMembership = getApprovedCommunityMembership(user.getUserId(), communityId)
                 .orElseThrow(() -> new IllegalStateException("User must be an approved member of the community before joining group"));
 
-        addMembershipToGroup(communityGroup, communityMembership);
+        addMembershipToGroup(communityGroup, communityMembership, role);
     }
 
     @Transactional
@@ -330,6 +341,11 @@ public class CommunityGroupService {
         groupRequest.setUser(user);
         groupRequest.setStatus("P");
         communityGroupRequestRepository.save(groupRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isUserGroupAdmin(String userId, Long groupId) {
+        return communityGroupMembershipRepository.isUserGroupAdmin(userId, groupId);
     }
 
     @Transactional

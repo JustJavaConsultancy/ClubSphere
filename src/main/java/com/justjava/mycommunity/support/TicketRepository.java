@@ -17,4 +17,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findByAgentUserIdIsNull();
 
     List<Ticket> findByAgentUserIdIsNullOrderByLastUpdatedDesc();
+    List<Ticket> findByCommunityId(Long communityId);
+    List<Ticket> findByCommunityGroupId(Long communityGroupId);
 }

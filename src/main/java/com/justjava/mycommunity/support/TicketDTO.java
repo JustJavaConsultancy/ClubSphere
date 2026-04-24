@@ -17,7 +17,8 @@ public class TicketDTO {
     private OffsetDateTime dateCreated;
     private OffsetDateTime lastUpdated;
     private String userId;
-    public String agentUserId;
+    private String agentUserId;
+    private Long communityId;
+    private Long communityGroupId;
     private ConversationDto conversation;
-
 }

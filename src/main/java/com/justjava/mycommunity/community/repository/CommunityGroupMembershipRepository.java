@@ -4,6 +4,7 @@ import com.justjava.mycommunity.community.CommunityGroup;
 import com.justjava.mycommunity.community.CommunityGroupMembership;
 import com.justjava.mycommunity.community.CommunityMembership;
 import com.justjava.mycommunity.community.MembershipStatus;
+import com.justjava.mycommunity.community.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,4 +32,13 @@ public interface CommunityGroupMembershipRepository extends JpaRepository<Commun
         AND gm.communityMembership.status = :status
     """)
     List<CommunityGroup> findGroupsByUserIdAndStatus(@Param("userId") String userId, @Param("status") MembershipStatus status);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(gm) > 0 THEN true ELSE false END
+        FROM CommunityGroupMembership gm
+        WHERE gm.communityMembership.userId = :userId
+        AND gm.communityGroup.id = :groupId
+        AND (gm.role = 'ADMIN' OR gm.role = 'CREATOR')
+    """)
+    boolean isUserGroupAdmin(@Param("userId") String userId, @Param("groupId") Long groupId);
 }

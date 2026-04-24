@@ -35,6 +35,7 @@ public class Ticket extends AuditableEntity {
     private String agentUserId;
 
     private Long communityId;
+    private Long communityGroupId;
 
     private String attachmentUrl;
 

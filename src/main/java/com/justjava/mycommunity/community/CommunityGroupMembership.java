@@ -2,6 +2,8 @@ package com.justjava.mycommunity.community;
 
 import com.justjava.mycommunity.chat.entity.AuditableEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,4 +37,7 @@ public class CommunityGroupMembership extends AuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "community_membership_id", nullable = false)
     private CommunityMembership communityMembership;
+
+    @Enumerated(EnumType.STRING)
+    private Role role; // ADMIN, MEMBER
 }
