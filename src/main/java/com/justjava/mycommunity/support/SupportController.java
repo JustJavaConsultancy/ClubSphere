@@ -5,6 +5,7 @@ import com.justjava.mycommunity.cloudinary.CloudinaryService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.userManagement.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -42,26 +45,50 @@ public class SupportController {
 
     @GetMapping("/dashboard")
     public String getDashboard(HttpServletRequest request, Model model){
+        String userId = (String) authenticationManager.get("sub");
         request.getSession(true).setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         request.getSession(true).setAttribute("isAdmin", authenticationManager.isAdmin());
+        request.getSession(true).setAttribute("isCommunityAdmin", authenticationManager.isCommunityAdmin());
         request.getSession(true).setAttribute("loggedInUser", authenticationManager.get("name"));
 
-        Integer unClaimedTicketSize = supportService.getAllUnassignedTicket().size();
+        boolean canManage = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || authenticationManager.isCommunityAdmin();
+
+        List<Ticket> unAssignedTickets = canManage
+                ? supportService.getScopedUnclaimedTickets(userId)
+                : Collections.<Ticket>emptyList();
+        Integer unClaimedTicketSize = unAssignedTickets.size();
         Integer myTicketSize = supportService.getTickets().size();
         Integer totalTickets = unClaimedTicketSize + myTicketSize;
 
-        model.addAttribute("unClaimedTicketSize", unClaimedTicketSize );
+        model.addAttribute("unClaimedTicketSize", unClaimedTicketSize);
         model.addAttribute("myTicketSize", myTicketSize);
         model.addAttribute("totalTickets", totalTickets);
-        model.addAttribute("unAssignedTickets", supportService.getAllUnassignedTicket());
+        model.addAttribute("unAssignedTickets", unAssignedTickets);
+        model.addAttribute("canManageTickets", canManage);
         return "support/dashboard";
     }
 
     @GetMapping("/my-tickets")
-    public String getTickets(Model model){
+    public String getTickets(HttpServletRequest request, Model model){
+        ensureSessionRoles(request.getSession(false));
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
+        model.addAttribute("canManageTickets",
+                authenticationManager.isSupportAdmin() || authenticationManager.isAdmin() || authenticationManager.isCommunityAdmin());
         model.addAttribute("tickets", supportService.getTickets());
-        model.addAttribute("currentUserId",authenticationManager.get("sub"));
+        model.addAttribute("currentUserId", authenticationManager.get("sub"));
+        return "support/tickets";
+    }
+
+    @GetMapping("/my-submitted-tickets")
+    public String getMySubmittedTickets(HttpServletRequest request, Model model){
+        ensureSessionRoles(request.getSession(false));
+        model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
+        model.addAttribute("canManageTickets",
+                authenticationManager.isSupportAdmin() || authenticationManager.isAdmin() || authenticationManager.isCommunityAdmin());
+        model.addAttribute("tickets", supportService.getMySubmittedTickets());
+        model.addAttribute("currentUserId", authenticationManager.get("sub"));
         return "support/tickets";
     }
 
@@ -85,8 +112,17 @@ public class SupportController {
     }
 
     @GetMapping("/agent/claim-ticket")
-    public String claimTickets(Model model){
-        model.addAttribute("unAssignedTickets", supportService.getAllUnassignedTicket());
+    public String claimTickets(HttpServletRequest request, Model model){
+        ensureSessionRoles(request.getSession(false));
+        String userId = (String) authenticationManager.get("sub");
+        boolean canManage = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || authenticationManager.isCommunityAdmin();
+        List<Ticket> unAssigned = canManage
+                ? supportService.getScopedUnclaimedTickets(userId)
+                : Collections.<Ticket>emptyList();
+        model.addAttribute("unAssignedTickets", unAssigned);
+        model.addAttribute("canManageTickets", canManage);
         return "support/agentTicket";
     }
 
@@ -99,19 +135,30 @@ public class SupportController {
 
         model.addAttribute("username", fullName);
         model.addAttribute("ticket", singleClaimTicket);
+        model.addAttribute("isMobile", false);
         return "support/claimTicketModal :: ticketDetails";
     }
 
     @PostMapping("/submit-request")
-    public String submitRequests(@RequestParam Map<String, Object> formData){
-        supportService.createTicket(formData);
-        return "/support/successMessage";
+    public String submitRequests(@RequestParam Map<String, Object> formData, Model model){
+        try {
+            supportService.createTicket(formData);
+            return "/support/successMessage";
+        } catch (IllegalArgumentException | SecurityException e) {
+            model.addAttribute("error", e.getMessage());
+            return "/support/successMessage";
+        }
     }
 
     @PostMapping("/submit-claim/{id}")
     public ResponseEntity<Void> submitClaim(@PathVariable Long id){
-        if(authenticationManager.isSupportAdmin()){
-            String loginUser = (String) authenticationManager.get("sub");
+        String loginUser = (String) authenticationManager.get("sub");
+        Ticket ticket = supportService.getTicketById(id);
+        boolean canClaim = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || (ticket != null && supportService.canManageTicket(loginUser, ticket));
+
+        if (canClaim) {
             supportService.claimTicket(id, loginUser);
         }
 
@@ -122,7 +169,12 @@ public class SupportController {
 
     @PostMapping("/close-ticket/{id}")
     public ResponseEntity<Void> closeTicket(@PathVariable Long id){
-        if(authenticationManager.isSupportAdmin()){
+        String loginUser = (String) authenticationManager.get("sub");
+        Ticket ticket = supportService.getTicketById(id);
+        boolean canClose = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || (ticket != null && supportService.canManageTicket(loginUser, ticket));
+        if (canClose) {
             supportService.closeTicket(id);
         }
         HttpHeaders headers = new HttpHeaders();
@@ -135,13 +187,18 @@ public class SupportController {
     public ResponseEntity<Map<String, Object>> createTicketMeeting(@PathVariable Long ticketId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            if (!authenticationManager.isSupportAdmin()) {
+            String agentUserId = (String) authenticationManager.get("sub");
+            Ticket ticket = supportService.getTicketById(ticketId);
+            boolean canManage = authenticationManager.isSupportAdmin()
+                    || authenticationManager.isAdmin()
+                    || (ticket != null && supportService.canManageTicket(agentUserId, ticket));
+
+            if (!canManage) {
                 response.put("success", false);
-                response.put("message", "Only support admins can create meetings");
+                response.put("message", "Only support admins or community/group admins can create meetings");
                 return ResponseEntity.status(403).body(response);
             }
 
-            Ticket ticket = supportService.getTicketById(ticketId);
             if (ticket == null) {
                 response.put("success", false);
                 response.put("message", "Ticket not found");
@@ -154,7 +211,6 @@ public class SupportController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            String agentUserId = (String) authenticationManager.get("sub");
             String agentName = (String) authenticationManager.get("name");
 
             // Generate a unique room ID for this ticket
@@ -221,5 +277,17 @@ public class SupportController {
         String response = aISupportService.supportChat(formData.get("message").toString(), (String) authenticationManager.get("sub"));
         model.addAttribute("response", response);
         return "support/AI-successMessage";
+    }
+
+    private void ensureSessionRoles(HttpSession session) {
+        if (session == null) return;
+        if (session.getAttribute("isSupportAdmin") == null)
+            session.setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
+        if (session.getAttribute("isAdmin") == null)
+            session.setAttribute("isAdmin", authenticationManager.isAdmin());
+        if (session.getAttribute("isCommunityAdmin") == null)
+            session.setAttribute("isCommunityAdmin", authenticationManager.isCommunityAdmin());
+        if (session.getAttribute("loggedInUser") == null)
+            session.setAttribute("loggedInUser", authenticationManager.get("name"));
     }
 }

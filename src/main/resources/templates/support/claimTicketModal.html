@@ -9,9 +9,9 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-gray-800">Ticket Details</h3>
-        <button class="text-gray-400 hover:text-gray-600" id="close-ticket-modal"
-                _="on click
-                remove .active from #ticket-modal">
+        <button class="text-gray-400 hover:text-gray-600"
+                id="close-claim-modal"
+                onclick="document.querySelectorAll('#ticket-modal,#claim-modal').forEach(m=>m.classList.remove('active')); document.body.style.overflow='';">
             ✕
         </button>
     </div>
@@ -19,44 +19,42 @@
     <!-- Ticket Info -->
     <div class="bg-gray-50 p-4 rounded-lg mb-6">
         <div class="flex justify-between items-start mb-4">
-            <h4 class="text-lg font-medium text-gray-800" id="modal-ticket-title" th:text="${ticket.subject}">Technical issue with video calls</h4>
-            <span class="ticket-status open" id="modal-ticket-status" th:text="${ticket.status}">Open</span>
+            <h4 class="text-lg font-medium text-gray-800" th:text="${ticket.subject}">Technical issue with video calls</h4>
+            <span class="ticket-status open" th:text="${ticket.status}">Open</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div><span class="text-gray-500">Ticket ID:</span><span class="font-medium ml-2" id="modal-ticket-id" th:text="${ticket.id}">CON-2837</span></div>
-            <div><span class="text-gray-500">Assigned To:</span><span class="font-medium ml-2" id="assigned-agent">Unassigned</span></div>
+            <div><span class="text-gray-500">Ticket ID:</span><span class="font-medium ml-2" th:text="${ticket.id}">CON-2837</span></div>
+            <div><span class="text-gray-500">Priority:</span><span class="font-medium ml-2" th:text="${ticket.priority}">low</span></div>
+            <div><span class="text-gray-500">Submitted by:</span><span class="font-medium ml-2" th:text="${username}">User</span></div>
+            <div><span class="text-gray-500">Assigned To:</span><span class="font-medium ml-2">Unassigned</span></div>
         </div>
     </div>
 
-    <!-- Claim Ticket -->
+    <!-- Claim Ticket — works for both desktop (/support) and mobile (/mobile/support) -->
     <div id="claim-section" class="mb-6">
-        <button id="claim-ticket-btn"
-                class="claim-btn"
+        <!-- Desktop claim button (shown when accessed from /support/agent/claim-ticket) -->
+        <button class="claim-btn w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-base"
                 th:attr="hx-post=@{/support/submit-claim/{id}(id=${ticket.id})}"
-                hx-trigger="click">Claim This Ticket</button>
+                hx-trigger="click"
+                th:if="${isMobile == null or !isMobile}">
+            Claim This Ticket
+        </button>
+        <!-- Mobile claim button -->
+        <button class="claim-btn w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-base"
+                th:attr="hx-post=@{/mobile/support/submit-claim/{id}(id=${ticket.id})}"
+                hx-trigger="click"
+                th:if="${isMobile != null and isMobile}">
+            Claim This Ticket
+        </button>
     </div>
 
-    <!-- Conversation -->
+    <!-- Description preview -->
     <div class="mb-6">
-        <h4 class="font-medium text-gray-800 mb-4">Conversation</h4>
-        <div id="conversation" class="chat-box">
-            <div class="chat-msg chat-user">
-                <p th:text="${ticket.description}">I'm having trouble with video calls freezing during sessions. This has happened multiple times.</p>
-                <span class="text-xs text-gray-500" th:text="${username} + ' - ' + ${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">Alex Morgan • June 12, 2023</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reply Box -->
-    <div id="reply-section" class="hidden">
-        <h4 class="font-medium text-gray-800 mb-3">Add a Reply</h4>
-        <textarea id="reply-input"
-                  class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 chat-input" rows="3" placeholder="Type your message..."></textarea>
-        <div class="flex justify-end mt-3">
-            <button id="send-reply-btn"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-                    type="button"
-            >Send Message</button>
+        <h4 class="font-medium text-gray-800 mb-3">Description</h4>
+        <div class="bg-gray-50 rounded-xl p-4">
+            <p class="text-sm text-gray-700" th:text="${ticket.description}">Description text</p>
+            <span class="text-xs text-gray-400 mt-2 block"
+                  th:text="${username} + ' — ' + ${#temporals.format(ticket.dateCreated, 'MMM dd, yyyy HH:mm')}">User — Date</span>
         </div>
     </div>
 </div>

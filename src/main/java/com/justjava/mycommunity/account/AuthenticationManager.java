@@ -1,6 +1,7 @@
 package com.justjava.mycommunity.account;
 
 import com.justjava.mycommunity.chat.entity.User;
+import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,9 +11,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthenticationManager {
     private final UserRepository userRepository;
+    private final CommunityMembershipRepository communityMembershipRepository;
 
-    public AuthenticationManager(UserRepository userRepository) {
+    public AuthenticationManager(UserRepository userRepository,
+                                 CommunityMembershipRepository communityMembershipRepository) {
         this.userRepository = userRepository;
+        this.communityMembershipRepository = communityMembershipRepository;
     }
 
     public Object get(String fieldName){
@@ -81,6 +85,16 @@ public class AuthenticationManager {
         } catch (Exception e) {
             System.out.println("AuthenticationManager.isSupportAdmin(): Exception occurred: " + e.getMessage());
             e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Boolean isCommunityAdmin() {
+        try {
+            String userId = (String) get("sub");
+            if (userId == null) return false;
+            return communityMembershipRepository.isUserAdminOfAnyCommunity(userId);
+        } catch (Exception e) {
             return false;
         }
     }

@@ -467,6 +467,21 @@ public class CommunityGroupController {
             model.addAttribute("userId", currentUserId);
             model.addAttribute("isAdmin", isAdmin);
 
+            // Group admin check: community system admin OR group-level admin
+            boolean isGroupAdmin = isAdmin || communityGroupService.isUserGroupAdmin(currentUserId, id);
+            model.addAttribute("isGroupAdmin", isGroupAdmin);
+            if (isGroupAdmin) {
+                model.addAttribute("groupMembersWithRoles", communityGroupService.getGroupMembersWithRoles(id));
+                // Community members eligible to be invited
+                Long communityId = currentGroup.getCommunityId();
+                if (communityId != null) {
+                    model.addAttribute("invitableCommunityMembers",
+                            communityGroupService.getCommunityGroupUsers(id).stream()
+                                    .map(u -> u.getUserId()).toList()
+                    );
+                }
+            }
+
         } catch (Exception e) {
             model.addAttribute("error", "Unable to load group at this time. Please try again later.");
             e.printStackTrace();
@@ -596,6 +611,86 @@ public class CommunityGroupController {
             errorDto.put("groupName", "Error");
             errorDto.put("groupDescription", "Unable to load group details. Please try again later.");
             return errorDto;
+        }
+    }
+
+    // ─── Group Admin Management Endpoints ───────────────────────────────────
+
+    @PostMapping("/api/group/{groupId}/promote")
+    @ResponseBody
+    public Map<String, Object> promoteMember(@PathVariable Long groupId,
+                                              @RequestParam String targetUserId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUserId = (String) authenticationManager.get("sub");
+            communityGroupService.promoteMemberToAdmin(groupId, targetUserId, currentUserId);
+            response.put("success", true);
+            response.put("message", "Member promoted to admin successfully");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/api/group/{groupId}/demote")
+    @ResponseBody
+    public Map<String, Object> demoteAdmin(@PathVariable Long groupId,
+                                            @RequestParam String targetUserId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUserId = (String) authenticationManager.get("sub");
+            communityGroupService.demoteAdminToMember(groupId, targetUserId, currentUserId);
+            response.put("success", true);
+            response.put("message", "Admin demoted to member successfully");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/api/group/{groupId}/invite")
+    @ResponseBody
+    public Map<String, Object> inviteMember(@PathVariable Long groupId,
+                                             @RequestParam String targetUserId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUserId = (String) authenticationManager.get("sub");
+            communityGroupService.inviteMemberToGroup(groupId, targetUserId, currentUserId);
+            response.put("success", true);
+            response.put("message", "Member invited to group successfully");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/api/group/{groupId}/remove")
+    @ResponseBody
+    public Map<String, Object> removeMember(@PathVariable Long groupId,
+                                             @RequestParam String targetUserId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUserId = (String) authenticationManager.get("sub");
+            communityGroupService.removeMemberFromGroup(groupId, targetUserId, currentUserId);
+            response.put("success", true);
+            response.put("message", "Member removed from group successfully");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/api/group/{groupId}/members-with-roles")
+    @ResponseBody
+    public List<Map<String, Object>> getGroupMembersWithRoles(@PathVariable Long groupId) {
+        try {
+            return communityGroupService.getGroupMembersWithRoles(groupId);
+        } catch (Exception e) {
+            return List.of();
         }
     }
 

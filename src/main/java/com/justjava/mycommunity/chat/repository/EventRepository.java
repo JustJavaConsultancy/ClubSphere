@@ -21,4 +21,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllByCommunity_Id(Long communityId);
 
     List<Event> findAllByChatGroup_Id(Long chatGroupId);
+
+    List<Event> findAllByCommunity_IdAndEventType(Long communityId, String eventType);
+
+    List<Event> findAllByEventType(String eventType);
 }

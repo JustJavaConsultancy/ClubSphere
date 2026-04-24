@@ -1049,24 +1049,53 @@
                                     </button>
                                 </div>
                                 <!-- Donate to Event button (only when inside a community) -->
-                                <div th:if="${selectedCommunityId != null}" style="margin-top:8px;">
-                                    <button type="button"
-                                            th:data-event-id="${upcomingSession.id}"
-                                            th:data-event-name="${upcomingSession.moduleName}"
-                                            onclick="openDonateModal(this.dataset.eventId, this.dataset.eventName)"
-                                            style="width:100%; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:8px 16px; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                                        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                        </svg>
-                                        Donate to this Event
-                                    </button>
-                                </div>
+                                <!--  Donations are now on the Events card below, not on coaching sessions -->
                             </div>
                         </div>
 
                         <button style="width:100%;" class="btn btn-secondary w-full mt-4">
                             View All Sessions
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Events Card (standalone events with donate option) -->
+            <div th:if="${selectedCommunityId != null and communityEvents != null}" class="sidebar-section">
+                <div class="card card-hover">
+                    <div class="p-4">
+                        <div class="section-header">
+                            <div class="section-icon bg-pink-100 text-pink-600">
+                                <i class="fas fa-calendar-star"></i>
+                            </div>
+                            <h2 class="section-title">Events</h2>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div th:if="${#lists.isEmpty(communityEvents)}" class="empty-state py-6">
+                                <div class="empty-icon bg-pink-100 text-pink-600">
+                                    <i class="fas fa-calendar text-xl"></i>
+                                </div>
+                                <h3 class="empty-title">No events yet</h3>
+                                <p class="empty-text">No community events have been created yet.</p>
+                            </div>
+
+                            <div th:unless="${#lists.isEmpty(communityEvents)}" th:each="evt : ${communityEvents}"
+                                 class="border border-gray-100 rounded-xl p-3 card-hover">
+                                <h3 th:text="${evt.title}" class="font-semibold text-gray-800 text-sm mb-1">Event Name</h3>
+                                <p th:text="${evt.description}" class="text-xs text-gray-500 mb-3 line-clamp-2">Event description goes here.</p>
+                                <button type="button"
+                                        th:data-event-id="${evt.id}"
+                                        th:data-event-name="${evt.title}"
+                                        onclick="openDonateModal(this.dataset.eventId, this.dataset.eventName)"
+                                        style="width:100%; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:8px 14px; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                    <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                    </svg>
+                                    Donate
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

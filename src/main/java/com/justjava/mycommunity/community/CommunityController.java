@@ -163,7 +163,7 @@ public class CommunityController {
                 System.out.println("Error loading networks: " + e.getMessage());
             }
             model.addAttribute("communityNetworks", communityNetworks);
-            model.addAttribute("communityEvents", eventService.getCommunityEvents(communityId));
+            model.addAttribute("communityEvents", eventService.getCommunityDonationEvents(communityId));
 
         } catch (Exception e) {
             e.printStackTrace();

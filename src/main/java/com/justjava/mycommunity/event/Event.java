@@ -45,6 +45,9 @@ public class Event extends AuditableEntity {
 
     private Boolean approved = true;
 
+    /** "EVENT" = standalone event for donations/community purposes; "SESSION" = training/coaching session */
+    private String eventType = "SESSION";
+
     @OneToOne(fetch = FetchType.LAZY)
     private Post post;
 

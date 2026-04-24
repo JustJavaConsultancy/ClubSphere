@@ -104,6 +104,7 @@ public class EventService {
         event.setTitle(dto.getTitle());
         event.setDescription(dto.getDescription());
         event.setOrganization(organization);
+        event.setEventType("EVENT");
 
         // Set new fields
         if (dto.getCommunityId() != null) {
@@ -262,6 +263,39 @@ public class EventService {
                 .filter(event -> event.getModule() != null)
                 .toList();
         return mapEventsToDTO(events);
+    }
+
+    /** Returns standalone Events (eventType = "EVENT") scoped to the user's communities. */
+    @Transactional
+    public List<Event> getEventsFromUserCommunities(String userId, Long selectedCommunityId) {
+        try {
+            boolean isAdmin = isUserAdmin(userId);
+            Set<Long> approvedCommunityIds = getApprovedCommunityIds(userId);
+
+            if (selectedCommunityId != null) {
+                boolean isMember = isAdmin || approvedCommunityIds.contains(selectedCommunityId);
+                if (!isMember) return new ArrayList<>();
+                return eventRepository.findAllByCommunity_IdAndEventType(selectedCommunityId, "EVENT");
+            }
+
+            if (isAdmin) {
+                return eventRepository.findAllByEventType("EVENT");
+            }
+
+            List<Event> result = new ArrayList<>();
+            for (Long cid : approvedCommunityIds) {
+                result.addAll(eventRepository.findAllByCommunity_IdAndEventType(cid, "EVENT"));
+            }
+            return result;
+        } catch (Exception e) {
+            System.err.println("Error getting events from user communities: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    @Transactional
+    public List<Event> getEventsFromUserCommunities(String userId) {
+        return getEventsFromUserCommunities(userId, null);
     }
 
     @Transactional
@@ -639,6 +673,15 @@ public class EventService {
     @Transactional
     public List<SessionDTO> getCommunityEvents(Long communityId){
         List<Event> events = eventRepository.findAllByCommunity_Id(communityId);
+        return mapEventsToDTO(events);
+    }
+
+    /** Returns only standalone events (not training sessions) for the donation dropdown */
+    @Transactional
+    public List<SessionDTO> getCommunityDonationEvents(Long communityId){
+        List<Event> events = eventRepository.findAllByCommunity_Id(communityId).stream()
+                .filter(e -> "EVENT".equals(e.getEventType()))
+                .toList();
         return mapEventsToDTO(events);
     }
 

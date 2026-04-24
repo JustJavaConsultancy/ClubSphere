@@ -275,6 +275,10 @@ public class UserController {
     @PostMapping("/event/create")
     public ResponseEntity<?> createEvent(@RequestBody @Valid EventDTO dto){
         try {
+            if (!authenticationManager.isAdmin() && !authenticationManager.isCommunityAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Only community administrators can create events");
+            }
             var o = eventService.createEvent(dto);
             return ResponseEntity.ok(o);
         } catch (EntityNotFoundException e) {

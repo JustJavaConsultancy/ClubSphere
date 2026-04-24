@@ -478,6 +478,13 @@ public class HomeController {
         model.addAttribute("currentTime", currentTime);
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         model.addAttribute("isAdmin",authenticationManager.isAdmin());
+
+        // Load standalone community events (eventType = "EVENT") for the events card
+        List<com.justjava.mycommunity.event.Event> communityEvents =
+                selectedCommunityId != null
+                        ? eventService.getEventsFromUserCommunities(currentUserId, selectedCommunityId)
+                        : eventService.getEventsFromUserCommunities(currentUserId);
+        model.addAttribute("communityEvents", communityEvents);
         // Check if user can post - community-aware check
         boolean canUserPost;
         if (selectedCommunityId != null) {

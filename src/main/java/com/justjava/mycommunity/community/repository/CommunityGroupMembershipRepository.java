@@ -41,4 +41,21 @@ public interface CommunityGroupMembershipRepository extends JpaRepository<Commun
         AND (gm.role = 'ADMIN' OR gm.role = 'CREATOR')
     """)
     boolean isUserGroupAdmin(@Param("userId") String userId, @Param("groupId") Long groupId);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(gm) > 0 THEN true ELSE false END
+        FROM CommunityGroupMembership gm
+        WHERE gm.communityMembership.userId = :userId
+        AND gm.communityGroup.id = :groupId
+        AND gm.communityMembership.status = 'APPROVED'
+    """)
+    boolean isUserMemberOfGroup(@Param("userId") String userId, @Param("groupId") Long groupId);
+
+    @Query("""
+        SELECT DISTINCT gm.communityGroup.id
+        FROM CommunityGroupMembership gm
+        WHERE gm.communityMembership.userId = :userId
+        AND (gm.role = 'ADMIN' OR gm.role = 'CREATOR')
+    """)
+    List<Long> findAdminGroupIdsByUserId(@Param("userId") String userId);
 }

@@ -157,7 +157,7 @@
                     Home
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/admin/dashboard}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/admin/dashboard}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/admin/dashboard'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-tachometer-alt w-5"></i>
@@ -165,7 +165,7 @@
                 </a>
 
                 <!-- Community & Network -->
-                <a th:if="${session.isAdmin or session.isCommunityAdmin}" th:href="@{/my-community}"
+                <a th:if="${session.isAdmin == true or session.isCommunityAdmin == true}" th:href="@{/my-community}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-handshake w-5"></i>
@@ -173,7 +173,7 @@
                 </a>
 
                 <!-- ✦ Membership Approvals — admin action directly tied to My Community ✦ -->
-                <a th:if="${session.isAdmin}" th:href="@{/admin/approvals}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/admin/approvals}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/admin/approvals'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-user-check w-5"></i>
@@ -218,7 +218,7 @@
                 </a>
 
                 <!-- Products & Services -->
-                <a th:if="${session.isAdmin}" th:href="@{/products}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/products}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/products' or currentPath == '/products/add' or #strings.startsWith(currentPath, '/products/edit')} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-store w-5"></i>
@@ -226,14 +226,14 @@
                 </a>
 
                 <!-- Invoice Management -->
-                <a th:if="${session.isAdmin}" th:href="@{/invoice}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/invoice}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/invoice'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-file-invoice w-5"></i>
                     Invoice
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/invoice/invoice-review}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/invoice/invoice-review}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/invoice/invoice-review'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-file-invoice-dollar w-5"></i>
@@ -241,13 +241,13 @@
                 </a>
 
                 <!-- Training & Meetings -->
-                <a th:if="${session.isAdmin}" th:href="@{/sessions}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/sessions}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-graduation-cap w-5"></i>
                     Training & Coaching
                 </a>
-                <a th:if="${session.isAdmin}" th:href="@{/meetings}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/meetings}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/meetings' or currentPath == '/create-meeting'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-calendar-alt w-5"></i>
@@ -261,37 +261,44 @@
                 </a>
 
                 <!-- Content Management -->
-                <a th:if="${session.isAdmin}" th:href="@{/modules}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/modules}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/modules'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-th-large w-5"></i>
                     Modules
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/gallery}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/gallery}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/gallery' or currentPath == '/gallery/add'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-images w-5"></i>
                     Gallery
                 </a>
 
-                <!-- Support Admin Links -->
-                <a th:if="${session.isSupportAdmin}" th:href="@{/support/my-tickets}"
+                <!-- Support Links (visible to Support Admins, System Admins, and Community Admins) -->
+                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/my-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-ticket-alt w-5"></i>
                     Tickets
                 </a>
 
-                <a th:if="${session.isSupportAdmin}" th:href="@{/support/agent/claim-ticket}"
+                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/agent/claim-ticket}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-shield-alt w-5"></i>
                     Claim Tickets
                 </a>
 
+                <!-- My Tickets: visible to ALL users (including admins) — shows their own submitted tickets -->
+                <a th:href="@{/support/my-submitted-tickets}"
+                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                   th:classappend="${currentPath == '/support/my-submitted-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    My Tickets
+                </a>
                 <!-- User Management -->
-                <a th:if="${session.isAdmin}" th:href="@{/users}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/users}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/users'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-users-cog w-5"></i>
@@ -306,12 +313,6 @@
                     Events
                 </a>
 
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/support/my-tickets}"
-                   class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
-                    <i class="fas fa-ticket-alt w-5"></i>
-                    My Tickets
-                </a>
 
                 <a th:if="${!session.isSupportAdmin}" th:href="@{/subscription/my-subscriptions}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
@@ -379,7 +380,7 @@
                     Home
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/admin/dashboard}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/admin/dashboard}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/admin/dashboard'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-tachometer-alt w-5"></i>
@@ -387,7 +388,7 @@
                 </a>
 
                 <!-- Community & Network -->
-                <a th:if="${session.isAdmin or session.isCommunityAdmin}" th:href="@{/my-community}"
+                <a th:if="${session.isAdmin == true or session.isCommunityAdmin == true}" th:href="@{/my-community}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-handshake w-5"></i>
@@ -432,7 +433,7 @@
                 </a>
 
                 <!-- Products & Services -->
-                <a th:if="${session.isAdmin}" th:href="@{/products}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/products}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/products' or currentPath == '/products/add' or #strings.startsWith(currentPath, '/products/edit')} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-store w-5"></i>
@@ -440,14 +441,14 @@
                 </a>
 
                 <!-- Invoice Management -->
-                <a th:if="${session.isAdmin}" th:href="@{/invoice}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/invoice}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/invoice'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-file-invoice w-5"></i>
                     Invoice
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/invoice/invoice-review}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/invoice/invoice-review}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/invoice/invoice-review'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-file-invoice-dollar w-5"></i>
@@ -455,14 +456,14 @@
                 </a>
 
                 <!-- Training & Meetings -->
-                <a th:if="${session.isAdmin}" th:href="@{/sessions}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/sessions}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-graduation-cap w-5"></i>
                     Training & Coaching
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/meetings}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/meetings}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/meetings' or currentPath == '/create-meeting'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-calendar-alt w-5"></i>
@@ -470,63 +471,47 @@
                 </a>
 
                 <!-- Content Management -->
-                <a th:if="${session.isAdmin}" th:href="@{/modules}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/modules}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/modules'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-th-large w-5"></i>
                     Modules
                 </a>
 
-                <a th:if="${session.isAdmin}" th:href="@{/gallery}"
+                <a th:if="${session.isAdmin == true}" th:href="@{/gallery}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/gallery' or currentPath == '/gallery/add'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-images w-5"></i>
                     Gallery
                 </a>
 
-                <!-- Support Admin Links -->
-                <a th:if="${session.isSupportAdmin}" th:href="@{/support/my-tickets}"
+                <!-- Support Links (Support Admins, System Admins, and Community Admins) -->
+                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/my-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-ticket-alt w-5"></i>
                     Tickets
                 </a>
 
-                <a th:if="${session.isSupportAdmin}" th:href="@{/support/agent/claim-ticket}"
-                   class="flex items-center gap-3 p-2.5 rounded-lg"
+                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/agent/claim-ticket}"
                    th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-shield-alt w-5"></i>
                     Claim Tickets
                 </a>
-
-                <!-- User Management -->
-                <a th:if="${session.isAdmin}" th:href="@{/users}"
+                <!-- My Tickets: visible to ALL users -->
+                <a th:href="@{/support/my-submitted-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/users'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
-                    <i class="fas fa-users-cog w-5"></i>
-                    User Management
-                </a>
-
-                <!-- Additional Features -->
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/sessions}"
-                   class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
-                    <i class="fas fa-calendar-alt w-5"></i>
-                    Events
-                </a>
-
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/support/my-tickets}"
-                   class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                   th:classappend="${currentPath == '/support/my-submitted-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-ticket-alt w-5"></i>
                     My Tickets
                 </a>
 
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/subscription/my-subscriptions}"
+                <!-- User Management -->
+                <a th:if="${session.isAdmin == true}" th:href="@{/users}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/subscription/my-subscriptions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
-                    <i class="fas fa-credit-card w-5"></i>
-                    Subscriptions
+                   th:classappend="${currentPath == '/users'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                    <i class="fas fa-users-cog w-5"></i>
+                    User Management
                 </a>
 
                 <a th:if="${!session.isSupportAdmin}" th:href="@{/donation/my-donations}"
@@ -626,3 +611,4 @@
 <th:block layout:fragment="scripts"></th:block>
 </body>
 </html>
+

@@ -667,10 +667,151 @@
                     View All Members (<span th:text="${#lists.size(groupMembers)}">0</span>)
                 </button>
             </div>
+
+            <!-- ── Group Admin Management Panel ──────────────────────── -->
+            <div th:if="${isGroupAdmin}" class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-indigo-100">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Group Management
+                </h2>
+
+                <!-- Invite Community Member -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Invite Community Member</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="invite-user-id-input" placeholder="Enter user ID or search..."
+                               class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                        <button onclick="inviteMember()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+                            Invite
+                        </button>
+                    </div>
+                    <p id="invite-msg" class="text-xs mt-1 hidden"></p>
+                </div>
+
+                <!-- Member Management Table -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Manage Members</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
+                                    <th class="pb-2 pr-4">Member</th>
+                                    <th class="pb-2 pr-4">Role</th>
+                                    <th class="pb-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="group-mgmt-members">
+                                <tr th:each="m : ${groupMembersWithRoles}" class="border-b border-gray-100">
+                                    <td class="py-2 pr-4">
+                                        <div class="font-medium" th:text="${m.fullName}">Name</div>
+                                        <div class="text-xs text-gray-500" th:text="${m.email}">email</div>
+                                    </td>
+                                    <td class="py-2 pr-4">
+                                        <span th:text="${m.role}"
+                                              th:class="${'px-2 py-1 rounded text-xs font-semibold ' + (m.role == 'ADMIN' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-700')}">
+                                            MEMBER
+                                        </span>
+                                    </td>
+                                    <td class="py-2">
+                                        <div class="flex gap-1">
+                                            <button th:if="${m.role != 'ADMIN'}"
+                                                    th:data-userid="${m.userId}"
+                                                    onclick="promoteMember(this.dataset.userid)"
+                                                    class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200">
+                                                Make Admin
+                                            </button>
+                                            <button th:if="${m.role == 'ADMIN'}"
+                                                    th:data-userid="${m.userId}"
+                                                    onclick="demoteMember(this.dataset.userid)"
+                                                    class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs hover:bg-yellow-200">
+                                                Remove Admin
+                                            </button>
+                                            <button th:data-userid="${m.userId}"
+                                                    onclick="removeMember(this.dataset.userid)"
+                                                    class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs hover:bg-red-200">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="mgmt-feedback" class="mt-2 text-sm hidden"></div>
+            </div>
+
+            <!-- Support Card -->
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-indigo-50">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-headset text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-800">Need Help?</h2>
+                        <p class="text-xs text-gray-500">Create a support ticket for this group</p>
+                    </div>
+                </div>
+                <button id="group-support-btn"
+                        class="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 btn-transition">
+                    <i class="fas fa-plus-circle mr-1"></i> Create Support Ticket
+                </button>
+                <a href="/support/my-submitted-tickets" class="block text-center mt-2 text-sm text-indigo-600 hover:underline">View My Tickets</a>
+            </div>
+
+    <!-- Group Support Ticket Modal -->
+    <div id="group-support-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; justify-content:center; align-items:center;">
+        <div style="background:white; border-radius:12px; width:90%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="padding:24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0; font-size:1.25rem; font-weight:700; color:#1f2937;">
+                        <i class="fas fa-headset text-indigo-500 mr-2"></i>Create Support Ticket
+                    </h3>
+                    <button id="close-group-support-modal" style="background:none; border:none; cursor:pointer; padding:4px;">
+                        <svg style="width:20px;height:20px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form hx-post="/support/submit-request"
+                      hx-target="#groupSupportFeedback"
+                      hx-swap="innerHTML"
+                      id="groupSupportForm">
+                    <input type="hidden" name="communityId" th:value="${community?.id}">
+                    <input type="hidden" name="communityGroupId" th:value="${group?.id}">
+                    <input type="hidden" name="attachmentUrl" id="groupSupportAttachmentUrl">
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Subject</label>
+                        <input type="text" name="subject" placeholder="Brief summary of your issue"
+                               style="width:100%; padding:10px 14px; border:2px solid #e5e7eb; border-radius:10px; font-size:14px; outline:none;"
+                               onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
+                               required>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:6px;">Description</label>
+                        <textarea name="description" rows="4" placeholder="Provide details about your issue..."
+                                  style="width:100%; padding:10px 14px; border:2px solid #e5e7eb; border-radius:10px; font-size:14px; outline:none; resize:vertical;"
+                                  onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'"
+                                  required></textarea>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit"
+                                style="flex:1; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; padding:10px 24px; border:none; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer;">
+                            Submit Ticket
+                        </button>
+                        <button type="button" id="cancel-group-support"
+                                style="padding:10px 20px; background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-weight:500; cursor:pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+                <div id="groupSupportFeedback" style="margin-top:12px;"></div>
+            </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
     <script src="/js/videoSession.js"></script>
@@ -681,10 +822,81 @@
         const groupMembers = /*[[${groupMembers}]]*/ [];
         /*]]>*/
 
+        // ── Group Admin Management ─────────────────────────────────────────
+        function groupAdminAction(action, targetUserId, successMsg) {
+            fetch(`/api/group/${groupId}/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'targetUserId=' + encodeURIComponent(targetUserId)
+            })
+            .then(r => r.json())
+            .then(data => {
+                const fb = document.getElementById('mgmt-feedback');
+                fb.classList.remove('hidden', 'text-red-600', 'text-green-700');
+                if (data.success) {
+                    fb.classList.add('text-green-700');
+                    fb.textContent = data.message || successMsg;
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    fb.classList.add('text-red-600');
+                    fb.textContent = data.message || 'Action failed';
+                }
+                fb.classList.remove('hidden');
+            })
+            .catch(() => {
+                const fb = document.getElementById('mgmt-feedback');
+                fb.className = 'mt-2 text-sm text-red-600';
+                fb.textContent = 'Request failed. Please try again.';
+            });
+        }
+
+        function promoteMember(userId) {
+            if (confirm('Promote this member to Group Admin?')) groupAdminAction('promote', userId, 'Member promoted!');
+        }
+        function demoteMember(userId) {
+            if (confirm('Remove admin privileges from this member?')) groupAdminAction('demote', userId, 'Admin demoted!');
+        }
+        function removeMember(userId) {
+            if (confirm('Remove this member from the group?')) groupAdminAction('remove', userId, 'Member removed!');
+        }
+        function inviteMember() {
+            const input = document.getElementById('invite-user-id-input');
+            const targetUserId = input ? input.value.trim() : '';
+            if (!targetUserId) { alert('Please enter a user ID'); return; }
+            const msg = document.getElementById('invite-msg');
+            fetch(`/api/group/${groupId}/invite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'targetUserId=' + encodeURIComponent(targetUserId)
+            })
+            .then(r => r.json())
+            .then(data => {
+                msg.classList.remove('hidden', 'text-red-600', 'text-green-700');
+                msg.classList.add(data.success ? 'text-green-700' : 'text-red-600');
+                msg.textContent = data.message || (data.success ? 'Invited!' : 'Failed');
+                msg.classList.remove('hidden');
+                if (data.success) { input.value = ''; setTimeout(() => location.reload(), 1000); }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // --- tiny helpers ---
             const $ = (sel, root = document) => root.querySelector(sel);
             const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
+
+            // --- Group Support Modal ---
+            const groupSupportModal = document.getElementById('group-support-modal');
+            document.getElementById('group-support-btn')?.addEventListener('click', () => {
+                groupSupportModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+            function closeGroupSupportModal() {
+                groupSupportModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            document.getElementById('close-group-support-modal')?.addEventListener('click', closeGroupSupportModal);
+            document.getElementById('cancel-group-support')?.addEventListener('click', closeGroupSupportModal);
+            groupSupportModal?.addEventListener('click', (e) => { if (e.target === groupSupportModal) closeGroupSupportModal(); });
 
             // --- Time ago formatter ---
             function formatTimeAgo(dateString) {

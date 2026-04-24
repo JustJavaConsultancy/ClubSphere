@@ -349,6 +349,82 @@ public class CommunityGroupService {
     }
 
     @Transactional
+    public void promoteMemberToAdmin(Long communityGroupId, String targetUserId, String requestingUserId) {
+        boolean requesterIsAdmin = communityGroupMembershipRepository.isUserGroupAdmin(requestingUserId, communityGroupId);
+        if (!requesterIsAdmin && !authenticationManager.isAdmin()) {
+            throw new SecurityException("Only group admins can promote members");
+        }
+        CommunityGroup group = communityGroupRepository.findById(communityGroupId)
+                .orElseThrow(() -> new EntityNotFoundException("Community Group does not exist"));
+        CommunityMembership membership = getApprovedCommunityMembership(targetUserId, group.getCommunity().getId())
+                .orElseThrow(() -> new IllegalStateException("User is not an approved community member"));
+        CommunityGroupMembership groupMembership = communityGroupMembershipRepository
+                .findByCommunityGroupAndCommunityMembership(group, membership)
+                .orElseThrow(() -> new EntityNotFoundException("User is not a member of this group"));
+        groupMembership.setRole(Role.ADMIN);
+        communityGroupMembershipRepository.save(groupMembership);
+    }
+
+    @Transactional
+    public void demoteAdminToMember(Long communityGroupId, String targetUserId, String requestingUserId) {
+        boolean requesterIsAdmin = communityGroupMembershipRepository.isUserGroupAdmin(requestingUserId, communityGroupId);
+        if (!requesterIsAdmin && !authenticationManager.isAdmin()) {
+            throw new SecurityException("Only group admins can demote admins");
+        }
+        CommunityGroup group = communityGroupRepository.findById(communityGroupId)
+                .orElseThrow(() -> new EntityNotFoundException("Community Group does not exist"));
+        CommunityMembership membership = getApprovedCommunityMembership(targetUserId, group.getCommunity().getId())
+                .orElseThrow(() -> new IllegalStateException("User is not an approved community member"));
+        CommunityGroupMembership groupMembership = communityGroupMembershipRepository
+                .findByCommunityGroupAndCommunityMembership(group, membership)
+                .orElseThrow(() -> new EntityNotFoundException("User is not a member of this group"));
+        groupMembership.setRole(Role.MEMBER);
+        communityGroupMembershipRepository.save(groupMembership);
+    }
+
+    @Transactional
+    public void inviteMemberToGroup(Long communityGroupId, String targetUserId, String requestingUserId) {
+        boolean requesterIsAdmin = communityGroupMembershipRepository.isUserGroupAdmin(requestingUserId, communityGroupId);
+        if (!requesterIsAdmin && !authenticationManager.isAdmin()) {
+            throw new SecurityException("Only group admins can invite members");
+        }
+        addUserToCommunityGroup(targetUserId, communityGroupId, Role.MEMBER);
+    }
+
+    @Transactional
+    public void removeMemberFromGroup(Long communityGroupId, String targetUserId, String requestingUserId) {
+        boolean requesterIsAdmin = communityGroupMembershipRepository.isUserGroupAdmin(requestingUserId, communityGroupId);
+        if (!requesterIsAdmin && !authenticationManager.isAdmin()) {
+            throw new SecurityException("Only group admins can remove members");
+        }
+        CommunityGroup group = communityGroupRepository.findById(communityGroupId)
+                .orElseThrow(() -> new EntityNotFoundException("Community Group does not exist"));
+        CommunityMembership membership = getApprovedCommunityMembership(targetUserId, group.getCommunity().getId())
+                .orElseThrow(() -> new IllegalStateException("User is not an approved community member"));
+        communityGroupMembershipRepository.findByCommunityGroupAndCommunityMembership(group, membership)
+                .ifPresent(communityGroupMembershipRepository::delete);
+    }
+
+    /** Returns group members with their roles for the management panel */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getGroupMembersWithRoles(Long communityGroupId) {
+        List<CommunityGroupMembership> memberships = communityGroupMembershipRepository.findByCommunityGroup_Id(communityGroupId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (CommunityGroupMembership m : memberships) {
+            String userId = m.getCommunityMembership().getUserId();
+            User user = userRepository.findByUserId(userId);
+            if (user == null) continue;
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("userId", userId);
+            entry.put("fullName", user.getFullName());
+            entry.put("email", user.getEmail());
+            entry.put("role", m.getRole() != null ? m.getRole().name() : "MEMBER");
+            result.add(entry);
+        }
+        return result;
+    }
+
+    @Transactional
     public void approveCommunityGroupRequest(Long communityGroupRequestId) {
         CommunityGroupRequest communityRequest = communityGroupRequestRepository.findById(communityGroupRequestId)
                 .orElseThrow(() -> new EntityNotFoundException("Community request does not exist"));
