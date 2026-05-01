@@ -20,5 +20,7 @@ public class TicketDTO {
     private String agentUserId;
     private Long communityId;
     private Long communityGroupId;
+    private String communityName;
+    private String groupName;
     private ConversationDto conversation;
 }

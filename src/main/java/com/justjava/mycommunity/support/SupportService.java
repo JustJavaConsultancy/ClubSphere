@@ -2,9 +2,14 @@ package com.justjava.mycommunity.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justjava.mycommunity.account.AuthenticationManager;
+import com.justjava.mycommunity.chat.ChatMessage;
 import com.justjava.mycommunity.chat.entity.Conversation;
+import com.justjava.mycommunity.chat.repository.CommunityGroupRepository;
 import com.justjava.mycommunity.chat.repository.ConversationRepository;
+import com.justjava.mycommunity.chat.repository.CommunityRepository;
 import com.justjava.mycommunity.chat.service.ChatService;
+import com.justjava.mycommunity.community.CommunityGroup;
+import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.community.repository.CommunityGroupMembershipRepository;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.userManagement.UserRepository;
@@ -30,14 +35,17 @@ public class SupportService {
     private final AISupportService aISupportService;
     private final CommunityMembershipRepository communityMembershipRepository;
     private final CommunityGroupMembershipRepository communityGroupMembershipRepository;
+    private final CommunityRepository communityRepository;
+    private final CommunityGroupRepository communityGroupRepository;
 
     public SupportService(TicketRepository ticketRepository, AuthenticationManager authenticationManager,
                           ObjectMapper objectMapper, UserRepository userRepository,
                           ConversationRepository conversationRepository,
                           ChatService chatService, AISupportService aISupportService,
                           CommunityMembershipRepository communityMembershipRepository,
-                          CommunityGroupMembershipRepository communityGroupMembershipRepository) {
-
+                          CommunityGroupMembershipRepository communityGroupMembershipRepository,
+                          CommunityRepository communityRepository,
+                          CommunityGroupRepository communityGroupRepository) {
         this.ticketRepository = ticketRepository;
         this.authenticationManager = authenticationManager;
         this.objectMapper = objectMapper;
@@ -47,66 +55,81 @@ public class SupportService {
         this.aISupportService = aISupportService;
         this.communityMembershipRepository = communityMembershipRepository;
         this.communityGroupMembershipRepository = communityGroupMembershipRepository;
+        this.communityRepository = communityRepository;
+        this.communityGroupRepository = communityGroupRepository;
     }
 
     @Transactional
     public void createTicket(Map<String, Object> formData) {
-        String loginUser;
-        if (formData.get("userId") == null) {
-            loginUser = (String) authenticationManager.get("sub");
-            formData.put("userId", loginUser);
-        } else
-            loginUser = formData.get("userId").toString();
+        String loginUser = (String) authenticationManager.get("sub");
 
-        boolean isSystemAdmin = authenticationManager.isSupportAdmin()
-                || authenticationManager.isAdmin()
-                || authenticationManager.isCommunityAdmin();
+        boolean isSystemAdmin  = authenticationManager.isAdmin();
+        boolean isSupportAdmin = authenticationManager.isSupportAdmin();
 
-        if (isSystemAdmin) {
-            // Admins skip membership validation.
-            // If they submitted from a community/group context, keep those IDs.
-            // If no context was provided, leave communityId/groupId as null (global queue).
-            Object communityIdObj = formData.get("communityId");
-            Object groupIdObj     = formData.get("communityGroupId");
-            boolean hasCommunityContext = (communityIdObj != null && !communityIdObj.toString().isBlank())
-                    || (groupIdObj != null && !groupIdObj.toString().isBlank());
-            if (!hasCommunityContext) {
+        // Parse the submitted community/group context upfront
+        Object communityIdObj = formData.get("communityId");
+        Object groupIdObj     = formData.get("communityGroupId");
+        Long communityId = (communityIdObj != null && !communityIdObj.toString().isBlank())
+                ? Long.parseLong(communityIdObj.toString()) : null;
+        Long groupId = (groupIdObj != null && !groupIdObj.toString().isBlank())
+                ? Long.parseLong(groupIdObj.toString()) : null;
+
+        if (isSupportAdmin) {
+            // Support admins always go to the system support queue
+            formData.put("communityId", null);
+            formData.put("communityGroupId", null);
+        } else if (isSystemAdmin) {
+            // Platform admin: keep context if provided
+            if (communityId == null && groupId == null) {
                 formData.put("communityId", null);
                 formData.put("communityGroupId", null);
             }
         } else {
-            // ── Membership validation for regular users ────────────────────
-            Object communityIdObj  = formData.get("communityId");
-            Object groupIdObj      = formData.get("communityGroupId");
-
-            Long communityId  = (communityIdObj  != null && !communityIdObj.toString().isBlank())
-                    ? Long.parseLong(communityIdObj.toString()) : null;
-            Long groupId      = (groupIdObj      != null && !groupIdObj.toString().isBlank())
-                    ? Long.parseLong(groupIdObj.toString()) : null;
-
+            // Regular users AND community/group admins
             if (communityId == null && groupId == null) {
                 throw new IllegalArgumentException("A ticket must be linked to a community or group.");
             }
 
             if (communityId != null) {
                 boolean isMember = communityMembershipRepository
-                        .existsByUserIdAndCommunityIdAndStatus(loginUser, communityId,
-                                com.justjava.mycommunity.community.MembershipStatus.APPROVED);
+                        .existsByUserIdAndCommunityIdAndStatus(loginUser, communityId, MembershipStatus.APPROVED);
                 if (!isMember) {
                     throw new SecurityException("You must be an approved member of the community to create a ticket.");
+                }
+                // If the user is admin of THIS specific community, route to system support
+                if (communityMembershipRepository.isUserCommunityAdmin(loginUser, communityId)) {
+                    formData.put("communityId", null);
+                    formData.put("communityGroupId", null);
+                    communityId = null;
+                    groupId = null;
                 }
             }
 
             if (groupId != null) {
-                boolean isGroupMember = communityGroupMembershipRepository
-                        .isUserMemberOfGroup(loginUser, groupId);
+                boolean isGroupMember = communityGroupMembershipRepository.isUserMemberOfGroup(loginUser, groupId);
                 if (!isGroupMember) {
                     throw new SecurityException("You must be a member of the group to create a ticket.");
+                }
+                // If the user is admin of THIS specific group, route to system support
+                if (communityGroupMembershipRepository.isUserGroupAdmin(loginUser, groupId)) {
+                    formData.put("communityId", null);
+                    formData.put("communityGroupId", null);
                 }
             }
         }
 
         Ticket ticket = objectMapper.convertValue(formData, Ticket.class);
+        // Always set userId from the authenticated user — never trust the form value
+        ticket.setUserId(loginUser);
+        // Ensure communityId / groupId survive the convertValue (Jackson may fail on String→Long)
+        Object rawCommunityId = formData.get("communityId");
+        Object rawGroupId     = formData.get("communityGroupId");
+        if (rawCommunityId != null && !rawCommunityId.toString().isBlank()) {
+            try { ticket.setCommunityId(Long.parseLong(rawCommunityId.toString())); } catch (NumberFormatException ignored) {}
+        }
+        if (rawGroupId != null && !rawGroupId.toString().isBlank()) {
+            try { ticket.setCommunityGroupId(Long.parseLong(rawGroupId.toString())); } catch (NumberFormatException ignored) {}
+        }
 
         Conversation conversation = new Conversation();
         conversation.setTitle("Support");
@@ -125,14 +148,12 @@ public class SupportService {
     public List<Ticket> getTickets() {
         String loginUser = (String) authenticationManager.get("sub");
 
-        // Support admins and community/group admins see their claimed tickets
         if (authenticationManager.isSupportAdmin()
                 || authenticationManager.isAdmin()
                 || authenticationManager.isCommunityAdmin()) {
             return getAgentTickets(loginUser);
         }
 
-        // Regular users see their own submitted tickets
         return getTicketByUserId(loginUser);
     }
 
@@ -165,8 +186,8 @@ public class SupportService {
     public TicketDTO getSingleTicket(Long id, String userId) {
         Ticket ticket = getTicketById(id);
         TicketDTO ticketDTO = mapTicketToDTO(ticket);
-
-        ticketDTO.setConversation(chatService.mapConversationsToDTO(Collections.singletonList(ticket.getConversation()), userId).getFirst());
+        ticketDTO.setConversation(chatService.mapConversationsToDTO(
+                Collections.singletonList(ticket.getConversation()), userId).getFirst());
         return ticketDTO;
     }
 
@@ -186,7 +207,7 @@ public class SupportService {
 
     @Transactional
     public void sendSystemMessage(Long conversationId, String senderId, String content) {
-        com.justjava.mycommunity.chat.ChatMessage chatMessage = new com.justjava.mycommunity.chat.ChatMessage();
+        ChatMessage chatMessage = new ChatMessage();
         chatMessage.setConversationId(conversationId);
         chatMessage.setSenderId(senderId);
         chatMessage.setContent(content);
@@ -215,7 +236,19 @@ public class SupportService {
         ticketDto.setAgentUserId(currentTicket.getAgentUserId());
         ticketDto.setCommunityId(currentTicket.getCommunityId());
         ticketDto.setCommunityGroupId(currentTicket.getCommunityGroupId());
-
+        if (currentTicket.getCommunityGroupId() != null) {
+            // Group ticket: show group name + the group's parent community
+            communityGroupRepository.findById(currentTicket.getCommunityGroupId()).ifPresent(g -> {
+                ticketDto.setGroupName(g.getName());
+                if (g.getCommunity() != null) {
+                    ticketDto.setCommunityName(g.getCommunity().getName());
+                }
+            });
+        } else if (currentTicket.getCommunityId() != null) {
+            // Community-only ticket: show community name only
+            communityRepository.findById(currentTicket.getCommunityId())
+                    .ifPresent(c -> ticketDto.setCommunityName(c.getName()));
+        }
         return ticketDto;
     }
 
@@ -228,7 +261,7 @@ public class SupportService {
             return getAllUnassignedTicket();
         }
         List<Long> adminCommunityIds = communityMembershipRepository.findAdminCommunityIdsByUserId(userId);
-        List<Long> adminGroupIds = communityGroupMembershipRepository.findAdminGroupIdsByUserId(userId);
+        List<Long> adminGroupIds     = communityGroupMembershipRepository.findAdminGroupIdsByUserId(userId);
 
         List<Ticket> communityTickets = adminCommunityIds.stream()
                 .flatMap(cid -> ticketRepository.findByCommunityId(cid).stream())

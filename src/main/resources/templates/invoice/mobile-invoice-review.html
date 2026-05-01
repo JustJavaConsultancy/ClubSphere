@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Review Invoice</title>
+    <script src="https://unpkg.com/htmx.org@1.10.2"></script>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="margin-bottom:16px;">
+        <a th:href="@{/mobile/invoice/invoice-review}" style="font-size:13px;color:#4f46e5;text-decoration:none;">← Back to Review Queue</a>
+    </div>
+
+    <h1 style="font-size:1.3rem;font-weight:700;color:#1f2937;margin:0 0 20px 0;">Review Invoice</h1>
+
+    <!-- Invoice details -->
+    <div style="background:white;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <h2 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;">Invoice Details</h2>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">
+            <div><span style="color:#6b7280;">Business:</span> <strong th:text="${invoiceData.businessName}">Name</strong></div>
+            <div><span style="color:#6b7280;">Client:</span> <strong th:text="${invoiceData.clientName}">Client</strong></div>
+            <div><span style="color:#6b7280;">Amount:</span> <strong style="color:#10b981;">₦ <span th:text="${invoiceData.amount}">0</span></strong></div>
+            <div><span style="color:#6b7280;">Email:</span> <strong th:text="${invoiceData.email}">email@example.com</strong></div>
+            <div th:if="${invoiceData.description}"><span style="color:#6b7280;">Description:</span> <span th:text="${invoiceData.description}">Desc</span></div>
+            <div><span style="color:#6b7280;">Status:</span>
+                <span th:text="${invoiceData.status}" style="font-weight:600;color:#f59e0b;"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review form -->
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <h2 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 14px 0;">Submit Decision</h2>
+        <form hx-post="/mobile/invoice/submit-review" hx-swap="none">
+            <input type="hidden" name="taskId" th:value="${invoiceData.taskId}">
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Decision</label>
+                <select name="status" required
+                        style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;">
+                    <option value="approved">✓ Approve</option>
+                    <option value="declined">✗ Decline</option>
+                </select>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Note (optional)</label>
+                <textarea name="reviewNote" rows="3"
+                          style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;resize:vertical;box-sizing:border-box;"
+                          placeholder="Add a review note..."></textarea>
+            </div>
+            <button type="submit"
+                    style="width:100%;padding:14px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">
+                Submit Decision
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

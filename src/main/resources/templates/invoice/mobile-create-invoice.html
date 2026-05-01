@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Invoice</title>
+    <style>
+        .ci-card{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+        .ci-section-title{font-size:15px;font-weight:700;color:#1f2937;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f3f4f6}
+        .ci-label{font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;display:block}
+        .ci-input{width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;box-sizing:border-box;background:#fff}
+        .ci-input:focus{outline:none;border-color:#0f766e;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
+        .ci-submit-btn{width:100%;padding:15px;background:linear-gradient(135deg,#0f766e,#059669);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+        .ci-submit-btn:active{transform:scale(.98)}
+        .ci-amount-wrap{display:flex;align-items:center;border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden}
+        .ci-currency{padding:12px 14px;background:#f3f4f6;color:#374151;font-weight:600;font-size:15px;border-right:1.5px solid #e5e7eb}
+        .ci-amount-input{flex:1;padding:12px;border:none;font-size:15px;outline:none}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div style="background:linear-gradient(135deg,#0f766e,#059669);border-radius:20px;padding:24px;color:#fff;margin-bottom:20px">
+        <h1 style="font-size:22px;font-weight:700">Create Invoice</h1>
+        <p style="font-size:13px;opacity:.85;margin-top:4px">Fill in details to generate your invoice</p>
+    </div>
+
+    <form th:action="@{/mobile/invoice/create-invoice}" method="post" id="invoiceForm">
+
+        <!-- Template Selection -->
+        <div class="ci-card" th:if="${templates != null and !#lists.isEmpty(templates)}">
+            <div class="ci-section-title">Template</div>
+            <label class="ci-label">Select a Design Template</label>
+            <select name="templateHtml" class="ci-input" style="appearance:auto">
+                <option value="">Default Template</option>
+                <option th:each="t : ${templates}" th:value="${t.designHtml}" th:text="${t.designName}">Template</option>
+            </select>
+        </div>
+
+        <!-- Client Info -->
+        <div class="ci-card">
+            <div class="ci-section-title">Client Information</div>
+            <div style="margin-bottom:12px">
+                <label class="ci-label">Business Name *</label>
+                <input name="businessName" type="text" class="ci-input" placeholder="Acme Corporation" required/>
+            </div>
+            <div style="margin-bottom:12px">
+                <label class="ci-label">Client Name *</label>
+                <input name="clientName" type="text" class="ci-input" placeholder="Jane Doe" required/>
+            </div>
+            <div style="margin-bottom:12px">
+                <label class="ci-label">Client Email *</label>
+                <input name="email" type="email" class="ci-input" placeholder="client@example.com" required/>
+            </div>
+            <div style="margin-bottom:12px">
+                <label class="ci-label">Address *</label>
+                <input name="address" type="text" class="ci-input" placeholder="Ikeja, Lagos" required/>
+            </div>
+            <div>
+                <label class="ci-label">Phone (Optional)</label>
+                <input name="phoneNumber" type="tel" class="ci-input" placeholder="+234 ..."/>
+            </div>
+        </div>
+
+        <!-- Invoice Details -->
+        <div class="ci-card">
+            <div class="ci-section-title">Invoice Details</div>
+            <div style="margin-bottom:12px">
+                <label class="ci-label">Amount *</label>
+                <div class="ci-amount-wrap">
+                    <span class="ci-currency">₦</span>
+                    <input name="amount" type="number" class="ci-amount-input" placeholder="0.00" step="0.01" min="0" required/>
+                </div>
+            </div>
+            <div style="margin-bottom:12px">
+                <label class="ci-label">Due Date *</label>
+                <input name="dueDate" type="date" class="ci-input" required/>
+            </div>
+            <div>
+                <label class="ci-label">Description</label>
+                <textarea name="description" class="ci-input" rows="3" style="resize:vertical" placeholder="Service description"></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="ci-submit-btn">
+            <span class="material-icons">receipt_long</span>
+            Create Invoice
+        </button>
+    </form>
+</div>
+</body>
+</html>
+

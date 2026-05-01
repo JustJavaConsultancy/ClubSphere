@@ -145,6 +145,8 @@ public class MobileHomeController {
         session.setAttribute("loggedInUser", authenticationManager.get("name"));
         boolean isCommunityAdmin = communityMembershipRepository.isUserAdminOfAnyCommunity(currentUserId);
         session.setAttribute("isCommunityAdmin", isCommunityAdmin);
+        boolean isGroupAdmin = authenticationManager.isGroupAdmin();
+        session.setAttribute("isGroupAdmin", isGroupAdmin);
     }
 
     private List<SessionDTO> mergeUserAndAdminSessions(List<SessionDTO> userSessions, List<SessionDTO> adminSessions) {

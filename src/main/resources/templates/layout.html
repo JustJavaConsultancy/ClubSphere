@@ -275,15 +275,15 @@
                     Gallery
                 </a>
 
-                <!-- Support Links (visible to Support Admins, System Admins, and Community Admins) -->
-                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/my-tickets}"
+                <!-- Support Links (visible to Support Admins, System Admins, Community Admins, and Group Admins) -->
+                <a th:if="${session.isSupportAdmin == true or session.isCommunityAdmin == true or session.isAdmin == true or session.isGroupAdmin == true}" th:href="@{/support/my-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-ticket-alt w-5"></i>
                     Tickets
                 </a>
 
-                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/agent/claim-ticket}"
+                <a th:if="${session.isSupportAdmin == true or session.isCommunityAdmin == true or session.isAdmin == true or session.isGroupAdmin == true}" th:href="@{/support/agent/claim-ticket}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-shield-alt w-5"></i>
@@ -305,10 +305,9 @@
                     User Management
                 </a>
 
-                <!-- Additional Features -->
-                <a th:if="${!session.isSupportAdmin}" th:href="@{/sessions}"
+                <a th:if="${!session.isSupportAdmin}" th:href="@{/events/create}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
-                   th:classappend="${currentPath == '/sessions'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
+                   th:classappend="${currentPath == '/events/create'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-calendar-alt w-5"></i>
                     Events
                 </a>
@@ -486,14 +485,14 @@
                 </a>
 
                 <!-- Support Links (Support Admins, System Admins, and Community Admins) -->
-                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/my-tickets}"
+                <a th:if="${session.isSupportAdmin == true or session.isCommunityAdmin == true or session.isAdmin == true or session.isGroupAdmin == true}" th:href="@{/support/my-tickets}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/support/my-tickets'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-ticket-alt w-5"></i>
                     Tickets
                 </a>
 
-                <a th:if="${session.isSupportAdmin or session.isCommunityAdmin or session.isAdmin}" th:href="@{/support/agent/claim-ticket}"
+                <a th:if="${session.isSupportAdmin == true or session.isCommunityAdmin == true or session.isAdmin == true or session.isGroupAdmin == true}" th:href="@{/support/agent/claim-ticket}"
                    th:classappend="${currentPath == '/support/agent/claim-ticket'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-shield-alt w-5"></i>
                     Claim Tickets

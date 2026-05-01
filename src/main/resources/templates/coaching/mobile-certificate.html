@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>My Certificates</title>
+    <script src="https://unpkg.com/htmx.org@1.10.2"></script>
+    <style>
+        .cert-header{background:linear-gradient(135deg,#2A2494,#3730a3);border-radius:20px;padding:24px;color:#fff;margin-bottom:20px}
+        .cert-stat{background:rgba(255,255,255,.15);border-radius:12px;padding:16px;text-align:center}
+        .cert-stat-val{font-size:28px;font-weight:700}
+        .cert-stat-lbl{font-size:12px;opacity:.85;margin-top:4px}
+        .cert-tabs{display:flex;gap:8px;margin-bottom:20px}
+        .cert-tab{flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:#f3f4f6;color:#374151;transition:.2s}
+        .cert-tab.active{background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff}
+        .cert-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.06)}
+        .cert-card-title{font-size:16px;font-weight:700;color:#1f2937;margin-bottom:6px}
+        .cert-card-date{font-size:13px;color:#6b7280;margin-bottom:10px}
+        .cert-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .cert-badge-completed{background:#dcfce7;color:#166534}
+        .cert-badge-upcoming{background:#dbeafe;color:#1e40af}
+        .cert-preview-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px}
+        .cert-empty{text-align:center;padding:40px 20px;color:#9ca3af}
+        .cert-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+        .cert-modal.active{display:flex}
+        .cert-modal-box{background:#fff;border-radius:20px;width:94vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+        .cert-modal-header{padding:16px 20px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;display:flex;justify-content:space-between;align-items:center}
+        .cert-modal-body{flex:1;overflow-y:auto;padding:16px}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Header stats -->
+    <div class="cert-header">
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:16px">My Certificates</h1>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="cert-stat">
+                <div class="cert-stat-val" th:text="${sessionsCount}">0</div>
+                <div class="cert-stat-lbl">Total</div>
+            </div>
+            <div class="cert-stat">
+                <div class="cert-stat-val" th:text="${completedSessionsCount}">0</div>
+                <div class="cert-stat-lbl">Completed</div>
+            </div>
+            <div class="cert-stat">
+                <div class="cert-stat-val" th:text="${upcomingSessionsCount}">0</div>
+                <div class="cert-stat-lbl">Upcoming</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="cert-tabs">
+        <button class="cert-tab active" onclick="showTab('all',this)">All</button>
+        <button class="cert-tab" onclick="showTab('completed',this)">Completed</button>
+        <button class="cert-tab" onclick="showTab('upcoming',this)">Upcoming</button>
+    </div>
+
+    <!-- All sessions with certificate -->
+    <div id="tab-all">
+        <div th:if="${sessions == null or #lists.isEmpty(sessions)}" class="cert-empty">
+            <span class="material-icons" style="font-size:48px;margin-bottom:12px">workspace_premium</span>
+            <p style="font-size:16px;font-weight:600;color:#374151;margin-bottom:4px">No Certificates Yet</p>
+            <p>Complete sessions with certification enabled to earn certificates.</p>
+        </div>
+        <div th:each="session : ${sessions}" class="cert-card">
+            <div class="cert-card-title" th:text="${session.moduleName}">Session Name</div>
+            <div class="cert-card-date">Date: <span th:text="${session.startDate}">–</span></div>
+            <span th:if="${session.isCompleted()}" class="cert-badge cert-badge-completed">Completed</span>
+            <span th:unless="${session.isCompleted()}" class="cert-badge cert-badge-upcoming">Upcoming</span>
+            <br/>
+            <button class="cert-preview-btn"
+                    th:attr="hx-get='/certificate/preview/'+${session.id},hx-target='#cert-modal-body'"
+                    hx-trigger="click"
+                    onclick="document.getElementById('cert-modal').classList.add('active')">
+                <span class="material-icons" style="font-size:16px">visibility</span>
+                View Certificate
+            </button>
+        </div>
+    </div>
+
+    <!-- Completed sessions -->
+    <div id="tab-completed" style="display:none">
+        <div th:if="${completedSessions == null or #lists.isEmpty(completedSessions)}" class="cert-empty">
+            <p>No completed certificate sessions yet.</p>
+        </div>
+        <div th:each="session : ${completedSessions}" class="cert-card">
+            <div class="cert-card-title" th:text="${session.moduleName}">Session Name</div>
+            <div class="cert-card-date">Date: <span th:text="${session.startDate}">–</span></div>
+            <span class="cert-badge cert-badge-completed">Completed</span>
+            <br/>
+            <button class="cert-preview-btn"
+                    th:attr="hx-get='/certificate/preview/'+${session.id},hx-target='#cert-modal-body'"
+                    hx-trigger="click"
+                    onclick="document.getElementById('cert-modal').classList.add('active')">
+                <span class="material-icons" style="font-size:16px">visibility</span>
+                View Certificate
+            </button>
+        </div>
+    </div>
+
+    <!-- Upcoming sessions -->
+    <div id="tab-upcoming" style="display:none">
+        <div th:if="${upcomingSessions == null or #lists.isEmpty(upcomingSessions)}" class="cert-empty">
+            <p>No upcoming certificate sessions.</p>
+        </div>
+        <div th:each="session : ${upcomingSessions}" class="cert-card">
+            <div class="cert-card-title" th:text="${session.moduleName}">Session Name</div>
+            <div class="cert-card-date">Date: <span th:text="${session.startDate}">–</span></div>
+            <span class="cert-badge cert-badge-upcoming">Upcoming</span>
+        </div>
+    </div>
+
+    <!-- Certificate Preview Modal -->
+    <div class="cert-modal" id="cert-modal">
+        <div class="cert-modal-box">
+            <div class="cert-modal-header">
+                <span style="font-size:16px;font-weight:700">Certificate Preview</span>
+                <button onclick="document.getElementById('cert-modal').classList.remove('active')"
+                        style="background:none;border:none;color:#fff;cursor:pointer">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="cert-modal-body" id="cert-modal-body">
+                <p class="text-center text-gray-400">Click "View Certificate" to preview.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tab, btn) {
+            document.querySelectorAll('[id^="tab-"]').forEach(function(el){el.style.display='none'});
+            document.getElementById('tab-' + tab).style.display = 'block';
+            document.querySelectorAll('.cert-tab').forEach(function(b){b.classList.remove('active')});
+            btn.classList.add('active');
+        }
+        // Close modal on backdrop click
+        document.getElementById('cert-modal').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+    </script>
+</div>
+</body>
+</html>
+

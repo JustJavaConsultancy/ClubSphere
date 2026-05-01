@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${singleSession?.moduleName} + ' - Recorded Session'">Recorded Session</title>
+    <style>
+        .rs-card{background:rgba(255,255,255,0.97);border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.1);padding:20px;margin-bottom:20px}
+        .rs-title{font-size:20px;font-weight:700;color:#1f2937;margin-bottom:8px}
+        .rs-meta{font-size:13px;color:#6b7280;margin-bottom:16px}
+        .rs-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-right:6px;margin-bottom:8px}
+        .rs-badge-purple{background:#ede9fe;color:#5b21b6}
+        .rs-badge-green{background:#dcfce7;color:#166534}
+        .rs-badge-orange{background:#ffedd5;color:#9a3412}
+        .rs-badge-blue{background:#dbeafe;color:#1e40af}
+        .rs-detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+        .rs-detail-row:last-child{border-bottom:none}
+        .rs-detail-label{color:#6b7280}
+        .rs-detail-value{font-weight:500;color:#1f2937}
+        .rs-complete-btn{width:100%;padding:14px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:16px;transition:opacity .2s}
+        .rs-complete-btn:disabled{background:#d1d5db;color:#6b7280;cursor:not-allowed}
+        .rs-complete-btn:not(:disabled):active{transform:scale(0.98)}
+        video{border-radius:16px;background:#000;width:100%;aspect-ratio:16/9}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div th:if="${singleSession == null}" class="text-center py-16 text-gray-500">
+        <span class="material-icons text-5xl mb-3">videocam_off</span>
+        <p>Session not found.</p>
+        <a href="/mobile/sessions" class="mt-4 inline-block text-indigo-600 font-medium">Back to Sessions</a>
+    </div>
+
+    <div th:if="${singleSession != null}">
+        <!-- Header -->
+        <div class="rs-card" style="background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;padding:24px">
+            <h1 class="rs-title" style="color:#fff" th:text="${singleSession.moduleName}">Session Title</h1>
+            <p class="rs-meta" style="color:rgba(255,255,255,0.8)">
+                Recorded on <span th:text="${singleSession.startDate}">Date</span> ·
+                <span th:text="${singleSession.duration}">0</span> minutes
+            </p>
+            <div>
+                <span class="rs-badge rs-badge-purple" th:text="${singleSession.sessionType}">Recorded</span>
+                <span class="rs-badge rs-badge-orange" th:text="${singleSession.status}">Upcoming</span>
+                <span th:if="${singleSession.hasCertificate}" class="rs-badge rs-badge-green">Certificate</span>
+            </div>
+        </div>
+
+        <!-- Video -->
+        <div class="rs-card" th:if="${singleSession.videoLink != null}">
+            <h2 style="font-size:16px;font-weight:700;color:#1f2937;margin-bottom:12px">
+                <span class="material-icons" style="vertical-align:middle;margin-right:6px;color:#2A2494">play_circle</span>
+                Watch Recording
+            </h2>
+            <video id="sessionVideo" controls preload="metadata" th:src="${singleSession.videoLink}">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- Description -->
+        <div class="rs-card" th:if="${singleSession.description != null}">
+            <h2 style="font-size:16px;font-weight:700;color:#1f2937;margin-bottom:10px">About this session</h2>
+            <p style="font-size:14px;color:#374151;line-height:1.7" th:text="${singleSession.description}">Description</p>
+        </div>
+
+        <!-- Session Details -->
+        <div class="rs-card">
+            <h2 style="font-size:16px;font-weight:700;color:#1f2937;margin-bottom:10px">Session Details</h2>
+            <div class="rs-detail-row">
+                <span class="rs-detail-label">Duration</span>
+                <span class="rs-detail-value" th:text="${singleSession.duration} + ' minutes'">–</span>
+            </div>
+            <div class="rs-detail-row">
+                <span class="rs-detail-label">Date</span>
+                <span class="rs-detail-value" th:text="${singleSession.startDate}">–</span>
+            </div>
+            <div class="rs-detail-row">
+                <span class="rs-detail-label">Time</span>
+                <span class="rs-detail-value" th:text="${singleSession.startTime}">–</span>
+            </div>
+            <div class="rs-detail-row">
+                <span class="rs-detail-label">Participants</span>
+                <span class="rs-detail-value" th:text="${singleSession.numberOfParticipants}">–</span>
+            </div>
+            <div class="rs-detail-row">
+                <span class="rs-detail-label">Status</span>
+                <span class="rs-detail-value" th:text="${singleSession.status}">–</span>
+            </div>
+            <div th:if="${singleSession.hasCertificate}" class="rs-detail-row">
+                <span class="rs-detail-label">Certificate</span>
+                <span class="rs-detail-value" style="color:#16a34a">Available</span>
+            </div>
+
+            <!-- Mark as Complete -->
+            <form th:action="@{/mobile/set-aS-completed}" method="post" style="margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6">
+                <input type="hidden" name="sessionId" th:value="${singleSession.id}"/>
+                <button type="submit" id="markCompleteBtn" class="rs-complete-btn" disabled>
+                    <i class="fas fa-check-circle"></i> Mark as Complete
+                </button>
+                <p style="font-size:12px;color:#9ca3af;text-align:center;margin-top:8px" id="complete-hint">
+                    Watch the entire video to enable this button
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var video = document.getElementById('sessionVideo');
+        var btn = document.getElementById('markCompleteBtn');
+        var hint = document.getElementById('complete-hint');
+        if (video && btn) {
+            video.addEventListener('ended', function() {
+                btn.disabled = false;
+                btn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+                if (hint) hint.textContent = 'You have watched the full video. You may now mark as complete.';
+            });
+            video.addEventListener('timeupdate', function() {
+                if (video.duration && video.currentTime >= video.duration * 0.95) {
+                    btn.disabled = false;
+                    btn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>
+

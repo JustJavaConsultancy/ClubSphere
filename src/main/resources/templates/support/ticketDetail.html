@@ -6,6 +6,7 @@
 </head>
 <body>
 <div class="p-6" th:fragment="ticketDetail">
+    <input type="hidden" id="isMobile" th:value="${isMobile != null and isMobile}">
     <input type="hidden" id="receiverId" th:value="${receiverId}">
     <input type="hidden" id="senderId" th:value="${senderId}">
     <input type="hidden" id="conversationId" th:value="${conversationId}">
@@ -106,18 +107,18 @@
     <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-gray-800">Ticket Details</h3>
         <div class="flex items-center gap-3">
-            <!-- Start Meeting button (visible only to support admins and when not closed) -->
-            <button th:if="${isSupportAdmin and !isClosed}"
+            <!-- Start Meeting button (visible to any admin who can manage this ticket) -->
+            <button th:if="${canManage and !isClosed}"
                     id="startMeetingBtn"
                     class="px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg font-medium hover:bg-emerald-700 inline-flex items-center gap-1"
                     onclick="startTicketMeeting()">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 Start Meeting
             </button>
-            <!-- Close Ticket button (visible only to support admins and when not already closed) -->
-            <button th:if="${isSupportAdmin and !isClosed}"
+            <!-- Close Ticket button (visible to any admin who can manage this ticket) -->
+            <button th:if="${canManage and !isClosed}"
                     class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg font-medium hover:bg-red-700"
-                    th:attr="hx-post=@{/support/close-ticket/{id}(id=${ticketId})}"
+                    th:attr="hx-post=${isMobile} ? @{/mobile/support/close-ticket/{id}(id=${ticketId})} : @{/support/close-ticket/{id}(id=${ticketId})}"
                     hx-confirm="Are you sure you want to close this ticket?">
                 Close Ticket
             </button>
@@ -149,6 +150,26 @@
             <div>
                 <span class="text-gray-500">Last Updated:</span>
                 <span class="font-medium ml-2" th:text="${#temporals.format(ticket.lastUpdated, 'MMMM dd, yyyy HH:mm')}">June 14, 2023</span>
+            </div>
+            <!-- Source: group ticket shows group + its parent community; community ticket shows community only -->
+            <div th:if="${ticket.groupName != null}" class="md:col-span-2 flex items-center gap-3 flex-wrap">
+                <span class="text-gray-500">Source:</span>
+                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 14.094A5.973 5.973 0 004 17v1H1v-1a3 3 0 013.75-2.906z"/></svg>
+                    <span th:text="${ticket.communityName}"></span>
+                </span>
+                <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/></svg>
+                    <span th:text="${ticket.groupName}"></span>
+                </span>
+            </div>
+            <div th:if="${ticket.groupName == null and ticket.communityName != null}" class="md:col-span-2">
+                <span class="text-gray-500">Source:</span>
+                <span class="ml-2 inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 14.094A5.973 5.973 0 004 17v1H1v-1a3 3 0 013.75-2.906z"/></svg>
+                    <span th:text="${ticket.communityName}"></span>
+                </span>
             </div>
         </div>
     </div>
@@ -451,11 +472,12 @@
         // Start a live meeting session for this ticket
         function startTicketMeeting() {
             const ticketId = document.getElementById('ticketId').value;
+            const isMobile = document.getElementById('isMobile').value === 'true';
             const btn = document.getElementById('startMeetingBtn');
             btn.disabled = true;
             btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> Creating…';
-
-            fetch(`/support/create-meeting/${ticketId}`, { method: 'POST' })
+            const endpoint = isMobile ? `/mobile/support/create-meeting/${ticketId}` : `/support/create-meeting/${ticketId}`;
+            fetch(endpoint, { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {

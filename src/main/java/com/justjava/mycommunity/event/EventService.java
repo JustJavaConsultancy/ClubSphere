@@ -97,6 +97,36 @@ public class EventService {
         return new HashSet<>(communityMembershipRepository.findApprovedCommunityIdsByUserId(userId));
     }
 
+    /** Create a simple community event (title + description + communityId). No organization required. */
+    public Event createSimpleEvent(String title, String description, Long communityId) {
+        Event event = new Event();
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setEventType("EVENT");
+        if (communityId != null) {
+            Community community = communityRepository.findById(communityId)
+                    .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
+            event.setCommunity(community);
+            // Derive organization from community to satisfy the NOT NULL constraint
+            if (community.getOrganization() != null) {
+                event.setOrganization(community.getOrganization());
+            }
+        }
+        // Fall back to the default organization if none was set
+        if (event.getOrganization() == null) {
+            organizationRepository.findByDescription("Default")
+                    .or(() -> organizationRepository.findAll().stream().findFirst())
+                    .ifPresent(event::setOrganization);
+        }
+        return eventRepository.save(event);
+    }
+
+    /** Returns the communities the current user is an approved member of. */
+    public List<Community> getUserCommunities(String userId) {
+        List<Long> communityIds = communityMembershipRepository.findApprovedCommunityIdsByUserId(userId);
+        return communityRepository.findAllById(communityIds);
+    }
+
     public Event createEvent(EventDTO dto) {
         Organization organization = organizationRepository.findById(dto.getOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Organization does not exist"));
@@ -413,7 +443,7 @@ public class EventService {
                 // Get meetings from the specific selected mycommunity only
                 System.out.println("Getting meetings for specific mycommunity: " + selectedCommunityId);
                 List<Event> communityEvents = eventRepository.findAllByCommunity_Id(selectedCommunityId).stream()
-                        .filter(event -> event.getModule() == null) // Only meetings
+                        .filter(event -> event.getModule() == null && !"EVENT".equals(event.getEventType())) // Only meetings
                         .toList();
 
                 // Check if user is member of this mycommunity or is admin
@@ -436,7 +466,7 @@ public class EventService {
                 if (isUserAdmin) {
                     // Admin sees all meetings
                     List<Event> allMeetings = eventRepository.findAll().stream()
-                            .filter(event -> event.getModule() == null) // Only meetings
+                            .filter(event -> event.getModule() == null && !"EVENT".equals(event.getEventType())) // Only meetings
                             .toList();
                     events.addAll(allMeetings);
                     System.out.println("Admin: Added " + allMeetings.size() + " meetings from all communities");
@@ -444,7 +474,7 @@ public class EventService {
                     // Regular user sees only meetings from their communities
                     for (Long communityId : approvedCommunityIds) {
                         List<Event> communityEvents = eventRepository.findAllByCommunity_Id(communityId).stream()
-                                .filter(event -> event.getModule() == null) // Only meetings
+                                .filter(event -> event.getModule() == null && !"EVENT".equals(event.getEventType())) // Only meetings
                                 .toList();
                         events.addAll(communityEvents);
                         System.out.println("Added " + communityEvents.size() + " meetings from mycommunity ID " + communityId);
@@ -452,7 +482,7 @@ public class EventService {
 
                     // Also include general meetings (not tied to any specific mycommunity)
                     List<Event> generalEvents = eventRepository.findAll().stream()
-                            .filter(event -> event.getModule() == null && event.getCommunity() == null)
+                            .filter(event -> event.getModule() == null && event.getCommunity() == null && !"EVENT".equals(event.getEventType()))
                             .toList();
                     events.addAll(generalEvents);
                     System.out.println("Added " + generalEvents.size() + " general meetings");
@@ -614,7 +644,7 @@ public class EventService {
     @Transactional
     public List<SessionDTO> getMeetings() {
         List<Event> events = eventRepository.findAll().stream()
-                .filter(event -> event.getModule() == null).toList();
+                .filter(event -> event.getModule() == null && !"EVENT".equals(event.getEventType())).toList();
         return mapEventsToDTO(events);
     }
 
@@ -630,7 +660,7 @@ public class EventService {
         User user = Optional.ofNullable(userRepository.findByUserId(userId))
                 .orElseThrow(() -> new EntityNotFoundException("User does not exist"));
         List<Event> events = eventRepository.findUserEvents(user.getUserId())
-                .stream().filter(event -> event.getModule() == null).toList();
+                .stream().filter(event -> event.getModule() == null && !"EVENT".equals(event.getEventType())).toList();
         return mapEventsToDTO(events);
     }
 

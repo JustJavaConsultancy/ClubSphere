@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Detail</title>
+    <style>
+        .id-header{background:linear-gradient(135deg,#0f766e,#059669);border-radius:20px;padding:24px;color:#fff;margin-bottom:20px}
+        .id-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+        .id-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+        .id-row:last-child{border-bottom:none}
+        .id-label{color:#6b7280}
+        .id-value{font-weight:600;color:#1f2937;text-align:right}
+        .id-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .id-badge-paid{background:#dcfce7;color:#166534}
+        .id-badge-approved{background:#d1fae5;color:#065f46}
+        .id-badge-pending{background:#fef3c7;color:#92400e}
+        .id-badge-new{background:#dbeafe;color:#1e40af}
+        .id-badge-declined{background:#fee2e2;color:#991b1b}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div th:if="${singleInvoice == null}" class="text-center py-16 text-gray-500">
+        <span class="material-icons" style="font-size:48px;margin-bottom:8px">receipt_long</span>
+        <p>Invoice not found.</p>
+        <a href="/mobile/invoice" style="color:#0f766e;font-weight:600;margin-top:8px;display:inline-block">Back to Invoices</a>
+    </div>
+
+    <div th:if="${singleInvoice != null}">
+        <div class="id-header">
+            <h1 style="font-size:21px;font-weight:700;margin-bottom:6px" th:text="${singleInvoice.businessName} ?: 'Invoice'">Invoice</h1>
+            <span th:switch="${singleInvoice.status}">
+                <span th:case="'paid'" class="id-badge id-badge-paid">Paid</span>
+                <span th:case="'approved'" class="id-badge id-badge-approved">Approved</span>
+                <span th:case="'pending'" class="id-badge id-badge-pending">Pending</span>
+                <span th:case="'declined'" class="id-badge id-badge-declined">Declined</span>
+                <span th:case="*" class="id-badge id-badge-new" th:text="${singleInvoice.status}">New</span>
+            </span>
+        </div>
+
+        <div class="id-card">
+            <h2 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px">Client Details</h2>
+            <div class="id-row">
+                <span class="id-label">Client</span>
+                <span class="id-value" th:text="${singleInvoice.clientName}">–</span>
+            </div>
+            <div class="id-row">
+                <span class="id-label">Email</span>
+                <span class="id-value" th:text="${singleInvoice.email}">–</span>
+            </div>
+            <div class="id-row">
+                <span class="id-label">Address</span>
+                <span class="id-value" th:text="${singleInvoice.address}">–</span>
+            </div>
+            <div class="id-row" th:if="${singleInvoice.phoneNumber != null}">
+                <span class="id-label">Phone</span>
+                <span class="id-value" th:text="${singleInvoice.phoneNumber}">–</span>
+            </div>
+        </div>
+
+        <div class="id-card">
+            <h2 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px">Invoice Details</h2>
+            <div class="id-row">
+                <span class="id-label">Amount</span>
+                <span class="id-value" th:text="'₦' + ${singleInvoice.amount}">₦0</span>
+            </div>
+            <div class="id-row" th:if="${singleInvoice.dueDate != null}">
+                <span class="id-label">Due Date</span>
+                <span class="id-value" th:text="${singleInvoice.dueDate}">–</span>
+            </div>
+            <div class="id-row" th:if="${singleInvoice.description != null}">
+                <span class="id-label">Description</span>
+                <span class="id-value" th:text="${singleInvoice.description}">–</span>
+            </div>
+        </div>
+
+        <a th:href="@{/mobile/invoice}" style="display:block;text-align:center;padding:14px;background:#f3f4f6;border-radius:14px;color:#374151;font-weight:600;text-decoration:none;margin-top:8px">
+            ← Back to Invoices
+        </a>
+    </div>
+</div>
+</body>
+</html>
+

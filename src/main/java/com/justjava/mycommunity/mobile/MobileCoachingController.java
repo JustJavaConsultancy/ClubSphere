@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -211,6 +212,50 @@ public class MobileCoachingController {
     @GetMapping("/add-model")
     public String addModel(){
         return "coaching/mobile-addModel";
+    }
+
+    @GetMapping("/recorded-session/{sessionId}")
+    public String recordedSession(@PathVariable Long sessionId, Model model) {
+        com.justjava.mycommunity.chat.dto.SessionDTO session = eventService.getSessionById(sessionId);
+        model.addAttribute("singleSession", session);
+        return "coaching/mobile-recordedSession";
+    }
+
+    @PostMapping("/set-aS-completed")
+    public String setASCompleted(@RequestParam Long sessionId) {
+        com.justjava.mycommunity.chat.dto.SessionDTO singleSession = eventService.getSessionById(sessionId);
+        singleSession.setStatus("Completed");
+        return "redirect:/mobile/sessions";
+    }
+
+    @GetMapping("/certificate")
+    public String certificatePage(Model model) {
+        String currentUserId = (String) authenticationManager.get("sub");
+        List<com.justjava.mycommunity.chat.dto.SessionDTO> allSessions = eventService.getUserCoachingSessions(currentUserId);
+        List<com.justjava.mycommunity.chat.dto.SessionDTO> completedSessions = allSessions.stream().filter(s -> "Completed".equalsIgnoreCase(s.getStatus())).toList();
+        List<com.justjava.mycommunity.chat.dto.SessionDTO> upcomingSessions = allSessions.stream().filter(s -> !"Completed".equalsIgnoreCase(s.getStatus())).toList();
+        List<com.justjava.mycommunity.chat.dto.SessionDTO> certificateSessions = allSessions.stream().filter(com.justjava.mycommunity.chat.dto.SessionDTO::isHasCertificates).toList();
+        List<com.justjava.mycommunity.chat.dto.SessionDTO> certificateCompletedSessions = completedSessions.stream().filter(com.justjava.mycommunity.chat.dto.SessionDTO::isHasCertificates).toList();
+        List<com.justjava.mycommunity.chat.dto.SessionDTO> certificateUpcomingSessions = upcomingSessions.stream().filter(com.justjava.mycommunity.chat.dto.SessionDTO::isHasCertificates).toList();
+        model.addAttribute("completedSessionsCount", certificateCompletedSessions.size());
+        model.addAttribute("upcomingSessionsCount", certificateUpcomingSessions.size());
+        model.addAttribute("sessionsCount", certificateSessions.size());
+        model.addAttribute("sessions", certificateSessions);
+        model.addAttribute("completedSessions", certificateCompletedSessions);
+        model.addAttribute("upcomingSessions", certificateUpcomingSessions);
+        return "coaching/mobile-certificate";
+    }
+
+    @GetMapping("/certificate/preview/{id}")
+    public String certificatePreview(@PathVariable Long id, Model model) {
+        try {
+            com.justjava.mycommunity.chat.dto.SessionDTO session = eventService.getSessionById(id);
+            model.addAttribute("session", session);
+            model.addAttribute("certificateHtml", session.getCertificateHtml());
+        } catch (Exception e) {
+            model.addAttribute("error", "Certificate not found.");
+        }
+        return "certificate/mobile-certificate-preview";
     }
 
     @PostMapping(value = "/module/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

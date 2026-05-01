@@ -49,11 +49,13 @@ public class SupportController {
         request.getSession(true).setAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
         request.getSession(true).setAttribute("isAdmin", authenticationManager.isAdmin());
         request.getSession(true).setAttribute("isCommunityAdmin", authenticationManager.isCommunityAdmin());
+        request.getSession(true).setAttribute("isGroupAdmin", authenticationManager.isGroupAdmin());
         request.getSession(true).setAttribute("loggedInUser", authenticationManager.get("name"));
 
         boolean canManage = authenticationManager.isSupportAdmin()
                 || authenticationManager.isAdmin()
-                || authenticationManager.isCommunityAdmin();
+                || authenticationManager.isCommunityAdmin()
+                || authenticationManager.isGroupAdmin();
 
         List<Ticket> unAssignedTickets = canManage
                 ? supportService.getScopedUnclaimedTickets(userId)
@@ -73,20 +75,34 @@ public class SupportController {
     @GetMapping("/my-tickets")
     public String getTickets(HttpServletRequest request, Model model){
         ensureSessionRoles(request.getSession(false));
+        boolean canManage = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || authenticationManager.isCommunityAdmin()
+                || authenticationManager.isGroupAdmin();
+
+        // Regular users should not access claimed-tickets view — send them to their submitted tickets
+        if (!canManage) {
+            return "redirect:/support/my-submitted-tickets";
+        }
+
+        String userId = (String) authenticationManager.get("sub");
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
-        model.addAttribute("canManageTickets",
-                authenticationManager.isSupportAdmin() || authenticationManager.isAdmin() || authenticationManager.isCommunityAdmin());
-        model.addAttribute("tickets", supportService.getTickets());
-        model.addAttribute("currentUserId", authenticationManager.get("sub"));
+        model.addAttribute("canManageTickets", true);
+        // Only show tickets this admin has claimed/is handling
+        model.addAttribute("tickets", supportService.getScopedAgentTickets(userId));
+        model.addAttribute("currentUserId", userId);
         return "support/tickets";
     }
 
     @GetMapping("/my-submitted-tickets")
     public String getMySubmittedTickets(HttpServletRequest request, Model model){
         ensureSessionRoles(request.getSession(false));
+        boolean canManage = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || authenticationManager.isCommunityAdmin()
+                || authenticationManager.isGroupAdmin();
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
-        model.addAttribute("canManageTickets",
-                authenticationManager.isSupportAdmin() || authenticationManager.isAdmin() || authenticationManager.isCommunityAdmin());
+        model.addAttribute("canManageTickets", canManage);
         model.addAttribute("tickets", supportService.getMySubmittedTickets());
         model.addAttribute("currentUserId", authenticationManager.get("sub"));
         return "support/tickets";
@@ -97,16 +113,20 @@ public class SupportController {
         String loginUser = (String) authenticationManager.get("sub");
 
         TicketDTO singleTicket = supportService.getSingleTicket(id, loginUser);
+        Ticket rawTicket = supportService.getTicketById(id);
+
+        boolean canManage = authenticationManager.isSupportAdmin()
+                || authenticationManager.isAdmin()
+                || (rawTicket != null && supportService.canManageTicket(loginUser, rawTicket));
 
         model.addAttribute("ticketId", id);
         model.addAttribute("senderId", loginUser);
         model.addAttribute("ticket", singleTicket);
         model.addAttribute("isSupportAdmin", authenticationManager.isSupportAdmin());
-        // Pass the actual conversation ID instead of ticketId
+        model.addAttribute("canManage", canManage);
         model.addAttribute("conversationId", singleTicket.getConversation().getId());
         model.addAttribute("receiverId", singleTicket.getConversation().getReceiverId());
         model.addAttribute("messages", singleTicket.getConversation().getMessages());
-        // Check if ticket is closed
         model.addAttribute("isClosed", "Closed".equalsIgnoreCase(singleTicket.getStatus()));
         return "support/ticketDetail :: ticketDetail";
     }
@@ -117,7 +137,8 @@ public class SupportController {
         String userId = (String) authenticationManager.get("sub");
         boolean canManage = authenticationManager.isSupportAdmin()
                 || authenticationManager.isAdmin()
-                || authenticationManager.isCommunityAdmin();
+                || authenticationManager.isCommunityAdmin()
+                || authenticationManager.isGroupAdmin();
         List<Ticket> unAssigned = canManage
                 ? supportService.getScopedUnclaimedTickets(userId)
                 : Collections.<Ticket>emptyList();
@@ -133,8 +154,13 @@ public class SupportController {
         UserDTO ticketOwner = userService.getSingleUserByUserId(userId);
         String fullName = ticketOwner.getFirstName() + " " + ticketOwner.getLastName();
 
+        // Resolve community / group name so the admin knows the source
+        TicketDTO dto = supportService.mapTicketToDTO(singleClaimTicket);
+
         model.addAttribute("username", fullName);
         model.addAttribute("ticket", singleClaimTicket);
+        model.addAttribute("communityName", dto.getCommunityName());
+        model.addAttribute("groupName", dto.getGroupName());
         model.addAttribute("isMobile", false);
         return "support/claimTicketModal :: ticketDetails";
     }
@@ -287,6 +313,8 @@ public class SupportController {
             session.setAttribute("isAdmin", authenticationManager.isAdmin());
         if (session.getAttribute("isCommunityAdmin") == null)
             session.setAttribute("isCommunityAdmin", authenticationManager.isCommunityAdmin());
+        if (session.getAttribute("isGroupAdmin") == null)
+            session.setAttribute("isGroupAdmin", authenticationManager.isGroupAdmin());
         if (session.getAttribute("loggedInUser") == null)
             session.setAttribute("loggedInUser", authenticationManager.get("name"));
     }

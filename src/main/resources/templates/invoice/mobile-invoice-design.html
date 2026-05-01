@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Design</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="margin-bottom:16px;">
+        <a th:href="@{/mobile/invoice/create}" style="font-size:13px;color:#4f46e5;text-decoration:none;">← Back to Create Invoice</a>
+    </div>
+
+    <h1 style="font-size:1.3rem;font-weight:700;color:#1f2937;margin:0 0 20px 0;">Invoice Design</h1>
+
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <p style="font-size:14px;color:#6b7280;margin:0 0 16px 0;">
+            Design a reusable invoice template. Paste or type your HTML invoice design below, give it a name, and save it.
+        </p>
+        <form th:action="@{/mobile/invoice/design}" method="post">
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Design Name</label>
+                <input type="text" name="designName" required placeholder="e.g. Standard Invoice"
+                       style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Invoice HTML</label>
+                <textarea name="invoiceHtml" rows="12" required placeholder="Paste your invoice HTML here..."
+                          style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:monospace;"></textarea>
+            </div>
+            <button type="submit"
+                    style="width:100%;padding:14px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">
+                Save Design
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

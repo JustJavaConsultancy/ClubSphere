@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-3xl mx-auto">
+
+        <!-- Page header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Events</h1>
+            <p class="text-sm text-gray-500 mt-1">Create community events and view existing ones</p>
+        </div>
+
+        <!-- Success message -->
+        <div th:if="${successMessage}"
+             class="mb-5 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+            <i class="fas fa-check-circle text-green-500"></i>
+            <span th:text="${successMessage}"></span>
+        </div>
+
+        <!-- Create Event Form -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                <i class="fas fa-plus-circle text-blue-500 mr-2"></i>Create New Event
+            </h2>
+            <form th:action="@{/events/create}" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Event Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" required
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                           placeholder="Enter event name"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-red-500">*</span></label>
+                    <textarea name="description" required rows="3"
+                              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                              placeholder="Describe the event..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Community <span class="text-red-500">*</span></label>
+                    <select name="communityId" required
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <option value="" disabled selected>— Select a community —</option>
+                        <option th:each="c : ${communities}"
+                                th:value="${c.id}"
+                                th:text="${c.name}"
+                                th:selected="${selectedCommunityId != null and c.id == selectedCommunityId}"></option>
+                    </select>
+                    <p th:if="${#lists.isEmpty(communities)}" class="mt-1 text-xs text-red-500">
+                        You must be a member of at least one community to create an event.
+                    </p>
+                </div>
+                <div class="pt-1">
+                    <button type="submit"
+                            th:disabled="${#lists.isEmpty(communities)}"
+                            class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-calendar-plus mr-1"></i> Create Event
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Existing events list -->
+        <h2 class="text-base font-semibold text-gray-700 mb-3">Existing Events</h2>
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(events)}" class="bg-white rounded-xl shadow-sm p-10 text-center text-gray-400">
+            <i class="fas fa-calendar-alt text-3xl mb-3 block text-blue-200"></i>
+            <p class="text-sm">No events have been created yet. Be the first!</p>
+        </div>
+
+        <!-- Events grid -->
+        <div th:unless="${#lists.isEmpty(events)}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div th:each="event : ${events}"
+                 class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-800 text-sm"
+                            th:text="${event.title != null ? event.title : event.description}">Event Title</h3>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2" th:text="${event.description}">Description</p>
+                    </div>
+                    <span class="ml-3 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">Event</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-gray-400 mt-3">
+                    <span th:if="${event.startDate != null}" class="flex items-center gap-1">
+                        <i class="fas fa-calendar"></i>
+                        <span th:text="${event.startDate}"></span>
+                    </span>
+                    <span th:if="${event.community != null}" class="flex items-center gap-1">
+                        <i class="fas fa-users"></i>
+                        <span th:text="${event.community.name}"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>
+

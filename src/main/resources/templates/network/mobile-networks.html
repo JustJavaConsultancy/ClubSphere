@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Networks</title>
+    <style>
+        .net-header{background:linear-gradient(135deg,#2A2494,#3730a3);border-radius:20px;padding:24px;color:#fff;margin-bottom:20px}
+        .net-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.06);cursor:pointer;transition:.2s}
+        .net-card:active{transform:scale(.98)}
+        .net-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .net-name{font-size:16px;font-weight:700;color:#1f2937}
+        .net-desc{font-size:13px;color:#6b7280;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .net-meta{display:flex;gap:12px;margin-top:8px;font-size:12px;color:#9ca3af}
+        .net-role-owner{background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+        .net-role-member{background:#dbeafe;color:#1e40af;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+        .net-empty{text-align:center;padding:40px 20px;color:#9ca3af;background:#fff;border-radius:16px;border:2px dashed #e5e7eb}
+        .net-pending-banner{background:#fef3c7;border:1px solid #f59e0b;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .create-net-btn{width:100%;padding:14px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+        /* Create modal */
+        .net-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:flex-end}
+        .net-modal.active{display:flex}
+        .net-modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:24px;padding-bottom:40px}
+        .net-modal-title{font-size:18px;font-weight:700;margin-bottom:16px;color:#1f2937}
+        .net-input{width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;margin-bottom:12px;box-sizing:border-box}
+        .net-input:focus{outline:none;border-color:#2A2494}
+        .net-submit-btn{width:100%;padding:13px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div class="net-header">
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Networks</h1>
+        <p style="font-size:14px;opacity:.85" th:text="${selectedCommunityName}">Community</p>
+    </div>
+
+    <!-- Pending connection requests -->
+    <div th:if="${pendingConnectionRequests != null and !#lists.isEmpty(pendingConnectionRequests)}" class="net-pending-banner">
+        <span class="material-icons" style="color:#d97706">notifications</span>
+        <span style="font-size:13px;color:#92400e">
+            You have <strong th:text="${#lists.size(pendingConnectionRequests)}">0</strong> pending connection request(s).
+            Visit a network to respond.
+        </span>
+    </div>
+
+    <!-- Create Network (admin only) -->
+    <button th:if="${isAdmin}" class="create-net-btn" onclick="document.getElementById('create-net-modal').classList.add('active')">
+        <span class="material-icons">add</span> Create Network
+    </button>
+
+    <!-- My Networks -->
+    <div th:if="${myNetworks != null and !#lists.isEmpty(myNetworks)}">
+        <h2 style="font-size:15px;font-weight:700;color:#374151;margin-bottom:12px">My Networks</h2>
+        <a th:each="net : ${myNetworks}"
+           th:href="@{/mobile/networks/__${net.id}__}"
+           class="net-card" style="display:block;text-decoration:none">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+                <div class="net-icon">
+                    <svg style="width:20px;height:20px;color:#fff" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div style="flex:1">
+                    <div class="net-name" th:text="${net.name}">Network Name</div>
+                    <div class="net-desc" th:text="${net.description}">Description</div>
+                    <div class="net-meta">
+                        <span><span class="material-icons" style="font-size:14px;vertical-align:middle">group</span> <span th:text="${net.memberCount}">0</span> members</span>
+                        <span th:if="${net.currentUserRole == 'OWNER' or net.currentUserRole == 'ADMIN'}" class="net-role-owner">Admin</span>
+                        <span th:unless="${net.currentUserRole == 'OWNER' or net.currentUserRole == 'ADMIN'}" class="net-role-member">Member</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- All Networks (admin) -->
+    <div th:if="${isAdmin and allNetworks != null and !#lists.isEmpty(allNetworks)}" style="margin-top:20px">
+        <h2 style="font-size:15px;font-weight:700;color:#374151;margin-bottom:12px">All Networks in Community</h2>
+        <a th:each="net : ${allNetworks}"
+           th:href="@{/mobile/networks/__${net.id}__}"
+           class="net-card" style="display:block;text-decoration:none">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+                <div class="net-icon">
+                    <svg style="width:20px;height:20px;color:#fff" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div style="flex:1">
+                    <div class="net-name" th:text="${net.name}">Network Name</div>
+                    <div class="net-desc" th:text="${net.description}">Description</div>
+                    <div class="net-meta">
+                        <span><span class="material-icons" style="font-size:14px;vertical-align:middle">group</span> <span th:text="${net.memberCount}">0</span> members</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div th:if="${(myNetworks == null or #lists.isEmpty(myNetworks)) and !isAdmin}" class="net-empty">
+        <span class="material-icons" style="font-size:48px;margin-bottom:12px">hub</span>
+        <p style="font-size:16px;font-weight:600;color:#374151;margin-bottom:6px">No Networks Yet</p>
+        <p style="font-size:14px">You haven't been added to any networks in this community.</p>
+    </div>
+
+    <!-- Create Network Modal -->
+    <div class="net-modal" id="create-net-modal">
+        <div class="net-modal-box">
+            <h3 class="net-modal-title">Create Network</h3>
+            <input type="text" class="net-input" id="net-name-input" placeholder="Network name *" required/>
+            <textarea class="net-input" id="net-desc-input" rows="3" placeholder="Description (optional)"></textarea>
+            <button class="net-submit-btn" onclick="submitCreateNetwork()">Create Network</button>
+            <button onclick="document.getElementById('create-net-modal').classList.remove('active')"
+                    style="width:100%;padding:12px;background:none;border:none;color:#6b7280;font-size:14px;cursor:pointer;margin-top:8px">
+                Cancel
+            </button>
+            <div id="net-create-msg" style="margin-top:10px;font-size:13px;text-align:center"></div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var selectedCommunityId = /*[[${selectedCommunityId}]]*/ null;
+        /*]]>*/
+        document.getElementById('create-net-modal').addEventListener('click', function(e){if(e.target===this)this.classList.remove('active')});
+        function submitCreateNetwork() {
+            var name = document.getElementById('net-name-input').value.trim();
+            var desc = document.getElementById('net-desc-input').value.trim();
+            var msg = document.getElementById('net-create-msg');
+            if (!name) { msg.textContent = 'Network name is required.'; msg.style.color='#ef4444'; return; }
+            fetch('/mobile/networks/api/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name, description: desc, communityId: selectedCommunityId})
+            }).then(function(r){ return r.json(); }).then(function(d) {
+                if (d.id) { window.location.reload(); }
+                else { msg.textContent = 'Failed to create network.'; msg.style.color='#ef4444'; }
+            }).catch(function(){ msg.textContent = 'Error creating network.'; msg.style.color='#ef4444'; });
+        }
+    </script>
+</div>
+</body>
+</html>
+
+

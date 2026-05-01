@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${network?.name}">Network Detail</title>
+    <style>
+        .nd-header{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:20px;padding:24px;color:#fff;margin-bottom:20px}
+        .nd-tabs{display:flex;gap:4px;background:#f3f4f6;border-radius:12px;padding:4px;margin-bottom:20px}
+        .nd-tab{flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:none;color:#6b7280;transition:.2s}
+        .nd-tab.active{background:#fff;color:#4f46e5;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+        .nd-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+        .nd-member-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;gap:12px}
+        .nd-member-row:last-child{border-bottom:none}
+        .nd-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0}
+        .nd-member-name{font-weight:600;font-size:14px;color:#1f2937}
+        .nd-member-email{font-size:12px;color:#9ca3af}
+        .nd-post-card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid #e5e7eb}
+        .nd-post-author{font-weight:600;font-size:14px;color:#1f2937}
+        .nd-post-date{font-size:12px;color:#9ca3af}
+        .nd-post-content{font-size:14px;color:#374151;line-height:1.6;margin-top:8px}
+        .nd-connect-btn{padding:7px 14px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+        .nd-connect-btn:active{transform:scale(.96)}
+        .nd-connected-badge{padding:5px 10px;background:#dcfce7;color:#166534;border-radius:8px;font-size:12px;font-weight:600}
+        .nd-post-form{background:#f9fafb;border-radius:14px;padding:14px;margin-bottom:16px}
+        .nd-post-textarea{width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;resize:vertical;min-height:70px;box-sizing:border-box}
+        .nd-post-textarea:focus{outline:none;border-color:#4f46e5}
+        .nd-post-submit{padding:10px 20px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
+        .nd-empty{text-align:center;padding:30px;color:#9ca3af;font-size:14px}
+        .nd-pending-card{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+        .nd-pending-accept{padding:7px 12px;background:#10b981;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+        .nd-pending-reject{padding:7px 12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-left:6px}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Header -->
+    <div class="nd-header">
+        <h1 style="font-size:21px;font-weight:700;margin-bottom:6px" th:text="${network?.name}">Network</h1>
+        <p style="font-size:13px;opacity:.85" th:text="${network?.description}">Description</p>
+        <div style="display:flex;gap:16px;margin-top:12px;font-size:13px;opacity:.85">
+            <span><span class="material-icons" style="font-size:15px;vertical-align:middle">group</span>
+                <span th:text="${network?.memberCount}">0</span> members</span>
+            <span><span class="material-icons" style="font-size:15px;vertical-align:middle">article</span>
+                <span th:text="${#lists.size(posts)}">0</span> posts</span>
+        </div>
+    </div>
+
+    <!-- Pending connection requests -->
+    <div th:if="${pendingConnectionRequests != null and !#lists.isEmpty(pendingConnectionRequests)}">
+        <h2 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px">Pending Connection Requests</h2>
+            <div th:each="req : ${pendingConnectionRequests}" class="nd-pending-card">
+                <div style="flex:1">
+                    <div style="font-size:14px;font-weight:600;color:#92400e" th:text="${req.requesterName}">Sender</div>
+                    <div style="font-size:12px;color:#b45309">wants to connect with you</div>
+                </div>
+            <button class="nd-pending-accept" th:attr="onclick='handleConnection('+${req.id}+',true)'">Accept</button>
+            <button class="nd-pending-reject" th:attr="onclick='handleConnection('+${req.id}+',false)'">Decline</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="nd-tabs">
+        <button class="nd-tab active" onclick="showTab('members',this)">Members</button>
+        <button class="nd-tab" onclick="showTab('posts',this)">Posts</button>
+        <button class="nd-tab" onclick="showTab('connect',this)">Connections</button>
+    </div>
+
+    <!-- Members Tab -->
+    <div id="tab-members">
+        <!-- Add Member (admin) -->
+        <div th:if="${isAdmin}" style="margin-bottom:14px">
+            <button onclick="document.getElementById('add-member-modal').classList.add('active')"
+                    style="padding:10px 16px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+                <span class="material-icons" style="font-size:16px">person_add</span> Add Member
+            </button>
+        </div>
+        <div class="nd-card">
+            <div th:if="${members == null or #lists.isEmpty(members)}" class="nd-empty">No members yet.</div>
+            <div th:each="m : ${members}" class="nd-member-row">
+                <div class="nd-avatar" th:text="${#strings.substring(m.firstName != null ? m.firstName : m.email, 0, 1).toUpperCase()}">U</div>
+                <div style="flex:1">
+                    <div class="nd-member-name" th:text="${m.firstName != null and m.lastName != null ? m.firstName + ' ' + m.lastName : m.email}">Name</div>
+                    <div class="nd-member-email" th:text="${m.email}">email</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Posts Tab -->
+    <div id="tab-posts" style="display:none">
+        <!-- Create post -->
+        <div class="nd-post-form">
+            <textarea class="nd-post-textarea" id="new-post-content" placeholder="Share something with this network..."></textarea>
+            <button class="nd-post-submit" onclick="submitPost()">Post</button>
+        </div>
+        <div id="posts-container">
+            <div th:if="${posts == null or #lists.isEmpty(posts)}" class="nd-empty">No posts yet. Be the first to post!</div>
+            <div th:each="post : ${posts}" class="nd-post-card">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                    <div class="nd-avatar" style="width:32px;height:32px;font-size:12px" th:text="${#strings.substring(post.userFullName,0,1)}">U</div>
+                    <div>
+                        <div class="nd-post-author" th:text="${post.userFullName}">Author</div>
+                        <div class="nd-post-date" th:attr="data-time=${post.dateCreated}" class="time-ago-post"><!--ago--></div>
+                    </div>
+                </div>
+                <p class="nd-post-content" th:text="${post.content}">Content</p>
+                <img th:if="${post.picture != null}" th:src="'data:image/jpeg;base64,' + ${post.picture}"
+                     style="width:100%;border-radius:10px;margin-top:8px" alt="Post image"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connections Tab -->
+    <div id="tab-connect" style="display:none">
+        <!-- Connected users -->
+        <div th:if="${connectedUsers != null and !#lists.isEmpty(connectedUsers)}" style="margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px">Connected</h3>
+            <div th:each="u : ${connectedUsers}" class="nd-member-row">
+                <div class="nd-avatar" th:text="${#strings.substring(u.firstName != null ? u.firstName : u.email, 0, 1)}">U</div>
+                <div style="flex:1">
+                    <div class="nd-member-name" th:text="${u.firstName != null ? u.firstName + ' ' + u.lastName : u.email}">Name</div>
+                </div>
+                <span class="nd-connected-badge">Connected</span>
+            </div>
+        </div>
+        <!-- People to connect -->
+        <div th:if="${unconnectedMembers != null and !#lists.isEmpty(unconnectedMembers)}">
+            <h3 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px">Connect with Members</h3>
+            <div th:each="u : ${unconnectedMembers}" class="nd-member-row" th:attr="data-user-id=${u.userId}">
+                <div class="nd-avatar" th:text="${#strings.substring(u.firstName != null ? u.firstName : u.email, 0, 1)}">U</div>
+                <div style="flex:1">
+                    <div class="nd-member-name" th:text="${u.firstName != null ? u.firstName + ' ' + u.lastName : u.email}">Name</div>
+                </div>
+                <button class="nd-connect-btn" th:attr="onclick='sendConnect(\''+${u.userId}+'\')'">Connect</button>
+            </div>
+        </div>
+        <div th:if="${(connectedUsers == null or #lists.isEmpty(connectedUsers)) and (unconnectedMembers == null or #lists.isEmpty(unconnectedMembers))}" class="nd-empty">
+            No other members to connect with yet.
+        </div>
+    </div>
+
+    <!-- Add Member Modal (admin) -->
+    <div class="nd-card" id="add-member-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;border-radius:20px 20px 0 0;margin:0;padding:24px">
+        <h3 style="font-size:17px;font-weight:700;margin-bottom:14px;color:#1f2937">Add Member</h3>
+        <div id="available-members-list" style="max-height:50vh;overflow-y:auto">
+            <p style="text-align:center;color:#9ca3af;font-size:14px">Loading members...</p>
+        </div>
+        <button onclick="document.getElementById('add-member-modal').style.display='none'"
+                style="width:100%;padding:12px;background:none;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;color:#6b7280;cursor:pointer;margin-top:12px">
+            Close
+        </button>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var networkId = /*[[${network?.id}]]*/ null;
+        /*]]>*/
+
+        function showTab(tab, btn) {
+            ['members','posts','connect'].forEach(function(t){ document.getElementById('tab-'+t).style.display='none'; });
+            document.getElementById('tab-'+tab).style.display='block';
+            document.querySelectorAll('.nd-tab').forEach(function(b){b.classList.remove('active')});
+            btn.classList.add('active');
+        }
+
+        function handleConnection(reqId, accept) {
+            var action = accept ? 'accept' : 'reject';
+            fetch('/mobile/networks/api/connection-requests/'+reqId+'/'+action, {method:'POST'})
+                .then(function(){ window.location.reload(); });
+        }
+
+        function sendConnect(targetUserId) {
+            fetch('/mobile/networks/api/'+networkId+'/connect/'+targetUserId, {method:'POST'})
+                .then(function(r){ return r.text(); })
+                .then(function(){ alert('Connection request sent!'); window.location.reload(); })
+                .catch(function(){ alert('Failed to send request.'); });
+        }
+
+        function submitPost() {
+            var content = document.getElementById('new-post-content').value.trim();
+            if (!content) return;
+            var fd = new FormData();
+            fd.append('content', content);
+            fetch('/mobile/networks/api/'+networkId+'/posts', {method:'POST', body: fd})
+                .then(function(){ window.location.reload(); });
+        }
+
+        // Add member modal
+        var addMemberModal = document.getElementById('add-member-modal');
+        if (addMemberModal) {
+            document.querySelectorAll('[onclick="document.getElementById(\'add-member-modal\').classList.add(\'active\')"]').forEach(function(btn){
+                btn.addEventListener('click', function(){
+                    addMemberModal.style.display = 'block';
+                    loadAvailableMembers();
+                });
+            });
+        }
+
+        function loadAvailableMembers() {
+            fetch('/mobile/networks/api/'+networkId+'/available-members')
+                .then(function(r){ return r.json(); })
+                .then(function(users) {
+                    var list = document.getElementById('available-members-list');
+                    if (!users.length) { list.innerHTML='<p style="text-align:center;color:#9ca3af;font-size:14px">All community members are already in this network.</p>'; return; }
+                    list.innerHTML = users.map(function(u){
+                        var name = (u.firstName||'') + ' ' + (u.lastName||'');
+                        var ini = (u.firstName||u.email||'U').charAt(0).toUpperCase();
+                        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6">'
+                            +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0">'+ini+'</div>'
+                            +'<div style="flex:1"><div style="font-size:14px;font-weight:600;color:#1f2937">'+name.trim()+'</div><div style="font-size:12px;color:#9ca3af">'+u.email+'</div></div>'
+                            +'<button onclick="addMember(\''+u.userId+'\')" style="padding:7px 12px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Add</button>'
+                            +'</div>';
+                    }).join('');
+                });
+        }
+
+        function addMember(userId) {
+            fetch('/mobile/networks/api/'+networkId+'/members/'+userId, {method:'POST'})
+                .then(function(){ window.location.reload(); });
+        }
+
+        // time ago
+        document.querySelectorAll('[data-time]').forEach(function(el){
+            var d = new Date(el.getAttribute('data-time')), now = new Date(), s = Math.floor((now-d)/1000);
+            var m=Math.floor(s/60), h=Math.floor(m/60), dy=Math.floor(h/24);
+            if(dy>0) el.textContent = dy+' day'+(dy>1?'s':'')+' ago';
+            else if(h>0) el.textContent = h+' hr ago';
+            else if(m>0) el.textContent = m+' min ago';
+            else el.textContent = 'just now';
+        });
+    </script>
+</div>
+</body>
+</html>
+
+

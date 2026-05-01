@@ -122,6 +122,30 @@
                     <span class="text-xs text-gray-500 mt-1">Schedule & Events</span>
                 </a>
 
+                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/create-session}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.12s;">
+                        <span class="material-icons text-white text-xl">add_circle</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">New Session</span>
+                    <span class="text-xs text-gray-500 mt-1">Create Training</span>
+                </a>
+
+                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/create-meeting}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.14s;">
+                        <span class="material-icons text-white text-xl">video_call</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">New Meeting</span>
+                    <span class="text-xs text-gray-500 mt-1">Schedule Meeting</span>
+                </a>
+
+                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/events/create}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-pink-600 to-rose-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.16s;">
+                        <span class="material-icons text-white text-xl">celebration</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">New Event</span>
+                    <span class="text-xs text-gray-500 mt-1">Create Community Event</span>
+                </a>
+
                 <a th:href="@{/mobile/modules}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.2s;">
                         <span class="material-icons text-white text-xl">apps</span>
@@ -162,7 +186,7 @@
                     <span class="text-xs text-gray-500 mt-1">Donation History</span>
                 </a>
 
-                <a th:href="@{/mobile/support/my-tickets}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:href="@{/mobile/support/my-submitted-tickets}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-violet-950 to-violet-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.45s;">
                         <span class="material-icons text-white text-xl">confirmation_number</span>
                     </div>
@@ -170,7 +194,7 @@
                     <span class="text-xs text-gray-500 mt-1">Support Requests</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin or session.isSupportAdmin}" th:href="@{/mobile/support/agent/claim-ticket}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin or session.isAdmin or session.isSupportAdmin or session.isGroupAdmin}" th:href="@{/mobile/support/agent/claim-ticket}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-green-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.48s;">
                         <span class="material-icons text-white text-xl">support_agent</span>
                     </div>
@@ -184,6 +208,70 @@
                     </div>
                     <span class="text-sm font-semibold text-gray-800">Settings</span>
                     <span class="text-xs text-gray-500 mt-1">Preferences</span>
+                </a>
+
+                <a th:href="@{/mobile/networks}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.52s;">
+                        <span class="material-icons text-white text-xl">hub</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Networks</span>
+                    <span class="text-xs text-gray-500 mt-1">Social Circles</span>
+                </a>
+
+                <a th:href="@{/mobile/certificate}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.54s;">
+                        <span class="material-icons text-white text-xl">workspace_premium</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Certificates</span>
+                    <span class="text-xs text-gray-500 mt-1">My Achievements</span>
+                </a>
+
+                <a th:href="@{/mobile/invoice}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.56s;">
+                        <span class="material-icons text-white text-xl">receipt_long</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Invoices</span>
+                    <span class="text-xs text-gray-500 mt-1">Billing & Payments</span>
+                </a>
+
+                <a th:href="@{/mobile/my-groups}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-violet-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.58s;">
+                        <span class="material-icons text-white text-xl">group</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">My Groups</span>
+                    <span class="text-xs text-gray-500 mt-1">All Your Groups</span>
+                </a>
+
+                <a th:href="@{/mobile/support/my-submitted-tickets}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-sky-600 to-blue-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.60s;">
+                        <span class="material-icons text-white text-xl">headset_mic</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Support</span>
+                    <span class="text-xs text-gray-500 mt-1">My Tickets</span>
+                </a>
+
+                <a th:if="${session.isCommunityAdmin or session.isAdmin or session.isSupportAdmin}" th:href="@{/mobile/support/dashboard}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.62s;">
+                        <span class="material-icons text-white text-xl">support_agent</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Agent Dashboard</span>
+                    <span class="text-xs text-gray-500 mt-1">Support Mgmt</span>
+                </a>
+
+                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/admin/approvals}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-teal-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.64s;">
+                        <span class="material-icons text-white text-xl">how_to_reg</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Approvals</span>
+                    <span class="text-xs text-gray-500 mt-1">Membership Requests</span>
+                </a>
+
+                <a th:if="${session.isAdmin}" th:href="@{/mobile/invoice/invoice-review}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                    <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.66s;">
+                        <span class="material-icons text-white text-xl">rate_review</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Invoice Review</span>
+                    <span class="text-xs text-gray-500 mt-1">Approve Invoices</span>
                 </a>
             </div>
 

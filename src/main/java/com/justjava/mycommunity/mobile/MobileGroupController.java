@@ -30,6 +30,20 @@ public class MobileGroupController {
     private final PostService postService;
     private final AuthenticationManager authenticationManager;
 
+    @GetMapping("/my-groups")
+    public String myGroups(Model model, HttpSession session) {
+        String currentUserId = (String) session.getAttribute("userId");
+        if (currentUserId == null) currentUserId = (String) authenticationManager.get("sub");
+        try {
+            List<Map<String, Object>> userGroups = communityGroupService.getUserCommunityGroupsAcrossAllCommunities(currentUserId);
+            model.addAttribute("userGroups", userGroups);
+        } catch (Exception e) {
+            model.addAttribute("userGroups", List.of());
+        }
+        model.addAttribute("currentPath", "/my-groups");
+        return "mobile-my-groups";
+    }
+
     @GetMapping("/group")
     public String mobileGroupPage(@RequestParam Long id, Model model, HttpSession session) {
         try {
@@ -97,6 +111,9 @@ public class MobileGroupController {
             model.addAttribute("community", normalizedCommunity);
             model.addAttribute("userId", currentUserId);
             model.addAttribute("isAdmin", isAdmin);
+            // Group admin check
+            boolean isGroupAdmin = communityGroupService.isUserGroupAdmin(currentUserId, id);
+            model.addAttribute("isGroupAdmin", isGroupAdmin);
 
         } catch (Exception e) {
             model.addAttribute("error", "Unable to load group at this time. Please try again later.");

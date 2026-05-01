@@ -1,6 +1,7 @@
 package com.justjava.mycommunity.account;
 
 import com.justjava.mycommunity.chat.entity.User;
+import com.justjava.mycommunity.community.repository.CommunityGroupMembershipRepository;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -12,11 +13,14 @@ import org.springframework.stereotype.Service;
 public class AuthenticationManager {
     private final UserRepository userRepository;
     private final CommunityMembershipRepository communityMembershipRepository;
+    private final CommunityGroupMembershipRepository communityGroupMembershipRepository;
 
     public AuthenticationManager(UserRepository userRepository,
-                                 CommunityMembershipRepository communityMembershipRepository) {
+                                 CommunityMembershipRepository communityMembershipRepository,
+                                 CommunityGroupMembershipRepository communityGroupMembershipRepository) {
         this.userRepository = userRepository;
         this.communityMembershipRepository = communityMembershipRepository;
+        this.communityGroupMembershipRepository = communityGroupMembershipRepository;
     }
 
     public Object get(String fieldName){
@@ -94,6 +98,16 @@ public class AuthenticationManager {
             String userId = (String) get("sub");
             if (userId == null) return false;
             return communityMembershipRepository.isUserAdminOfAnyCommunity(userId);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Boolean isGroupAdmin() {
+        try {
+            String userId = (String) get("sub");
+            if (userId == null) return false;
+            return !communityGroupMembershipRepository.findAdminGroupIdsByUserId(userId).isEmpty();
         } catch (Exception e) {
             return false;
         }

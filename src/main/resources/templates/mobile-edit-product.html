@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Product / Service</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="margin-bottom:16px;">
+        <a th:href="@{/products/mobile}" style="font-size:13px;color:#4f46e5;text-decoration:none;">← Back to Products</a>
+    </div>
+
+    <h1 style="font-size:1.3rem;font-weight:700;color:#1f2937;margin:0 0 20px 0;">Edit Product / Service</h1>
+
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <form th:action="'/products/mobile/edit/' + ${product.id}" method="post" enctype="multipart/form-data">
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Product Name <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="name" required th:value="${product.name}"
+                       style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Description <span style="color:#ef4444;">*</span></label>
+                <textarea name="description" required rows="4"
+                          style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;resize:vertical;box-sizing:border-box;"
+                          th:text="${product.description}"></textarea>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Price ($) <span style="color:#ef4444;">*</span></label>
+                <input type="number" name="price" required min="0" step="0.01" th:value="${product.price}"
+                       style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;">
+            </div>
+
+            <!-- Current Image Preview -->
+            <div th:if="${product.imageUrl}" style="margin-bottom:14px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">Current Image</label>
+                <img th:src="${product.imageUrl}" th:alt="${product.name}"
+                     style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;border:2px solid #e5e7eb;">
+                <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:#6b7280;">
+                    <input type="checkbox" name="removeImage" value="true"> Remove current image
+                </label>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+                    <span th:text="${product.imageUrl} ? 'Replace Image (optional)' : 'Product Image (optional)'">Product Image</span>
+                </label>
+                <input type="file" name="image" accept="image/*"
+                       style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:13px;box-sizing:border-box;">
+            </div>
+
+            <button type="submit"
+                    style="width:100%;padding:14px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

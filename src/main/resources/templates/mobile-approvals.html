@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Membership Approvals</title>
+    <style>
+        .ap-card { background:white; border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06); border:1px solid #f3f4f6; margin-bottom:14px; }
+        .ap-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:17px; flex-shrink:0; }
+        .ap-badge { font-size:11px; font-weight:600; padding:3px 8px; border-radius:9999px; }
+        .ap-private { background:#fef3c7; color:#92400e; }
+        .ap-public  { background:#dcfce7; color:#166534; }
+        .ap-btn { padding:10px; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; flex:1; }
+        .ap-approve { background:#dcfce7; color:#166534; }
+        .ap-reject  { background:#fee2e2; color:#991b1b; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;padding:20px;margin-bottom:20px;color:white;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <h1 style="font-size:1.3rem;font-weight:700;margin:0 0 4px 0;">Membership Approvals</h1>
+                <p style="font-size:13px;opacity:0.85;margin:0;">Review pending community join requests</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.25);border-radius:9999px;padding:6px 14px;font-size:13px;font-weight:600;" th:text="${pendingCount} + ' Pending'">0 Pending</div>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${successMessage}" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;">
+        ✓ <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;">
+        ✗ <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${#lists.isEmpty(pendingTasks)}"
+         style="text-align:center;padding:60px 20px;background:white;border-radius:16px;border:2px dashed #e5e7eb;">
+        <div style="font-size:3rem;margin-bottom:12px;">✅</div>
+        <h3 style="font-size:16px;font-weight:600;color:#374151;margin:0 0 6px 0;">All caught up!</h3>
+        <p style="font-size:13px;color:#6b7280;margin:0;">No pending membership requests right now.</p>
+    </div>
+
+    <!-- Task cards -->
+    <div th:each="task : ${pendingTasks}" class="ap-card">
+        <div style="padding:16px;">
+            <!-- Requester info -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <div class="ap-avatar"
+                     th:text="${(task.firstName != null ? #strings.substring(task.firstName,0,1) : 'U') + (task.lastName != null ? #strings.substring(task.lastName,0,1) : '')}">U</div>
+                <div style="flex:1;">
+                    <div style="font-size:15px;font-weight:600;color:#1f2937;" th:text="${(task.firstName ?: '') + ' ' + (task.lastName ?: '')}">Name</div>
+                    <div style="font-size:12px;color:#6b7280;" th:text="${'ID: ' + task.userId}">ID</div>
+                </div>
+            </div>
+
+            <!-- Community info -->
+            <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:12px;">
+                <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-bottom:6px;">Wants to join</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:14px;font-weight:600;color:#1f2937;" th:text="${task.communityName ?: 'Community #' + task.communityId}">Community</span>
+                    <span th:if="${task.private}" class="ap-badge ap-private">🔒 Private</span>
+                    <span th:unless="${task.private}" class="ap-badge ap-public">🌐 Public</span>
+                </div>
+                <div th:if="${task.communityDescription != null}" style="font-size:12px;color:#6b7280;margin-top:4px;" th:text="${task.communityDescription}">Description</div>
+            </div>
+
+            <!-- Action forms -->
+            <div style="display:flex;gap:8px;">
+                <form th:action="@{/mobile/admin/approvals/{id}(id=${task.taskId})}" method="post" style="flex:1;">
+                    <input type="hidden" name="decision" value="approve">
+                    <button type="submit" class="ap-btn ap-approve">✓ Approve</button>
+                </form>
+                <form th:action="@{/mobile/admin/approvals/{id}(id=${task.taskId})}" method="post" style="flex:1;">
+                    <input type="hidden" name="decision" value="reject">
+                    <button type="submit" class="ap-btn ap-reject">✗ Reject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

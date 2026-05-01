@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Support Dashboard</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="margin-bottom:20px;">
+        <h1 style="font-size:1.4rem;font-weight:700;color:#1f2937;margin:0 0 4px 0;">Support Dashboard</h1>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Overview of support tickets in your scope</p>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div style="background:white;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:2rem;font-weight:700;color:#4f46e5;" th:text="${unClaimedTicketSize}">0</div>
+            <div style="font-size:12px;color:#6b7280;font-weight:500;">Unclaimed Tickets</div>
+        </div>
+        <div style="background:white;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:2rem;font-weight:700;color:#10b981;" th:text="${myTicketSize}">0</div>
+            <div style="font-size:12px;color:#6b7280;font-weight:500;">My Submitted Tickets</div>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <a th:if="${canManageTickets}" th:href="@{/mobile/support/agent/claim-ticket}"
+           style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;padding:14px 16px;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;">
+            <span style="font-size:20px;">🛡️</span> Claim Queue (<span th:text="${unClaimedTicketSize}">0</span> available)
+        </a>
+        <a th:href="@{/mobile/support/my-tickets}"
+           style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;padding:14px 16px;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;">
+            <span style="font-size:20px;">📋</span> My Claimed Tickets
+        </a>
+        <a th:href="@{/mobile/support/my-submitted-tickets}"
+           style="display:flex;align-items:center;gap:12px;background:white;color:#374151;padding:14px 16px;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;border:1px solid #e5e7eb;">
+            <span style="font-size:20px;">📩</span> My Submitted Tickets
+        </a>
+    </div>
+
+    <!-- Unclaimed tickets preview -->
+    <div th:if="${canManageTickets and !#lists.isEmpty(unAssignedTickets)}">
+        <h2 style="font-size:15px;font-weight:700;color:#374151;margin:0 0 12px 0;">Unclaimed Tickets</h2>
+        <div th:each="ticket, iter : ${unAssignedTickets}" th:if="${iter.index < 5}"
+             style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.05);border:1px solid #f3f4f6;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:12px;color:#9ca3af;" th:text="${'#TKT-' + ticket.id}">#TKT-1</span>
+                <span th:text="${ticket.status}" style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:9999px;background:#DEF7EC;color:#046C4E;"></span>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:8px;" th:text="${ticket.subject}">Subject</div>
+            <a th:href="@{/mobile/support/agent/claim-ticket/{id}(id=${ticket.id})}"
+               style="display:block;text-align:center;padding:8px;background:#f3f4f6;border-radius:8px;font-size:13px;color:#4f46e5;font-weight:500;text-decoration:none;">
+                View &amp; Claim →
+            </a>
+        </div>
+        <a th:href="@{/mobile/support/agent/claim-ticket}"
+           style="display:block;text-align:center;padding:12px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;font-size:14px;color:#4f46e5;font-weight:500;text-decoration:none;">
+            View All Unclaimed Tickets
+        </a>
+    </div>
+</div>
+</body>
+</html>
+

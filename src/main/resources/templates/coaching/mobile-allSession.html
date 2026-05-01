@@ -366,8 +366,16 @@
             </div>
 
             <div class="session-actions">
-                <button class="action-btn secondary">View Details</button>
-                <button class="action-btn primary">Edit</button>
+                <a th:if="${single.sessionType == 'recorded' and single.videoLink != null}"
+                   th:href="@{/mobile/recorded-session/__${single.id}__}"
+                   class="action-btn primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+                    <span class="material-icons" style="font-size:14px">play_circle</span> Watch
+                </a>
+                <a th:if="${single.hasCertificate}"
+                   th:href="@{/mobile/certificate}"
+                   class="action-btn secondary" style="text-decoration:none">Certificate</a>
+                <span th:if="${single.sessionType != 'recorded' or single.videoLink == null}"
+                      class="action-btn secondary">View Details</span>
             </div>
         </article>
     </div>

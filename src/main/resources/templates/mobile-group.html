@@ -53,6 +53,16 @@
         .mg-member-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;margin-right:12px;flex-shrink:0}
         .mg-member-name{font-weight:500;color:#374151;font-size:14px}
         .mg-member-email{font-size:12px;color:#9ca3af}
+        .mg-member-actions{display:flex;gap:6px;margin-left:auto}
+        .mg-action-btn{padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer}
+        .mg-action-promote{background:#dbeafe;color:#1e40af}
+        .mg-action-demote{background:#fef3c7;color:#92400e}
+        .mg-action-remove{background:#fee2e2;color:#991b1b}
+        .mg-admin-section{background:#f0f9ff;border:1px solid #bae6fd;border-radius:14px;padding:14px;margin-bottom:12px}
+        .mg-invite-row{display:flex;gap:8px;margin-top:10px}
+        .mg-invite-input{flex:1;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px}
+        .mg-invite-input:focus{outline:none;border-color:#2A2494}
+        .mg-invite-submit{padding:10px 14px;background:linear-gradient(135deg,#2A2494,#3730a3);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
         .mg-empty{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;color:#9ca3af}
         .mg-empty-icon{width:48px;height:48px;margin-bottom:16px;color:#d1d5db}
         .mg-error{background:#fef2f2;border:1px solid #fecaca;border-radius:16px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;color:#dc2626;font-size:14px}
@@ -178,6 +188,21 @@
                 <div class="mg-icon"><svg style="width:16px;height:16px" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg></div>
                 <h2 class="mg-section-title">Group Members</h2>
             </div>
+
+            <!-- Admin Management Panel -->
+            <div th:if="${isGroupAdmin == true or isAdmin == true}" class="mg-admin-section" id="admin-panel">
+                <div style="font-size:13px;font-weight:700;color:#0369a1;margin-bottom:8px">
+                    <span class="material-icons" style="font-size:15px;vertical-align:middle;margin-right:4px">admin_panel_settings</span>
+                    Group Admin Controls
+                </div>
+                <div id="mgmt-feedback" class="hidden mt-1 text-sm" style="margin-bottom:6px"></div>
+                <!-- Invite by User ID -->
+                <div class="mg-invite-row">
+                    <input type="text" id="invite-user-id-input" class="mg-invite-input" placeholder="Enter User ID to invite..."/>
+                    <button class="mg-invite-submit" onclick="inviteMember()">Invite</button>
+                </div>
+            </div>
+
             <div th:if="${groupMembers == null || #lists.isEmpty(groupMembers)}" class="mg-empty">
                 <svg class="mg-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <h3 style="font-size:16px;font-weight:600;color:#374151;margin-bottom:4px">No members yet</h3>
@@ -185,15 +210,69 @@
             <div th:if="${groupMembers != null && !#lists.isEmpty(groupMembers)}">
                 <div th:each="member, iterStat : ${groupMembers}" th:if="${iterStat.index < 5}" class="mg-member-item">
                     <div class="mg-member-avatar"><span th:text="${#strings.substring(member.firstName != null ? member.firstName : member.email, 0, 1) + #strings.substring(member.lastName != null ? member.lastName : '', 0, 1)}">U</span></div>
-                    <div>
+                    <div style="flex:1">
                         <div class="mg-member-name" th:text="${member.firstName != null and member.lastName != null ? member.firstName + ' ' + member.lastName : member.email}">Name</div>
                         <div class="mg-member-email" th:text="${member.email}">email</div>
+                    </div>
+                    <!-- Admin action buttons -->
+                    <div th:if="${(isGroupAdmin == true or isAdmin == true) and member.userId != userId}" class="mg-member-actions">
+                        <button th:if="${member.role != 'ADMIN'}" class="mg-action-btn mg-action-promote" th:attr="onclick='promoteMember(\'' + ${member.userId} + '\')'">Make Admin</button>
+                        <button th:if="${member.role == 'ADMIN'}" class="mg-action-btn mg-action-demote" th:attr="onclick='demoteMember(\'' + ${member.userId} + '\')'">Remove Admin</button>
+                        <button class="mg-action-btn mg-action-remove" th:attr="onclick='removeMember(\'' + ${member.userId} + '\')'">Remove</button>
                     </div>
                 </div>
                 <button th:if="${groupMembers != null && #lists.size(groupMembers) > 0}" id="view-all-members-btn" style="width:100%;margin-top:12px;padding:12px;background:#f3f4f6;border:none;border-radius:12px;font-size:14px;font-weight:500;color:#374151;cursor:pointer">
                     View All Members (<span th:text="${#lists.size(groupMembers)}">0</span>)
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Support Ticket Card -->
+    <div style="background:white;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid #eef2ff;padding:16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:40px;height:40px;background:#eef2ff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span class="material-icons" style="color:#4f46e5;">headset_mic</span>
+            </div>
+            <div>
+                <h2 style="font-size:15px;font-weight:700;color:#1f2937;margin:0;">Need Help?</h2>
+                <p style="font-size:12px;color:#6b7280;margin:0;">Create a support ticket for this group</p>
+            </div>
+        </div>
+        <button id="group-support-btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">
+            + Create Support Ticket
+        </button>
+        <a th:href="@{/mobile/support/my-submitted-tickets}" style="display:block;text-align:center;margin-top:10px;font-size:13px;color:#4f46e5;text-decoration:none;">View My Tickets</a>
+    </div>
+
+    <!-- Group Support Ticket Modal -->
+    <div id="group-support-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;justify-content:center;align-items:flex-end;">
+        <div style="background:white;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 -10px 25px rgba(0,0,0,0.15);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:#1f2937;">Create Support Ticket</h3>
+                <button id="close-group-support-modal" style="background:none;border:none;cursor:pointer;padding:4px;">
+                    <svg style="width:20px;height:20px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form hx-post="/mobile/support/submit-request" hx-target="#mg-ticket-feedback" hx-swap="innerHTML" id="mgTicketForm">
+                <input type="hidden" name="communityId" th:value="${community?.id}">
+                <input type="hidden" name="communityGroupId" th:value="${group?.id}">
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Subject</label>
+                    <input type="text" name="subject" placeholder="Brief summary of your issue" required
+                           style="width:100%;padding:12px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Description</label>
+                    <textarea name="description" rows="4" placeholder="Provide details about your issue..." required
+                              style="width:100%;padding:12px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button type="submit" style="flex:1;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;padding:12px;border:none;border-radius:10px;font-weight:600;font-size:0.95rem;cursor:pointer;">Submit Ticket</button>
+                    <button type="button" id="cancel-group-support" style="padding:12px 18px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:10px;font-weight:500;cursor:pointer;">Cancel</button>
+                </div>
+            </form>
+            <div id="mg-ticket-feedback" style="margin-top:12px;"></div>
         </div>
     </div>
 
@@ -214,6 +293,7 @@
         /*<![CDATA[*/
         var groupId = /*[[${group?.id}]]*/ null;
         var groupMembersData = /*[[${groupMembers}]]*/ [];
+        var isGroupAdmin = /*[[${isGroupAdmin}]]*/ false;
         /*]]>*/
         document.addEventListener('DOMContentLoaded', function() {
             function formatTimeAgo(ds) {
@@ -252,6 +332,49 @@
             if(cm) cm.addEventListener('click',function(){mm.classList.remove('active');document.body.style.overflow='auto'});
             if(mm) mm.addEventListener('click',function(e){if(e.target===mm){mm.classList.remove('active');document.body.style.overflow='auto'}});
         });
+
+        // Group admin management functions
+        function showMgmtFeedback(msg, isSuccess) {
+            var fb = document.getElementById('mgmt-feedback');
+            if (!fb) return;
+            fb.classList.remove('hidden','text-red-600','text-green-700');
+            fb.classList.add(isSuccess ? 'text-green-700' : 'text-red-600');
+            fb.textContent = msg;
+            fb.classList.remove('hidden');
+        }
+        function groupAdminAction(action, targetUserId, successMsg) {
+            fetch('/api/group/'+groupId+'/'+action, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'targetUserId='+encodeURIComponent(targetUserId)
+            }).then(function(r){return r.json()}).then(function(d){
+                if (d.success) { showMgmtFeedback(d.message || successMsg, true); setTimeout(function(){location.reload()},1000); }
+                else { showMgmtFeedback(d.message || 'Action failed', false); }
+            }).catch(function(){ showMgmtFeedback('Request failed. Please try again.', false); });
+        }
+        function promoteMember(userId) { if(confirm('Promote this member to Group Admin?')) groupAdminAction('promote', userId, 'Member promoted!'); }
+        function demoteMember(userId)  { if(confirm('Remove admin privileges from this member?')) groupAdminAction('demote', userId, 'Admin demoted!'); }
+        function removeMember(userId)  { if(confirm('Remove this member from the group?')) groupAdminAction('remove', userId, 'Member removed!'); }
+        function inviteMember() {
+            var input = document.getElementById('invite-user-id-input');
+            var targetUserId = input ? input.value.trim() : '';
+            if (!targetUserId) { showMgmtFeedback('Please enter a user ID', false); return; }
+            fetch('/api/group/'+groupId+'/invite', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'targetUserId='+encodeURIComponent(targetUserId)
+            }).then(function(r){return r.json()}).then(function(d){
+                if (d.success) { showMgmtFeedback(d.message || 'Invitation sent!', true); if(input) input.value=''; }
+                else { showMgmtFeedback(d.message || 'Invite failed', false); }
+            }).catch(function(){ showMgmtFeedback('Request failed.', false); });
+        }
+
+        // Group support ticket modal
+        var gsm = document.getElementById('group-support-modal');
+        document.getElementById('group-support-btn').addEventListener('click', function(){ gsm.style.display='flex'; document.body.style.overflow='hidden'; });
+        document.getElementById('close-group-support-modal').addEventListener('click', function(){ gsm.style.display='none'; document.body.style.overflow='auto'; });
+        document.getElementById('cancel-group-support').addEventListener('click', function(){ gsm.style.display='none'; document.body.style.overflow='auto'; });
+        gsm.addEventListener('click', function(e){ if(e.target===gsm){ gsm.style.display='none'; document.body.style.overflow='auto'; } });
     </script>
 </div>
 </body>

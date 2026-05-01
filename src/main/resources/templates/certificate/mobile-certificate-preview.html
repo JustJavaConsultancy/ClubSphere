@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Preview</title>
+    <style>
+        .cert-container { padding: 8px; }
+        .cert-actions { display:flex; gap:12px; margin-bottom:16px; }
+        .cert-btn { padding:10px 20px; border-radius:12px; font-weight:600; font-size:14px; border:none; cursor:pointer; text-decoration:none; display:inline-block; }
+        .cert-btn-primary { background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; }
+        .cert-btn-secondary { background:#f3f4f6; color:#374151; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="cert-container">
+        <div style="margin-bottom:20px;">
+            <a th:href="@{/mobile/certificate}" class="cert-btn cert-btn-secondary">← Back to Certificates</a>
+        </div>
+
+        <div th:if="${error}" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:16px;border-radius:12px;margin-bottom:16px;" th:text="${error}"></div>
+
+        <div th:if="${certificateHtml != null and !certificateHtml.isEmpty()}"
+             style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+            <div th:utext="${certificateHtml}"></div>
+        </div>
+
+        <div th:if="${certificateHtml == null or certificateHtml.isEmpty()}"
+             style="text-align:center;padding:60px 20px;background:white;border-radius:16px;">
+            <div style="font-size:3rem;margin-bottom:12px;">📜</div>
+            <h3 style="font-size:16px;font-weight:600;color:#374151;">No Certificate Available</h3>
+            <p style="font-size:13px;color:#6b7280;">This session does not have a certificate attached.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

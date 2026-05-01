@@ -524,6 +524,57 @@ public class MobileCommunityController {
         return "true".equals(hxRequest);
     }
 
+    @PostMapping("/invite")
+    public String inviteMember(@RequestParam("userId") String userId,
+                               @RequestParam("communityId") Long communityId,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            communityService.inviteUserToCommunity(userId, communityId);
+            redirectAttributes.addFlashAttribute("successMessage", "Invitation sent successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error sending invitation: " + e.getMessage());
+        }
+        return "redirect:/mobile/my-community";
+    }
+
+    @PostMapping("/groups/{id}/edit")
+    public String editGroup(@PathVariable Long id,
+                            @RequestParam("groupName") String name,
+                            @RequestParam("groupDescription") String description,
+                            @RequestParam(value = "communityId", required = false) Long communityId,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            if (!authenticationManager.isAdmin()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Only administrators can edit groups.");
+                return "redirect:/mobile/my-community";
+            }
+            CreateChatDTO dto = new CreateChatDTO();
+            dto.setGroupName(name);
+            dto.setGroupDescription(description);
+            dto.setCommunityId(communityId);
+            communityGroupService.updateCommunityGroup(dto, id);
+            redirectAttributes.addFlashAttribute("successMessage", "Group updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating group: " + e.getMessage());
+        }
+        return "redirect:/mobile/my-community";
+    }
+
+    @PostMapping("/groups/{id}/delete")
+    public String deleteGroup(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            if (!authenticationManager.isAdmin()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Only administrators can delete groups.");
+                return "redirect:/mobile/my-community";
+            }
+            communityGroupService.deleteCommunityGroup(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Group deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting group: " + e.getMessage());
+        }
+        return "redirect:/mobile/my-community";
+    }
+
     @GetMapping("/groups")
     public String getGroupsList(Model model) {
         try {

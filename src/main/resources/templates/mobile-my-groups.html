@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{mobile-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>My Groups</title>
+    <style>
+        .mg-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border:1px solid #f3f4f6; }
+        .mg-avatar { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#4f46e5,#7c3aed); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px; flex-shrink:0; }
+        .mg-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:9999px; background:#ede9fe; color:#5b21b6; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div style="margin-bottom:20px;">
+        <h1 style="font-size:1.4rem;font-weight:700;color:#1f2937;margin:0 0 4px 0;">My Groups</h1>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Groups you belong to across all communities</p>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${userGroups == null or #lists.isEmpty(userGroups)}"
+         style="text-align:center;padding:60px 20px;background:white;border-radius:16px;border:2px dashed #e5e7eb;">
+        <div style="font-size:3rem;margin-bottom:12px;">👥</div>
+        <h3 style="font-size:16px;font-weight:600;color:#374151;margin:0 0 6px 0;">No groups yet</h3>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 16px 0;">You haven't joined any groups. Visit a community to request access to groups.</p>
+        <a th:href="@{/mobile/organizations}" style="display:inline-block;padding:10px 20px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">Browse Communities</a>
+    </div>
+
+    <!-- Groups list -->
+    <div th:unless="${userGroups == null or #lists.isEmpty(userGroups)}">
+        <div th:each="grp : ${userGroups}" class="mg-card">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div class="mg-avatar">
+                    <span th:text="${grp.groupName != null ? #strings.substring(grp.groupName, 0, 1).toUpperCase() : 'G'}">G</span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <h3 style="font-size:15px;font-weight:600;color:#1f2937;margin:0 0 2px 0;" th:text="${grp.groupName}">Group Name</h3>
+                        <span th:if="${grp.role != null}" class="mg-badge" th:text="${grp.role}">MEMBER</span>
+                    </div>
+                    <p style="font-size:12px;color:#6b7280;margin:0 0 4px 0;" th:if="${grp.communityName != null}">
+                        📍 <span th:text="${grp.communityName}">Community</span>
+                    </p>
+                    <p style="font-size:12px;color:#9ca3af;margin:0;" th:if="${grp.groupDescription != null}" th:text="${grp.groupDescription}">Description</p>
+                </div>
+            </div>
+            <a th:href="@{/mobile/group(id=${grp.id})}"
+               style="display:block;width:100%;margin-top:12px;padding:10px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;font-weight:500;color:#4f46e5;text-align:center;text-decoration:none;box-sizing:border-box;">
+                View Group →
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

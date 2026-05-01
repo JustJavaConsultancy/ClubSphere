@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Ticket Submitted</title></head>
+<body>
+<div>
+    <!-- Error state -->
+    <div th:if="${error}" style="display:flex;flex-direction:column;align-items:center;padding:32px 16px;text-align:center;">
+        <div style="width:64px;height:64px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <svg style="width:32px;height:32px;color:#ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+        <h3 style="font-size:1.1rem;font-weight:700;color:#dc2626;margin:0 0 8px 0;">Could Not Submit Ticket</h3>
+        <p style="font-size:14px;color:#6b7280;margin:0 0 16px 0;" th:text="${error}">Error</p>
+    </div>
+
+    <!-- Success state -->
+    <div th:unless="${error}" style="display:flex;flex-direction:column;align-items:center;padding:32px 16px;text-align:center;">
+        <div style="width:64px;height:64px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <svg style="width:32px;height:32px;color:#16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h3 style="font-size:1.1rem;font-weight:700;color:#1f2937;margin:0 0 8px 0;">Request Submitted!</h3>
+        <p style="font-size:14px;color:#6b7280;margin:0 0 20px 0;">Your ticket has been created successfully.</p>
+        <a th:href="@{/mobile/support/my-submitted-tickets}"
+           style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">
+            View My Tickets
+        </a>
+    </div>
+</div>
+</body>
+</html>
+

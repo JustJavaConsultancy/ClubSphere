@@ -451,6 +451,7 @@ public class HomeController {
 
         boolean isCommunityAdmin = communityMembershipRepository.isUserAdminOfAnyCommunity(currentUserId);
         request.getSession().setAttribute("isCommunityAdmin", isCommunityAdmin);
+        request.getSession().setAttribute("isGroupAdmin", authenticationManager.isGroupAdmin());
 
         // Get user's communities for correct count
         List<Map<String, Object>> userCommunities = communityService.getUserCommunities(currentUserId);
@@ -480,10 +481,11 @@ public class HomeController {
         model.addAttribute("isAdmin",authenticationManager.isAdmin());
 
         // Load standalone community events (eventType = "EVENT") for the events card
+        // Only show events when the user is inside a specific community
         List<com.justjava.mycommunity.event.Event> communityEvents =
                 selectedCommunityId != null
                         ? eventService.getEventsFromUserCommunities(currentUserId, selectedCommunityId)
-                        : eventService.getEventsFromUserCommunities(currentUserId);
+                        : java.util.Collections.emptyList();
         model.addAttribute("communityEvents", communityEvents);
         // Check if user can post - community-aware check
         boolean canUserPost;
