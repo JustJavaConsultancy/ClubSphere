@@ -190,29 +190,27 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-			<plugin><!-- https://mvnrepository.com/artifact/com.google.cloud.tools/jib-maven-plugin -->
-				<groupId>com.google.cloud.tools</groupId>
-				<artifactId>jib-maven-plugin</artifactId>
-				<version>3.4.3</version>
-				<configuration>
-					<from>
-						<image>eclipse-temurin:21-jre-jammy</image>
-					</from>
-					<to>
-						<image>kazeemakinrinde/community</image>
-						<auth>
-							<username>kazeemakinrinde</username>
-							<password>020775Rashy!</password>
-						</auth>
-					</to>
-					<container>
-						<ports>
-							<port>8080</port>
-						</ports>
-						<format>OCI</format>
-					</container>
-				</configuration>
-			</plugin>
+			<plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.3</version>
+                <configuration>
+                    <from>
+                        <image>eclipse-temurin:21-jre-jammy</image>
+                    </from>
+                    <to>
+                        <image>kazeemakinrinde/csims</image>
+                        <!-- Remove hardcoded credentials -->
+                        <!-- <auth>...</auth> -->
+                    </to>
+                    <container>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                        <format>OCI</format>
+                    </container>
+                </configuration>
+            </plugin>
 
 		</plugins>
 	</build>
