@@ -2817,6 +2817,7 @@
         }
         function handleCommunityDonationResponse(event) {
             var response = event.detail.xhr.responseText;
+            if (!response || response.trim() === '') return; // Paystack redirect — let HTMX handle it
             var isSuccess = response.includes('successfully') || response.includes('text-green');
             if (isSuccess) {
                 closeDonateModal();

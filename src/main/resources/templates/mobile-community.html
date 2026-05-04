@@ -1796,6 +1796,13 @@
                 <input type="hidden" name="communityId" th:value="${communityId}">
                 <input type="hidden" name="source" value="mobile">
                 <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Select Event</label>
+                    <select name="eventId" style="width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:14px; font-size:15px; background-color:white;" required>
+                        <option value="" disabled selected>— Select an Event —</option>
+                        <option th:each="event : ${communityEvents}" th:value="${event.id}" th:text="${event.moduleName}"></option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Donation Amount</label>
                     <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
                            class="mobile-sub-amount-input" required>
@@ -3114,6 +3121,7 @@
         }
         function handleMobileCommunityDonationResponse(event) {
             var response = event.detail.xhr.responseText;
+            if (!response || response.trim() === '') return; // Paystack redirect — let HTMX handle it
             var isSuccess = response.includes('successfully') || response.includes('text-green');
             if (isSuccess) {
                 closeMobileDonateModal();

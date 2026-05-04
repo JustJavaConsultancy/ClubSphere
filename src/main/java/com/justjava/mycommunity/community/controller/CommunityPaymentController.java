@@ -113,9 +113,9 @@ public class CommunityPaymentController {
             redirectAttributes.addFlashAttribute("errorMessage", "Subscription could not be completed: " + e.getMessage());
         }
         if ("mobile".equals(source)) {
-            return "redirect:/mobile/my-community";
+            return "redirect:/subscription/mobile/my-subscriptions";
         }
-        return "redirect:/my-community?communityId=" + communityId;
+        return "redirect:/subscription/my-subscriptions";
     }
 
     // 🔹 Cancel subscription
@@ -264,9 +264,9 @@ public class CommunityPaymentController {
             redirectAttributes.addFlashAttribute("errorMessage", "Donation could not be completed: " + e.getMessage());
         }
         if ("mobile".equals(source)) {
-            return "redirect:/mobile/my-community";
+            return "redirect:/donation/mobile/my-donations";
         }
-        return "redirect:/my-community?communityId=" + communityId;
+        return "redirect:/donation/my-donations";
     }
 
     // 🔹 Admin: community donations JSON (for HTMX / JS)

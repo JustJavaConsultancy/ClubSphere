@@ -14,6 +14,7 @@ import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
+import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.network.NetworkService;
 import com.justjava.mycommunity.posts.PostService;
 import com.justjava.mycommunity.userManagement.UserDTO;
@@ -40,7 +41,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MobileCommunityController {
 
-    private final ChatService chatService;
+    private final EventService eventService;    private final ChatService chatService;
     private final CommunityService communityService;
     private final NetworkService networkService;
     private final CommunityGroupService communityGroupService;
@@ -165,6 +166,13 @@ public class MobileCommunityController {
                 System.out.println("Mobile - Error checking subscription status: " + e.getMessage());
             }
             model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+
+            // Events for donation selector
+            try {
+                model.addAttribute("communityEvents", eventService.getCommunityDonationEvents(communityId));
+            } catch (Exception e) {
+                model.addAttribute("communityEvents", new ArrayList<>());
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
