@@ -36,6 +36,13 @@ public class InvoiceController {
     @Value("${app.base.url}")
     private String baseUrl;
 
+    @jakarta.annotation.PostConstruct
+    public void normalizeBaseUrl() {
+        if (baseUrl != null && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
+    }
+
     @Value("${account.bank}")
     private String recipientBank;
 

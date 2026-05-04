@@ -42,6 +42,13 @@ public class MobileInvoiceController {
     @Value("${app.base.url}")
     private String baseUrl;
 
+    @jakarta.annotation.PostConstruct
+    public void normalizeBaseUrl() {
+        if (baseUrl != null && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
+    }
+
     public MobileInvoiceController(AuthenticationManager authenticationManager,
                                    CustomProcessService processService,
                                    InvoiceService invoiceService,

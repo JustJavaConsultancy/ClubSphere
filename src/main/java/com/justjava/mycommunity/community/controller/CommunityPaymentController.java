@@ -5,6 +5,7 @@ import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.community.CommunityService;
 import com.justjava.mycommunity.invoice.PaystackService;
 import com.justjava.mycommunity.userManagement.UserRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.runtime.Execution;
@@ -35,6 +36,13 @@ public class CommunityPaymentController {
 
     @Value("${app.base.url}")
     private String baseUrl;
+
+    @PostConstruct
+    public void normalizeBaseUrl() {
+        if (baseUrl != null && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
+    }
 
     @PostMapping("/subscription/webhook/payment")
     public void handleWebhook(@RequestBody Map<String, Object> payload) {
