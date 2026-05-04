@@ -586,6 +586,7 @@
                   hx-swap="innerHTML"
                   onsubmit="closeMobileSubscribeModal()">
                 <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                <input type="hidden" name="source" value="mobile">
                 <div style="margin-bottom:16px;">
                     <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Monthly Amount</label>
                     <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
@@ -618,6 +619,7 @@
                   hx-on::after-request="handleDonationResponse(event, 'closeMobileDonateModal')">
                 <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
                 <input type="hidden" name="eventId" id="mobileDonateModalEventId">
+                <input type="hidden" name="source" value="mobile">
                 <div style="margin-bottom:16px;">
                     <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Donation Amount</label>
                     <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"

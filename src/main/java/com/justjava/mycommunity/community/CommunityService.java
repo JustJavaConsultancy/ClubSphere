@@ -1007,6 +1007,11 @@ public class CommunityService {
 
     @Transactional
     public void startSubscription(String userId, Long communityId, BigDecimal amount) {
+        startSubscription(userId, communityId, amount, null);
+    }
+
+    @Transactional
+    public void startSubscription(String userId, Long communityId, BigDecimal amount, String paystackRef) {
 
         // Validate membership
         boolean isMember = communityMembershipRepository
@@ -1043,7 +1048,7 @@ public class CommunityService {
         tx.setAmount(amount);
         tx.setType(PaymentType.SUBSCRIPTION);
         tx.setStatus(PaymentStatus.SUCCESS);
-        tx.setProviderRef("SUB-" + sub.getId());
+        tx.setProviderRef(paystackRef != null ? paystackRef : "SUB-" + sub.getId());
         tx.setCreatedAt(java.time.LocalDateTime.now());
         paymentTransactionRepository.save(tx);
     }
@@ -1166,6 +1171,11 @@ public class CommunityService {
 
     @Transactional
     public void makeDonation(String userId, Long communityId, Long eventId, BigDecimal amount, String message) {
+        makeDonation(userId, communityId, eventId, amount, message, null);
+    }
+
+    @Transactional
+    public void makeDonation(String userId, Long communityId, Long eventId, BigDecimal amount, String message, String paystackRef) {
 
         // Validate membership
         boolean isMember = communityMembershipRepository
@@ -1208,7 +1218,7 @@ public class CommunityService {
         tx.setAmount(amount);
         tx.setType(PaymentType.DONATION);
         tx.setStatus(PaymentStatus.SUCCESS);
-        tx.setProviderRef("DON-" + donation.getId());
+        tx.setProviderRef(paystackRef != null ? paystackRef : "DON-" + donation.getId());
         tx.setCreatedAt(java.time.LocalDateTime.now());
         paymentTransactionRepository.save(tx);
     }

@@ -1,17 +1,25 @@
 package com.justjava.mycommunity.community.controller;
 
 import com.justjava.mycommunity.account.AuthenticationManager;
+import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.invoice.PaystackService;
+import com.justjava.mycommunity.userManagement.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.runtime.Execution;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +30,11 @@ public class CommunityPaymentController {
     private final RuntimeService runtimeService;
     private final CommunityService communityService;
     private final AuthenticationManager authenticationManager;
+    private final PaystackService paystackService;
+    private final UserRepository userRepository;
+
+    @Value("${app.base.url}")
+    private String baseUrl;
 
     @PostMapping("/subscription/webhook/payment")
     public void handleWebhook(@RequestBody Map<String, Object> payload) {
@@ -39,24 +52,70 @@ public class CommunityPaymentController {
         );
     }
 
-    // 🔹 Subscribe (HTMX — called from community page)
+    // 🔹 Subscribe (HTMX — initializes Paystack payment)
     @PostMapping("/subscription/subscribe")
-    @ResponseBody
-    public String subscribe(@RequestParam("communityId") Long communityId,
-                            @RequestParam("amount") BigDecimal amount) {
+    public ResponseEntity<String> subscribe(@RequestParam("communityId") Long communityId,
+                                            @RequestParam("amount") BigDecimal amount,
+                                            @RequestParam(value = "source", defaultValue = "web") String source) {
         try {
             String userId = (String) authenticationManager.get("sub");
+            User user = userRepository.findByUserId(userId);
+            String email = (user != null && user.getEmail() != null)
+                    ? user.getEmail()
+                    : userId + "@clubsphere.app";
 
-            communityService.startSubscription(userId, communityId, amount);
+            String reference = "SUB-" + communityId + "-" + System.currentTimeMillis();
+            String callbackUrl = baseUrl + "/subscription/payment-callback?communityId=" + communityId
+                    + "&amount=" + amount + "&source=" + source;
 
-            return "<div class='text-green-600 font-medium'>✅ Subscription started successfully!</div>";
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("type", "SUBSCRIPTION");
+            metadata.put("userId", userId);
+            metadata.put("communityId", communityId);
+
+            Map<String, Object> paymentData = paystackService.initializePayment(email, amount, reference, callbackUrl, metadata);
+            String authUrl = (String) paymentData.get("authorization_url");
+
+            return ResponseEntity.ok()
+                    .header("HX-Redirect", authUrl)
+                    .body("");
         } catch (IllegalStateException e) {
-            return "<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>";
+            return ResponseEntity.ok("<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>");
         } catch (SecurityException e) {
-            return "<div class='text-red-600 font-medium'>❌ " + e.getMessage() + "</div>";
+            return ResponseEntity.ok("<div class='text-red-600 font-medium'>❌ " + e.getMessage() + "</div>");
         } catch (Exception e) {
-            return "<div class='text-red-600 font-medium'>❌ Error: " + e.getMessage() + "</div>";
+            return ResponseEntity.ok("<div class='text-red-600 font-medium'>❌ Error: " + e.getMessage() + "</div>");
         }
+    }
+
+    // 🔹 Subscription payment callback (Paystack redirects here after payment)
+    @GetMapping("/subscription/payment-callback")
+    public String subscriptionPaymentCallback(@RequestParam(required = false) String reference,
+                                              @RequestParam Long communityId,
+                                              @RequestParam BigDecimal amount,
+                                              @RequestParam(defaultValue = "web") String source,
+                                              RedirectAttributes redirectAttributes) {
+        try {
+            if (reference == null || reference.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment reference missing.");
+            } else {
+                Map<String, Object> paymentData = paystackService.verifyPayment(reference);
+                String status = (String) paymentData.get("status");
+                if ("success".equals(status)) {
+                    String userId = (String) authenticationManager.get("sub");
+                    communityService.startSubscription(userId, communityId, amount, reference);
+                    redirectAttributes.addFlashAttribute("successMessage", "✅ Subscription activated successfully!");
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
+                }
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Subscription could not be completed: " + e.getMessage());
+        }
+        if ("mobile".equals(source)) {
+            return "redirect:/mobile/my-community";
+        }
+        return "redirect:/my-community?communityId=" + communityId;
     }
 
     // 🔹 Cancel subscription
@@ -136,24 +195,78 @@ public class CommunityPaymentController {
 
     // ══════════════════ DONATIONS ══════════════════
 
-    // 🔹 Make a donation (HTMX — called from community page)
+    // 🔹 Make a donation (HTMX — initializes Paystack payment)
     @PostMapping("/donation/donate")
-    @ResponseBody
-    public String donate(@RequestParam("communityId") Long communityId,
-                         @RequestParam("eventId") Long eventId,
-                         @RequestParam("amount") BigDecimal amount,
-                         @RequestParam(value = "message", required = false) String message) {
+    public ResponseEntity<String> donate(@RequestParam("communityId") Long communityId,
+                                         @RequestParam("eventId") Long eventId,
+                                         @RequestParam("amount") BigDecimal amount,
+                                         @RequestParam(value = "message", required = false) String message,
+                                         @RequestParam(value = "source", defaultValue = "web") String source) {
         try {
             String userId = (String) authenticationManager.get("sub");
-            communityService.makeDonation(userId, communityId, eventId, amount, message);
-            return "<div class='text-green-600 font-medium'>✅ Donation made successfully! Thank you for your generosity.</div>";
+            User user = userRepository.findByUserId(userId);
+            String email = (user != null && user.getEmail() != null)
+                    ? user.getEmail()
+                    : userId + "@clubsphere.app";
+
+            String reference = "DON-" + communityId + "-" + eventId + "-" + System.currentTimeMillis();
+            String callbackUrl = baseUrl + "/donation/payment-callback?communityId=" + communityId
+                    + "&eventId=" + eventId + "&amount=" + amount + "&source=" + source;
+            if (message != null && !message.isBlank()) {
+                callbackUrl += "&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+            }
+
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("type", "DONATION");
+            metadata.put("userId", userId);
+            metadata.put("communityId", communityId);
+            metadata.put("eventId", eventId);
+
+            Map<String, Object> paymentData = paystackService.initializePayment(email, amount, reference, callbackUrl, metadata);
+            String authUrl = (String) paymentData.get("authorization_url");
+
+            return ResponseEntity.ok()
+                    .header("HX-Redirect", authUrl)
+                    .body("");
         } catch (IllegalArgumentException e) {
-            return "<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>";
+            return ResponseEntity.ok("<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>");
         } catch (SecurityException e) {
-            return "<div class='text-red-600 font-medium'>❌ " + e.getMessage() + "</div>";
+            return ResponseEntity.ok("<div class='text-red-600 font-medium'>❌ " + e.getMessage() + "</div>");
         } catch (Exception e) {
-            return "<div class='text-red-600 font-medium'>❌ Error: " + e.getMessage() + "</div>";
+            return ResponseEntity.ok("<div class='text-red-600 font-medium'>❌ Error: " + e.getMessage() + "</div>");
         }
+    }
+
+    // 🔹 Donation payment callback (Paystack redirects here after payment)
+    @GetMapping("/donation/payment-callback")
+    public String donationPaymentCallback(@RequestParam(required = false) String reference,
+                                          @RequestParam Long communityId,
+                                          @RequestParam Long eventId,
+                                          @RequestParam BigDecimal amount,
+                                          @RequestParam(required = false) String message,
+                                          @RequestParam(defaultValue = "web") String source,
+                                          RedirectAttributes redirectAttributes) {
+        try {
+            if (reference == null || reference.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment reference missing.");
+            } else {
+                Map<String, Object> paymentData = paystackService.verifyPayment(reference);
+                String status = (String) paymentData.get("status");
+                if ("success".equals(status)) {
+                    String userId = (String) authenticationManager.get("sub");
+                    communityService.makeDonation(userId, communityId, eventId, amount, message, reference);
+                    redirectAttributes.addFlashAttribute("successMessage", "✅ Donation successful! Thank you for your generosity.");
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
+                }
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Donation could not be completed: " + e.getMessage());
+        }
+        if ("mobile".equals(source)) {
+            return "redirect:/mobile/my-community";
+        }
+        return "redirect:/my-community?communityId=" + communityId;
     }
 
     // 🔹 Admin: community donations JSON (for HTMX / JS)
