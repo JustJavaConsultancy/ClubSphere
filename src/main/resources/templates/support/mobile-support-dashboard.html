@@ -29,7 +29,7 @@
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
         <a th:if="${canManageTickets}" th:href="@{/mobile/support/agent/claim-ticket}"
            style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;padding:14px 16px;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;">
-            <span style="font-size:20px;">🛡️</span> Claim Queue (<span th:text="${unClaimedTicketSize}">0</span> available)
+            <span style="font-size:20px;">📋</span> Unclaimed Tickets (<span th:text="${unClaimedTicketSize}">0</span> waiting)
         </a>
         <a th:href="@{/mobile/support/my-tickets}"
            style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;padding:14px 16px;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;">
@@ -43,8 +43,7 @@
 
     <!-- Unclaimed tickets preview -->
     <div th:if="${canManageTickets and !#lists.isEmpty(unAssignedTickets)}">
-        <h2 style="font-size:15px;font-weight:700;color:#374151;margin:0 0 12px 0;">Unclaimed Tickets</h2>
-        <div th:each="ticket, iter : ${unAssignedTickets}" th:if="${iter.index < 5}"
+        <h2 style="font-size:15px;font-weight:700;color:#374151;margin:0 0 12px 0;">Unclaimed Tickets</h2>        <div th:each="ticket, iter : ${unAssignedTickets}" th:if="${iter.index < 5}"
              style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.05);border:1px solid #f3f4f6;">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
                 <span style="font-size:12px;color:#9ca3af;" th:text="${'#TKT-' + ticket.id}">#TKT-1</span>

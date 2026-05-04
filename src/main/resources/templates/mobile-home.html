@@ -644,6 +644,35 @@
         </div>
     </div>
 
+    <!-- Mobile Event Detail Modal -->
+    <div id="mobileEventModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end;"
+         onclick="if(event.target===this) closeMobileEventModal()">
+        <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:85vh;overflow-y:auto;padding:24px 20px 32px;">
+            <div style="width:40px;height:4px;background:#d1d5db;border-radius:4px;margin:0 auto 16px;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                <h3 id="mobileEventModalTitle" style="font-size:18px;font-weight:700;color:#1f2937;margin:0;flex:1;"></h3>
+                <button onclick="closeMobileEventModal()" style="background:none;border:none;padding:4px;cursor:pointer;margin-left:8px;">
+                    <svg style="width:20px;height:20px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p id="mobileEventModalDate" style="font-size:13px;color:#6b7280;margin:0 0 8px 0;"></p>
+            <p id="mobileEventModalDesc" style="font-size:14px;color:#374151;margin:0 0 16px 0;line-height:1.5;"></p>
+            <div style="border-top:1px solid #f3f4f6;padding-top:14px;">
+                <h4 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 10px 0;">💝 Donations</h4>
+                <div id="mobileEventDonationsList" style="font-size:13px;color:#6b7280;">Loading...</div>
+                <div id="mobileEventDonationTotal" style="margin-top:10px;font-size:15px;font-weight:700;color:#16a34a;"></div>
+            </div>
+            <button type="button"
+                    id="mobileEventModalDonateBtn"
+                    onclick="closeMobileEventModal()"
+                    style="width:100%;margin-top:18px;background:linear-gradient(135deg,#ec4899,#db2777);color:white;padding:13px;border:none;border-radius:14px;font-weight:600;font-size:15px;cursor:pointer;">
+                ❤️ Donate to this Event
+            </button>
+        </div>
+    </div>
+
     <!-- Create Post Card (only for community admins/creators) -->
     <div th:if="${canUserPost}" class="mobile-card touch-feedback">
         <form hx-post="/mobile/create-post"
@@ -863,6 +892,41 @@
         </div>
     </div>
 
+    <!-- Community Events Section -->
+    <div class="mobile-card" th:if="${communityEvents != null and !#lists.isEmpty(communityEvents)}">
+        <div class="section-header">
+            <div class="section-icon" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8);">
+                <span class="material-icons" style="color:#db2777;">event</span>
+            </div>
+            <h2 class="section-title">Community Events</h2>
+        </div>
+        <div class="space-y-4">
+            <div th:each="evt : ${communityEvents}"
+                 style="background:#fafafa;border:1px solid #f3f4f6;border-radius:14px;padding:14px;cursor:pointer;"
+                 th:onclick="'openMobileEventModal(' + ${evt.id} + ', \'' + ${evt.title != null ? evt.title : evt.description} + '\', \'' + (${evt.description != null ? evt.description : ''}) + '\', \'' + (${evt.startDate != null ? evt.startDate : ''}) + '\')'"
+                 >
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                    <h3 style="font-size:15px;font-weight:600;color:#1f2937;margin:0;flex:1;"
+                        th:text="${evt.title != null ? evt.title : evt.description}">Event</h3>
+                    <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:9999px;background:#fce7f3;color:#db2777;margin-left:8px;">Event</span>
+                </div>
+                <p th:if="${evt.description != null}" style="font-size:13px;color:#6b7280;margin:0 0 8px 0;" th:text="${evt.description}"></p>
+                <div style="display:flex;gap:10px;font-size:12px;color:#9ca3af;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+                    <span th:if="${evt.startDate != null}">📅 <span th:text="${evt.startDate}"></span></span>
+                </div>
+                <button type="button"
+                        th:if="${selectedCommunityId != null}"
+                        th:onclick="'openMobileDonateModal(' + ${evt.id} + ', \'' + (${evt.title != null ? evt.title : evt.description}) + '\'); event.stopPropagation();'"
+                        style="width:100%;background:linear-gradient(135deg,#ec4899,#db2777);color:white;padding:10px;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    Donate to this Event
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Support Card (only shown when inside a specific community) -->
     <div th:if="${selectedCommunityId != null and !isSupportAdmin}" class="mobile-card">
         <div class="section-header">
@@ -903,7 +967,7 @@
                 <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">
                     Describe your issue for <strong th:text="${selectedCommunityName}">Community</strong> and our team will help you.
                 </p>
-                <form hx-post="/support/submit-request"
+                <form hx-post="/mobile/support/submit-request"
                       hx-target="#mobileSupportFeedback"
                       hx-swap="innerHTML"
                       id="mobileSupportForm">
@@ -987,6 +1051,52 @@
             if (fb) fb.innerHTML = '';
         }
 
+        // ── Mobile Event Detail Modal ──
+        function openMobileEventModal(eventId, title, description, date) {
+            var modal = document.getElementById('mobileEventModal');
+            document.getElementById('mobileEventModalTitle').textContent = title || '';
+            document.getElementById('mobileEventModalDesc').textContent = description || '';
+            document.getElementById('mobileEventModalDate').textContent = date ? '📅 ' + date : '';
+            document.getElementById('mobileEventDonationsList').textContent = 'Loading...';
+            document.getElementById('mobileEventDonationTotal').textContent = '';
+            // Wire donate button
+            var donateBtn = document.getElementById('mobileEventModalDonateBtn');
+            donateBtn.onclick = function() {
+                closeMobileEventModal();
+                openMobileDonateModal(eventId, title);
+            };
+            if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+            // Fetch donations
+            fetch('/events/api/donations/' + eventId)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var list = document.getElementById('mobileEventDonationsList');
+                    var totalEl = document.getElementById('mobileEventDonationTotal');
+                    if (!data || data.length === 0) {
+                        list.textContent = 'No donations yet. Be the first!';
+                        totalEl.textContent = '';
+                        return;
+                    }
+                    var total = 0;
+                    list.innerHTML = data.map(function(d) {
+                        total += parseFloat(d.amount) || 0;
+                        return '<div style="padding:8px 0;border-bottom:1px solid #f3f4f6;">' +
+                            '<span style="font-weight:600;color:#1f2937;">' + (d.firstName || '') + ' ' + (d.lastName || '') + '</span>' +
+                            '<span style="float:right;color:#ec4899;font-weight:700;">₦' + parseFloat(d.amount).toLocaleString() + '</span>' +
+                            (d.message ? '<p style="font-size:12px;color:#6b7280;margin:4px 0 0 0;">' + d.message + '</p>' : '') +
+                            '</div>';
+                    }).join('');
+                    totalEl.textContent = '❤️ Total raised: ₦' + total.toLocaleString();
+                })
+                .catch(function() {
+                    document.getElementById('mobileEventDonationsList').textContent = 'Could not load donations.';
+                });
+        }
+        function closeMobileEventModal() {
+            var modal = document.getElementById('mobileEventModal');
+            if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+        }
+
         (function () {
             // Helper functions
             const $ = (sel, root = document) => root.querySelector(sel);
@@ -1053,7 +1163,7 @@
 
                     const fd = new FormData();
                     fd.append('file', file);
-                    fetch('/support/upload-attachment', { method: 'POST', body: fd })
+                    fetch('/mobile/support/upload-attachment', { method: 'POST', body: fd })
                         .then(r => r.json())
                         .then(data => {
                             spinner.style.display = 'none';

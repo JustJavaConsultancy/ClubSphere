@@ -135,6 +135,11 @@ public class MobileHomeController {
         }
         model.addAttribute("hasActiveSubscription", hasActiveSubscription);
 
+        // Standalone community events (eventType = "EVENT") — for the events section & donate buttons
+        List<com.justjava.mycommunity.event.Event> communityEvents =
+                eventService.getEventsFromUserCommunities(currentUserId, selectedCommunityId);
+        model.addAttribute("communityEvents", communityEvents);
+
         return "mobile-home";
     }
 

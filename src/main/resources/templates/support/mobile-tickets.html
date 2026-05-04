@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>My Tickets</title>
+    <title th:text="${pageTitle ?: 'My Tickets'}">My Tickets</title>
     <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
@@ -34,55 +34,28 @@
         .ticket-status.closed { background-color: #E5E7EB; color: #374151; }
         .ticket-status.resolved { background-color: #E5E7EB; color: #374151; }
         .ticket-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 200;
-            justify-content: center;
-            align-items: flex-end;
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); z-index: 200;
+            justify-content: center; align-items: flex-end;
         }
         .ticket-modal.active { display: flex; }
         .ticket-modal-content {
-            background-color: white;
-            border-radius: 20px 20px 0 0;
-            width: 100%;
-            max-height: 92vh;
-            overflow-y: auto;
+            background-color: white; border-radius: 20px 20px 0 0;
+            width: 100%; max-height: 92vh; overflow-y: auto;
             box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
         }
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-            background: white;
-            border-radius: 16px;
-            border: 2px dashed #e5e7eb;
+        .view-tab {
+            flex: 1; padding: 10px 0; text-align: center;
+            font-size: 13px; font-weight: 600; border-radius: 10px;
+            text-decoration: none; transition: all 0.2s;
         }
-        /* Pagination */
-        .pagination-bar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 16px;
-            padding: 12px 0;
-        }
-        .pagination-bar button {
-            min-width: 36px; height: 36px;
-            border: 1px solid #e5e7eb;
-            background: white;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #374151;
-            cursor: pointer;
-        }
-        .pagination-bar button.active {
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: white;
-            border-color: transparent;
-        }
+        .view-tab.active { background: linear-gradient(135deg,#4f46e5,#6366f1); color: white; }
+        .view-tab.inactive { color: #6b7280; background: transparent; }
+        .empty-state { text-align: center; padding: 3rem 2rem; background: white; border-radius: 16px; border: 2px dashed #e5e7eb; }
+        .pagination-bar { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; padding: 12px 0; }
+        .pagination-bar button { min-width: 36px; height: 36px; border: 1px solid #e5e7eb; background: white; border-radius: 10px; font-size: 14px; font-weight: 500; color: #374151; cursor: pointer; }
+        .pagination-bar button.active { background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border-color: transparent; }
         .pagination-bar button:disabled { opacity: 0.4; cursor: default; }
         .pagination-info { text-align: center; font-size: 13px; color: #6b7280; margin-top: 4px; }
     </style>
@@ -95,24 +68,59 @@
     </div>
 
     <!-- Page Header -->
-    <div style="margin-bottom: 20px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div style="margin-bottom: 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
             <div>
-                <h1 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin: 0 0 4px 0;">My Tickets</h1>
-                <p style="font-size: 13px; color: #6b7280; margin: 0;">View and manage your support requests</p>
+                <h1 style="font-size:1.4rem; font-weight:700; color:#1f2937; margin:0 0 2px 0;"
+                    th:text="${pageTitle ?: 'My Tickets'}">My Tickets</h1>
+                <p style="font-size:13px; color:#6b7280; margin:0;"
+                   th:text="${pageSubtitle ?: 'View and manage your support requests'}">View and manage your support requests</p>
             </div>
-            <a th:if="${canManageTickets}" th:href="@{/mobile/support/agent/claim-ticket}"
-               style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:linear-gradient(135deg,#10b981,#059669);color:white;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;">
-                <span style="font-size:16px;">🛡️</span> Claim Queue
-            </a>
         </div>
+    </div>
+
+    <!-- Admin tab switcher (only visible to admins) -->
+    <div th:if="${canManageTickets}" style="display:flex;gap:6px;background:#f3f4f6;border-radius:12px;padding:4px;margin-bottom:18px;">
+        <a th:href="@{/mobile/support/my-tickets}"
+           th:classappend="${pageType == 'claimed'} ? 'active' : 'inactive'"
+           class="view-tab">📋 Tickets I'm Handling</a>
+        <a th:href="@{/mobile/support/my-submitted-tickets}"
+           th:classappend="${pageType == 'submitted'} ? 'active' : 'inactive'"
+           class="view-tab">📩 My Requests</a>
+    </div>
+
+    <!-- Context banner for claimed tickets (admin) -->
+    <div th:if="${pageType == 'claimed' and canManageTickets}"
+         style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#1d4ed8;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">ℹ️</span>
+        These are tickets from <strong>other users</strong> that you have claimed and are handling.
+    </div>
+
+    <!-- Context banner for submitted tickets (admin) -->
+    <div th:if="${pageType == 'submitted' and canManageTickets}"
+         style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#7e22ce;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">📋</span>
+        These are support tickets <strong>you submitted</strong> yourself for assistance.
     </div>
 
     <!-- Empty State -->
     <div th:if="${#lists.isEmpty(tickets)}" class="empty-state">
-        <div style="font-size: 3rem; margin-bottom: 12px;">📭</div>
-        <h2 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin: 0 0 6px 0;">No tickets yet</h2>
-        <p style="font-size: 14px; color: #6b7280; margin: 0;">When you need help, create a support ticket from your community home page.</p>
+        <div style="font-size: 3rem; margin-bottom: 12px;"
+             th:text="${pageType == 'claimed'} ? '📂' : '📭'">📭</div>
+        <h2 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin: 0 0 6px 0;"
+            th:text="${pageType == 'claimed'} ? 'No tickets yet' : 'No tickets yet'">No tickets yet</h2>
+        <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;"
+           th:text="${pageType == 'claimed'} ? 'You have not taken on any tickets yet. Go to Unclaimed Tickets to pick one up.' : 'When you need help, create a support ticket from your community home page.'">
+            When you need help, create a support ticket from your community home page.
+        </p>
+        <a th:if="${pageType == 'claimed'}" th:href="@{/mobile/support/agent/claim-ticket}"
+           style="display:inline-block;padding:10px 20px;background:linear-gradient(135deg,#10b981,#059669);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">
+            View Unclaimed Tickets
+        </a>
+        <a th:if="${pageType != 'claimed'}" th:href="@{/mobile/home}"
+           style="display:inline-block;padding:10px 20px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">
+            Go to Home
+        </a>
     </div>
 
     <!-- Tickets List -->
@@ -120,7 +128,7 @@
         <!-- Search -->
         <div style="margin-bottom: 14px;">
             <input id="ticketSearch" type="text" placeholder="Search tickets..."
-                   style="width:100%; padding:12px 16px; border:1px solid #e5e7eb; border-radius:12px; font-size:15px; background:white; outline:none;">
+                   style="width:100%; padding:12px 16px; border:1px solid #e5e7eb; border-radius:12px; font-size:15px; background:white; outline:none; box-sizing:border-box;">
         </div>
 
         <!-- Ticket Cards -->
@@ -131,13 +139,19 @@
                     <span style="font-size:12px; color:#9ca3af; font-weight:500;" th:text="${'#TKT-' + ticket.id}">#TKT-1</span>
                     <span class="ticket-status" th:classappend="${ticket.status.toLowerCase()}" th:text="${ticket.status}">Open</span>
                 </div>
-                <h3 style="font-size:15px; font-weight:600; color:#1f2937; margin:0 0 6px 0;" th:text="${ticket.subject}">Subject</h3>
-                <div style="font-size:13px; color:#6b7280;" th:text="${#temporals.format(ticket.lastUpdated, 'MMM dd, yyyy HH:mm')}">June 14</div>
+                <h3 style="font-size:15px; font-weight:600; color:#1f2937; margin:0 0 4px 0;" th:text="${ticket.subject}">Subject</h3>
+                <!-- For claimed tickets, show who submitted it -->
+                <p th:if="${pageType == 'claimed' and ticket.userId != null}"
+                   style="font-size:12px;color:#6b7280;margin:0 0 4px 0;">
+                    🧑 Submitted by user
+                </p>
+                <div style="font-size:13px; color:#6b7280; margin-bottom:10px;"
+                     th:text="${#temporals.format(ticket.lastUpdated, 'MMM dd, yyyy HH:mm')}">June 14</div>
                 <button class="view-ticket-btn"
                         th:hx-get="@{/mobile/support/single-ticket/{id}(id=${ticket.id})}"
                         hx-target="#ticket-modal .ticket-modal-content"
                         hx-swap="innerHTML"
-                        style="display:block; width:100%; margin-top:12px; padding:10px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; font-weight:500; color:#4f46e5; cursor:pointer; text-align:center;">
+                        style="display:block; width:100%; padding:10px; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; text-align:center;">
                     View Conversation
                 </button>
             </div>
@@ -149,7 +163,6 @@
     </div>
 
     <script>
-        // === Ticket Modal ===
         const ticketModal = document.getElementById('ticket-modal');
         document.addEventListener('click', function(e) {
             if (e.target.closest('.view-ticket-btn')) {
@@ -161,7 +174,6 @@
                 document.body.style.overflow = 'auto';
             }
         });
-        // Close on backdrop click
         ticketModal.addEventListener('click', function(e) {
             if (e.target === ticketModal) {
                 ticketModal.classList.remove('active');
@@ -170,7 +182,6 @@
             }
         });
 
-        // === Client-Side Pagination ===
         (function() {
             const PAGE_SIZE = 6;
             let currentPage = 1;
@@ -185,26 +196,16 @@
                 if (currentPage > totalPages) currentPage = totalPages;
                 const start = (currentPage - 1) * PAGE_SIZE;
                 const end = start + PAGE_SIZE;
-
                 items.forEach(el => el.style.display = 'none');
                 filtered.forEach((el, i) => el.style.display = (i >= start && i < end) ? '' : 'none');
-
-                // Info
-                if (info) info.textContent = filtered.length === 0
-                    ? 'No tickets found'
-                    : `Showing ${start + 1}–${Math.min(end, filtered.length)} of ${filtered.length}`;
-
-                // Buttons
+                if (info) info.textContent = filtered.length === 0 ? 'No tickets found' : `Showing ${start + 1}–${Math.min(end, filtered.length)} of ${filtered.length}`;
                 if (!bar) return;
                 bar.innerHTML = '';
                 if (totalPages <= 1) return;
-
                 const prev = document.createElement('button');
-                prev.textContent = '‹';
-                prev.disabled = currentPage === 1;
+                prev.textContent = '‹'; prev.disabled = currentPage === 1;
                 prev.onclick = () => { currentPage--; render(); };
                 bar.appendChild(prev);
-
                 for (let p = 1; p <= totalPages; p++) {
                     const btn = document.createElement('button');
                     btn.textContent = p;
@@ -212,10 +213,8 @@
                     btn.onclick = () => { currentPage = p; render(); };
                     bar.appendChild(btn);
                 }
-
                 const next = document.createElement('button');
-                next.textContent = '›';
-                next.disabled = currentPage === totalPages;
+                next.textContent = '›'; next.disabled = currentPage === totalPages;
                 next.onclick = () => { currentPage++; render(); };
                 bar.appendChild(next);
             }
@@ -223,11 +222,7 @@
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     const q = this.value.toLowerCase();
-                    filtered = items.filter(el => {
-                        const subject = (el.getAttribute('data-subject') || '').toLowerCase();
-                        const text = el.textContent.toLowerCase();
-                        return subject.includes(q) || text.includes(q);
-                    });
+                    filtered = items.filter(el => (el.getAttribute('data-subject') || '').toLowerCase().includes(q) || el.textContent.toLowerCase().includes(q));
                     currentPage = 1;
                     render();
                 });
