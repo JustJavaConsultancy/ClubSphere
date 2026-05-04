@@ -97,12 +97,15 @@ public class EventService {
         return new HashSet<>(communityMembershipRepository.findApprovedCommunityIdsByUserId(userId));
     }
 
-    /** Create a simple community event (title + description + communityId). No organization required. */
-    public Event createSimpleEvent(String title, String description, Long communityId) {
+    /** Create a simple community event with optional dates. No organization required. */
+    public Event createSimpleEvent(String title, String description, Long communityId,
+                                   LocalDate startDate, LocalDate endDate) {
         Event event = new Event();
         event.setTitle(title);
         event.setDescription(description);
         event.setEventType("EVENT");
+        if (startDate != null) event.setStartDate(startDate);
+        if (endDate != null) event.setEndDate(endDate);
         if (communityId != null) {
             Community community = communityRepository.findById(communityId)
                     .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
@@ -125,6 +128,19 @@ public class EventService {
     public List<Community> getUserCommunities(String userId) {
         List<Long> communityIds = communityMembershipRepository.findApprovedCommunityIdsByUserId(userId);
         return communityRepository.findAllById(communityIds);
+    }
+
+    /**
+     * Returns communities the user can create events for:
+     * - Platform admins get all communities
+     * - Community admins get only communities they admin
+     */
+    public List<Community> getAdminCommunities(String userId) {
+        if (authenticationManager.isAdmin()) {
+            return communityRepository.findAll();
+        }
+        List<Long> adminCommunityIds = communityMembershipRepository.findAdminCommunityIdsByUserId(userId);
+        return communityRepository.findAllById(adminCommunityIds);
     }
 
     public Event createEvent(EventDTO dto) {

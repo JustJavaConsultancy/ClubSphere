@@ -782,6 +782,7 @@
                           hx-swap="innerHTML"
                           onsubmit="closeSubscribeModal()">
                         <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                        <input type="hidden" name="source" value="web">
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Monthly Amount</label>
                             <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
@@ -823,6 +824,7 @@
                           hx-on::after-request="handleDonationResponse(event, 'closeDonateModal')">
                         <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
                         <input type="hidden" name="eventId" id="donateModalEventId">
+                        <input type="hidden" name="source" value="web">
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Donation Amount</label>
                             <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
@@ -1083,7 +1085,11 @@
                             <div th:unless="${#lists.isEmpty(communityEvents)}" th:each="evt : ${communityEvents}"
                                  class="border border-gray-100 rounded-xl p-3 card-hover">
                                 <h3 th:text="${evt.title}" class="font-semibold text-gray-800 text-sm mb-1">Event Name</h3>
-                                <p th:text="${evt.description}" class="text-xs text-gray-500 mb-3 line-clamp-2">Event description goes here.</p>
+                                <p th:text="${evt.description}" class="text-xs text-gray-500 mb-2 line-clamp-2">Event description goes here.</p>
+                                <p th:if="${evt.startDate != null}" class="text-xs text-gray-400 mb-3 flex items-center gap-1">
+                                    <i class="fas fa-calendar text-pink-400"></i>
+                                    <span th:text="${evt.startDate}"></span>
+                                </p>
                                 <button type="button"
                                         th:data-event-id="${evt.id}"
                                         th:data-event-name="${evt.title}"

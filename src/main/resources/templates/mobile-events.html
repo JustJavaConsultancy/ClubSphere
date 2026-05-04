@@ -51,8 +51,8 @@
         ✓ <span th:text="${successMessage}"></span>
     </div>
 
-    <!-- Create Event Form -->
-    <div class="ev-card" style="margin-bottom:24px;">
+    <!-- Create Event Form (admins only) -->
+    <div th:if="${canCreate}" class="ev-card" style="margin-bottom:24px;">
         <h2 style="font-size:16px;font-weight:700;color:#1f2937;margin:0 0 16px 0;">
             🎉 Create New Event
         </h2>
@@ -65,7 +65,7 @@
                 <label class="ev-label">Description <span style="color:#ef4444;">*</span></label>
                 <textarea name="description" rows="3" class="ev-input" placeholder="Describe the event..." required style="resize:vertical;"></textarea>
             </div>
-            <div style="margin-bottom:18px;">
+            <div style="margin-bottom:14px;">
                 <label class="ev-label">Community <span style="color:#ef4444;">*</span></label>
                 <select name="communityId" class="ev-input" required>
                     <option value="" disabled selected>— Select a community —</option>
@@ -76,8 +76,12 @@
                 </select>
                 <p th:if="${communities == null or #lists.isEmpty(communities)}"
                    style="margin-top:6px;font-size:12px;color:#ef4444;">
-                    You must be a member of at least one community to create an event.
+                    You are not an admin of any community.
                 </p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label class="ev-label">Event Date <span style="color:#ef4444;">*</span></label>
+                <input type="date" name="startDate" class="ev-input" required>
             </div>
             <button type="submit"
                     th:disabled="${communities == null or #lists.isEmpty(communities)}"
@@ -105,9 +109,12 @@
                 <span class="ev-badge" style="margin-left:8px;">Event</span>
             </div>
             <p th:if="${event.description != null}" style="font-size:13px;color:#6b7280;margin:0 0 8px 0;" th:text="${event.description}"></p>
-            <div style="display:flex;gap:12px;font-size:12px;color:#9ca3af;flex-wrap:wrap;">
+            <div style="display:flex;gap:12px;font-size:12px;color:#9ca3af;flex-wrap:wrap;align-items:center;">
                 <span th:if="${event.startDate != null}">📅 <span th:text="${event.startDate}"></span></span>
-                <span th:if="${event.communityName != null}">👥 <span th:text="${event.communityName}"></span></span>
+                <span th:if="${event.community != null}">👥 <span th:text="${event.community.name}"></span></span>
+                <span style="margin-left:auto;color:#16a34a;font-weight:600;">
+                    ❤️ ₦<span th:text="${donationTotals != null and donationTotals[event.id] != null ? #numbers.formatDecimal(donationTotals[event.id], 1, 'COMMA', 0, 'POINT') : '0'}"></span> raised
+                </span>
             </div>
         </div>
     </div>
