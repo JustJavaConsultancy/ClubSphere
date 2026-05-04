@@ -193,7 +193,14 @@ public class CommunityPaymentController {
         List<Map<String, Object>> subscriptions =
                 communityService.getUserSubscriptions(userId);
 
+        long activeCount = subscriptions.stream().filter(s -> "ACTIVE".equals(s.get("status"))).count();
+        long cancelledCount = subscriptions.stream().filter(s -> "CANCELLED".equals(s.get("status"))).count();
+        long expiredCount = subscriptions.stream().filter(s -> "EXPIRED".equals(s.get("status"))).count();
+
         model.addAttribute("subscriptions", subscriptions);
+        model.addAttribute("activeCount", activeCount);
+        model.addAttribute("cancelledCount", cancelledCount);
+        model.addAttribute("expiredCount", expiredCount);
         model.addAttribute("currentPath", "/subscription/mobile/my-subscriptions");
         model.addAttribute("userId", userId);
         model.addAttribute("usersName", authenticationManager.get("name"));
@@ -309,7 +316,13 @@ public class CommunityPaymentController {
     public String mobileMyDonationsPage(Model model) {
         String userId = (String) authenticationManager.get("sub");
         List<Map<String, Object>> donations = communityService.getUserDonations(userId);
+
+        java.math.BigDecimal totalAmount = donations.stream()
+                .map(d -> d.get("amount") instanceof java.math.BigDecimal b ? b : java.math.BigDecimal.ZERO)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
         model.addAttribute("donations", donations);
+        model.addAttribute("totalDonationAmount", totalAmount);
         model.addAttribute("currentPath", "/donation/mobile/my-donations");
         model.addAttribute("userId", userId);
         model.addAttribute("usersName", authenticationManager.get("name"));

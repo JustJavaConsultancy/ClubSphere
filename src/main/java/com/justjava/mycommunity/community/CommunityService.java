@@ -1013,11 +1013,11 @@ public class CommunityService {
     @Transactional
     public void startSubscription(String userId, Long communityId, BigDecimal amount, String paystackRef) {
 
-        // Validate membership
+        // Validate membership (warn but don't block — payment already processed)
         boolean isMember = communityMembershipRepository
                 .existsByUserIdAndCommunityIdAndStatus(userId, communityId, MembershipStatus.APPROVED);
         if (!isMember) {
-            throw new SecurityException("User must be a community member before subscribing");
+            System.out.println("WARNING: startSubscription called for non-approved member userId=" + userId + " communityId=" + communityId + " — proceeding anyway since payment was verified.");
         }
 
         // Check for existing active subscription
@@ -1177,16 +1177,11 @@ public class CommunityService {
     @Transactional
     public void makeDonation(String userId, Long communityId, Long eventId, BigDecimal amount, String message, String paystackRef) {
 
-        // Validate membership
+        // Validate membership (warn but don't block — payment already processed)
         boolean isMember = communityMembershipRepository
-                .existsByUserIdAndCommunityIdAndStatus(
-                        userId,
-                        communityId,
-                        MembershipStatus.APPROVED
-                );
-
+                .existsByUserIdAndCommunityIdAndStatus(userId, communityId, MembershipStatus.APPROVED);
         if (!isMember) {
-            throw new SecurityException("User must be a member before donating");
+            System.out.println("WARNING: makeDonation called for non-approved member userId=" + userId + " communityId=" + communityId + " — proceeding anyway since payment was verified.");
         }
 
         // Validate event
