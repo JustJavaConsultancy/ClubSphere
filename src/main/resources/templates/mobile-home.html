@@ -903,8 +903,11 @@
         <div class="space-y-4">
             <div th:each="evt : ${communityEvents}"
                  style="background:#fafafa;border:1px solid #f3f4f6;border-radius:14px;padding:14px;cursor:pointer;"
-                 th:onclick="'openMobileEventModal(' + ${evt.id} + ', \'' + ${evt.title != null ? evt.title : evt.description} + '\', \'' + (${evt.description != null ? evt.description : ''}) + '\', \'' + (${evt.startDate != null ? evt.startDate : ''}) + '\')'"
-                 >
+                 th:data-event-id="${evt.id}"
+                 th:data-event-title="${evt.title != null ? evt.title : (evt.description != null ? evt.description : '')}"
+                 th:data-event-desc="${evt.description != null ? evt.description : ''}"
+                 th:data-event-date="${evt.startDate != null ? evt.startDate : ''}"
+                 onclick="handleEventCardClick(this)">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
                     <h3 style="font-size:15px;font-weight:600;color:#1f2937;margin:0;flex:1;"
                         th:text="${evt.title != null ? evt.title : evt.description}">Event</h3>
@@ -916,7 +919,9 @@
                 </div>
                 <button type="button"
                         th:if="${selectedCommunityId != null}"
-                        th:onclick="'openMobileDonateModal(' + ${evt.id} + ', \'' + (${evt.title != null ? evt.title : evt.description}) + '\'); event.stopPropagation();'"
+                        th:data-event-id="${evt.id}"
+                        th:data-event-title="${evt.title != null ? evt.title : (evt.description != null ? evt.description : '')}"
+                        onclick="event.stopPropagation(); openMobileDonateModal(this.dataset.eventId, this.dataset.eventTitle);"
                         style="width:100%;background:linear-gradient(135deg,#ec4899,#db2777);color:white;padding:10px;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
                     <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -1095,6 +1100,13 @@
         function closeMobileEventModal() {
             var modal = document.getElementById('mobileEventModal');
             if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+        }
+        function handleEventCardClick(el) {
+            var id = el.dataset.eventId;
+            var title = el.dataset.eventTitle;
+            var desc = el.dataset.eventDesc;
+            var date = el.dataset.eventDate;
+            openMobileEventModal(id, title, desc, date);
         }
 
         (function () {

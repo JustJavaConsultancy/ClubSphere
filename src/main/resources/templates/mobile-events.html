@@ -104,8 +104,11 @@
     <div th:unless="${events == null or #lists.isEmpty(events)}">
         <div th:each="event : ${events}" class="ev-card"
              style="cursor:pointer;"
-             th:onclick="'openEventModal(' + ${event.id} + ', \'' + (${event.title != null ? event.title : event.description}) + '\', \'' + (${event.description != null ? event.description : ''}) + '\', \'' + (${event.startDate != null ? event.startDate : ''}) + '\')'"
-             >
+             th:data-event-id="${event.id}"
+             th:data-event-title="${event.title != null ? event.title : (event.description != null ? event.description : '')}"
+             th:data-event-desc="${event.description != null ? event.description : ''}"
+             th:data-event-date="${event.startDate != null ? event.startDate : ''}"
+             onclick="handleEvtCardClick(this)">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                 <h3 style="font-size:15px;font-weight:600;color:#1f2937;margin:0;flex:1;"
                     th:text="${event.title != null ? event.title : event.description}">Event</h3>
@@ -114,7 +117,6 @@
             <p th:if="${event.description != null}" style="font-size:13px;color:#6b7280;margin:0 0 8px 0;" th:text="${event.description}"></p>
             <div style="display:flex;gap:12px;font-size:12px;color:#9ca3af;flex-wrap:wrap;align-items:center;">
                 <span th:if="${event.startDate != null}">📅 <span th:text="${event.startDate}"></span></span>
-                <span th:if="${event.community != null}">👥 <span th:text="${event.community.name}"></span></span>
                 <span style="margin-left:auto;color:#16a34a;font-weight:600;">
                     ❤️ ₦<span th:text="${donationTotals != null and donationTotals[event.id] != null ? #numbers.formatDecimal(donationTotals[event.id], 1, 'COMMA', 0, 'POINT') : '0'}"></span> raised
                 </span>
@@ -146,6 +148,9 @@
     </div>
 
     <script>
+        function handleEvtCardClick(el) {
+            openEventModal(el.dataset.eventId, el.dataset.eventTitle, el.dataset.eventDesc, el.dataset.eventDate);
+        }
         function openEventModal(eventId, title, description, date) {
             var modal = document.getElementById('evtModal');
             document.getElementById('evtModalTitle').textContent = title || '';
