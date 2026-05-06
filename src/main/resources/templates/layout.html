@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf">
 <head>
@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-    <title>Zam Connect - Dashboard</title>
+    <title>Clubknit - Dashboard</title>
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
@@ -96,7 +96,7 @@
             <!-- Brand -->
             <div class="flex items-center gap-2">
                 <i class="fas fa-users text-blue-600 text-2xl"></i>
-                <span class="font-bold text-lg tracking-tight">Zam Connect</span>
+                <span class="font-bold text-lg tracking-tight">Clubknit</span>
             </div>
         </div>
 
@@ -169,10 +169,10 @@
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-handshake w-5"></i>
-                    My Community
+                    My Club
                 </a>
 
-                <!-- ✦ Membership Approvals — admin action directly tied to My Community ✦ -->
+                <!-- ✦ Membership Approvals — admin action directly tied to My Club ✦ -->
                 <a th:if="${session.isAdmin == true}" th:href="@{/admin/approvals}"
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/admin/approvals'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
@@ -391,7 +391,7 @@
                    class="flex items-center gap-3 p-2.5 rounded-lg"
                    th:classappend="${currentPath == '/my-community'} ? ' bg-blue-50 text-blue-600 font-medium' : ' text-gray-700 hover:bg-gray-100 transition'">
                     <i class="fas fa-handshake w-5"></i>
-                    My Community
+                    My Club
                 </a>
 
                 <a th:href="@{/organizations}"

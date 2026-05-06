@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Subscriptions - Connect</title>
+    <title>My Subscriptions - Clubknit</title>
     <style>
         .mobile-sub-card {
             background: white;
@@ -100,7 +100,7 @@
         <div class="flex items-start justify-between mb-3">
             <div class="flex-1">
                 <h3 class="font-bold text-gray-800"
-                    th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Community</h3>
+                    th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Club</h3>
                 <span class="mobile-status-badge mt-1"
                       th:classappend="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? ' mobile-status-active' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? ' mobile-status-cancelled' : ' mobile-status-expired')"
                       th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>

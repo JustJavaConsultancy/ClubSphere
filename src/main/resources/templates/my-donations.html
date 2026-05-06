@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Donations - Connect</title>
+    <title>My Donations - Clubknit</title>
     <style>
         .donation-card { transition: box-shadow 0.15s ease; }
         .donation-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04); }
@@ -22,7 +22,7 @@
                 </svg>
                 My Donations
             </h1>
-            <p class="text-gray-500 mt-1">View your donation history across all communities</p>
+            <p class="text-gray-500 mt-1">View your donation history across all clubs</p>
         </div>
 
         <!-- Summary Cards -->
@@ -46,7 +46,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
             </svg>
             <h3 class="text-lg font-semibold text-gray-600 mb-2">No Donations Yet</h3>
-            <p class="text-gray-400">You haven't donated to any communities yet. Visit a community to make your first donation!</p>
+            <p class="text-gray-400">You haven't donated to any communities yet. Visit a club to make your first donation!</p>
         </div>
 
         <!-- Donations List -->
@@ -57,7 +57,7 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-2">
                                 <h3 class="text-lg font-bold text-gray-800"
-                                    th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Community Name</h3>
+                                    th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Club Name</h3>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase bg-pink-100 text-pink-700">
                                     Donation
                                 </span>

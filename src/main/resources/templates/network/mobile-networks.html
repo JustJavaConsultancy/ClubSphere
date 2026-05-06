@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
@@ -33,7 +33,7 @@
 
     <div class="net-header">
         <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Networks</h1>
-        <p style="font-size:14px;opacity:.85" th:text="${selectedCommunityName}">Community</p>
+        <p style="font-size:14px;opacity:.85" th:text="${selectedCommunityName}">Club</p>
     </div>
 
     <!-- Pending connection requests -->
@@ -75,7 +75,7 @@
 
     <!-- All Networks (admin) -->
     <div th:if="${isAdmin and allNetworks != null and !#lists.isEmpty(allNetworks)}" style="margin-top:20px">
-        <h2 style="font-size:15px;font-weight:700;color:#374151;margin-bottom:12px">All Networks in Community</h2>
+        <h2 style="font-size:15px;font-weight:700;color:#374151;margin-bottom:12px">All Networks in Club</h2>
         <a th:each="net : ${allNetworks}"
            th:href="@{/mobile/networks/__${net.id}__}"
            class="net-card" style="display:block;text-decoration:none">
@@ -97,7 +97,7 @@
     <div th:if="${(myNetworks == null or #lists.isEmpty(myNetworks)) and !isAdmin}" class="net-empty">
         <span class="material-icons" style="font-size:48px;margin-bottom:12px">hub</span>
         <p style="font-size:16px;font-weight:600;color:#374151;margin-bottom:6px">No Networks Yet</p>
-        <p style="font-size:14px">You haven't been added to any networks in this community.</p>
+        <p style="font-size:14px">You haven't been added to any networks in this club.</p>
     </div>
 
     <!-- Create Network Modal -->

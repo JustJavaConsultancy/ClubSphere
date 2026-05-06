@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Community - Zam Connect</title>
+    <title>Select Club - Clubknit</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -222,8 +222,8 @@
     <!-- Header -->
     <header class="community-selection-header">
         <div class="header-content">
-            <h1 class="text-2xl font-bold mb-2">Select Community</h1>
-            <p class="opacity-90">Choose a community to manage its settings, groups, and members</p>
+            <h1 class="text-2xl font-bold mb-2">Select Club</h1>
+            <p class="opacity-90">Choose a club to manage its settings, groups, and members</p>
         </div>
     </header>
 
@@ -239,11 +239,11 @@
                 <div class="community-icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <span th:text="${community.communityName}">Community Name</span>
+                <span th:text="${community.communityName}">Club Name</span>
             </header>
 
             <p class="community-description" th:text="${community.communityDescription}">
-                Community description goes here...
+                Club description goes here...
             </p>
 
             <footer class="community-meta">
@@ -272,7 +272,7 @@
         <div th:if="${isAdmin}">
             <button class="create-community-btn" onclick="window.location.href='/add-community'">
                 <i class="fas fa-plus"></i>
-                <span>Create New Community</span>
+                <span>Create New Club</span>
             </button>
         </div>
         <div th:unless="${isAdmin}">

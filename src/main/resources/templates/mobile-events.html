@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -43,7 +43,7 @@
     <!-- Header -->
     <div style="margin-bottom:20px;">
         <h1 style="font-size:1.4rem;font-weight:700;color:#1f2937;margin:0 0 4px 0;">Events</h1>
-        <p style="font-size:13px;color:#6b7280;margin:0;">Create and manage community events</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Create and manage club events</p>
     </div>
 
     <!-- Success Message -->
@@ -98,7 +98,7 @@
          style="text-align:center;padding:40px 20px;background:white;border-radius:16px;border:2px dashed #e5e7eb;">
         <div style="font-size:3rem;margin-bottom:12px;">📅</div>
         <h3 style="font-size:16px;font-weight:600;color:#374151;margin:0 0 6px 0;">No events yet</h3>
-        <p style="font-size:13px;color:#6b7280;margin:0;">Create the first community event above.</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">Create the first club event above.</p>
     </div>
 
     <div th:unless="${events == null or #lists.isEmpty(events)}">

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
@@ -134,7 +134,7 @@
                 <div style="flex:1">
                     <div class="nd-member-name" th:text="${u.firstName != null ? u.firstName + ' ' + u.lastName : u.email}">Name</div>
                 </div>
-                <button class="nd-connect-btn" th:attr="onclick='sendConnect(\''+${u.userId}+'\')'">Connect</button>
+                <button class="nd-connect-btn" th:attr="onclick='sendConnect(\''+${u.userId}+'\')'">Clubknit</button>
             </div>
         </div>
         <div th:if="${(connectedUsers == null or #lists.isEmpty(connectedUsers)) and (unconnectedMembers == null or #lists.isEmpty(unconnectedMembers))}" class="nd-empty">
@@ -204,7 +204,7 @@
                 .then(function(r){ return r.json(); })
                 .then(function(users) {
                     var list = document.getElementById('available-members-list');
-                    if (!users.length) { list.innerHTML='<p style="text-align:center;color:#9ca3af;font-size:14px">All community members are already in this network.</p>'; return; }
+                    if (!users.length) { list.innerHTML='<p style="text-align:center;color:#9ca3af;font-size:14px">All club members are already in this network.</p>'; return; }
                     list.innerHTML = users.map(function(u){
                         var name = (u.firstName||'') + ' ' + (u.lastName||'');
                         var ini = (u.firstName||u.email||'U').charAt(0).toUpperCase();

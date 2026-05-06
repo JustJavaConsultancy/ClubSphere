@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -338,7 +338,7 @@
     <header class="approvals-header">
         <div>
             <h1>Membership Approvals</h1>
-            <p>Review and act on pending community join requests</p>
+            <p>Review and act on pending club join requests</p>
         </div>
         <div class="badge-count" th:text="${pendingCount} + ' Pending'">0 Pending</div>
     </header>
@@ -405,7 +405,7 @@
                         <!-- Community name -->
                         <h3 class="community-name"
                             th:text="${task.communityName != null ? task.communityName : 'Community #' + task.communityId}">
-                            Community Name
+                            Club Name
                         </h3>
 
                         <!-- Private / Public badge -->
@@ -432,7 +432,7 @@
                     <p class="community-description"
                        th:if="${task.communityDescription != null and !task.communityDescription.isEmpty()}"
                        th:text="${task.communityDescription}">
-                        Community description goes here.
+                        Club description goes here.
                     </p>
                     <p class="community-description" style="font-style:italic;"
                        th:unless="${task.communityDescription != null and !task.communityDescription.isEmpty()}">

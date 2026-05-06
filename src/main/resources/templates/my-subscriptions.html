@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Subscriptions - Connect</title>
+    <title>My Subscriptions - Clubknit</title>
     <style>
         .status-badge {
             display: inline-flex;
@@ -46,7 +46,7 @@
                 </svg>
                 My Subscriptions
             </h1>
-            <p class="text-gray-500 mt-1">View your subscription history across all communities</p>
+            <p class="text-gray-500 mt-1">View your subscription history across all clubs</p>
         </div>
 
         <!-- Summary Cards -->
@@ -87,7 +87,7 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-2">
                                 <h3 class="text-lg font-bold text-gray-800"
-                                    th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Community Name</h3>
+                                    th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Club Name</h3>
                                 <span class="status-badge"
                                       th:classappend="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? ' status-active' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? ' status-cancelled' : ' status-expired')"
                                       th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>

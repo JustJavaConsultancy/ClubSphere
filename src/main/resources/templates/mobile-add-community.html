@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Community - Connect</title>
+    <title>Add Club - Clubknit</title>
     <style>
         .add-community-header {
             background: linear-gradient(135deg, #2A2494, #3730a3);
@@ -308,7 +308,7 @@
                 <span class="material-icons">arrow_back</span>
             </button>
             <div>
-                <h1 class="text-xl font-bold mb-1">Create Community</h1>
+                <h1 class="text-xl font-bold mb-1">Create Club</h1>
                 <p class="opacity-90 text-sm">Set up a new community for your organization</p>
             </div>
         </div>
@@ -330,12 +330,12 @@
                 </h2>
 
                 <div class="form-group">
-                    <label for="communityName" class="form-label">Community Name *</label>
+                    <label for="communityName" class="form-label">Club Name *</label>
                     <input type="text"
                            id="communityName"
                            name="communityName"
                            class="form-input"
-                           placeholder="Enter community name"
+                           placeholder="Enter club name"
                            th:value="${communityName}"
                            required>
                 </div>
@@ -345,7 +345,7 @@
                     <textarea id="communityDescription"
                               name="communityDescription"
                               class="form-input form-textarea"
-                              placeholder="Describe what this community is about"
+                              placeholder="Describe what this club is about"
                               th:text="${communityDescription}"
                               required></textarea>
                 </div>
@@ -364,7 +364,7 @@
                     <div class="toggle-info">
                         <div class="toggle-title">Private Community</div>
                         <div class="toggle-description">
-                            Private communities are invitation-only and won't appear in suggested communities for other users.
+                            Private communities are invitation-only and won't appear in suggested clubs for other users.
                         </div>
                     </div>
                     <label class="toggle-switch">
@@ -376,7 +376,7 @@
 
             <button type="submit" class="submit-btn" id="submit-btn">
                 <span class="material-icons text-sm">add</span>
-                <span>Create Community</span>
+                <span>Create Club</span>
             </button>
         </form>
     </div>
@@ -415,7 +415,7 @@
 
                 // Reset button
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span class="material-icons text-sm">add</span><span>Create Community</span>';
+                submitBtn.innerHTML = '<span class="material-icons text-sm">add</span><span>Create Club</span>';
 
                 // Scroll to error
                 errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -443,9 +443,9 @@
         document.getElementById('isPrivate').addEventListener('change', function() {
             const description = this.closest('.toggle-group').querySelector('.toggle-description');
             if (this.checked) {
-                description.textContent = 'This community will be private and invitation-only. Only invited users can join.';
+                description.textContent = 'This club will be private and invitation-only. Only invited users can join.';
             } else {
-                description.textContent = 'This community will be public and appear in suggested communities for other users.';
+                description.textContent = 'This club will be public and appear in suggested clubs for other users.';
             }
         });
     </script>

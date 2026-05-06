@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
@@ -23,7 +23,7 @@
          style="text-align:center;padding:60px 20px;background:white;border-radius:16px;border:2px dashed #e5e7eb;">
         <div style="font-size:3rem;margin-bottom:12px;">👥</div>
         <h3 style="font-size:16px;font-weight:600;color:#374151;margin:0 0 6px 0;">No groups yet</h3>
-        <p style="font-size:13px;color:#6b7280;margin:0 0 16px 0;">You haven't joined any groups. Visit a community to request access to groups.</p>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 16px 0;">You haven't joined any groups. Visit a club to request access to groups.</p>
         <a th:href="@{/mobile/organizations}" style="display:inline-block;padding:10px 20px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">Browse Communities</a>
     </div>
 
@@ -40,7 +40,7 @@
                         <span th:if="${grp.role != null}" class="mg-badge" th:text="${grp.role}">MEMBER</span>
                     </div>
                     <p style="font-size:12px;color:#6b7280;margin:0 0 4px 0;" th:if="${grp.communityName != null}">
-                        📍 <span th:text="${grp.communityName}">Community</span>
+                        📍 <span th:text="${grp.communityName}">Club</span>
                     </p>
                     <p style="font-size:12px;color:#9ca3af;margin:0;" th:if="${grp.groupDescription != null}" th:text="${grp.groupDescription}">Description</p>
                 </div>

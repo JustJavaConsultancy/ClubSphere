@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
@@ -104,7 +104,7 @@
                         <span>Public Profile</span>
                     </div>
                     <div class="status-explanation" id="statusExplanation">
-                        Your profile is visible to everyone in the community.
+                        Your profile is visible to everyone in the club.
                     </div>
                 </div>
                 <label class="status-toggle">
@@ -261,7 +261,7 @@
                 <span class="material-icons text-base">public</span>
                 <span>Public Profile</span>
             `;
-            statusExplanation.innerHTML = "Your post is visible to everyone in the community.";
+            statusExplanation.innerHTML = "Your post is visible to everyone in the club.";
         } else {
             statusIndicator.classList.remove("status-public");
             statusIndicator.classList.add("status-private", "bg-red-100");
@@ -269,7 +269,7 @@
                 <span class="material-icons text-base">lock</span>
                 <span>Private Profile</span>
             `;
-            statusExplanation.innerHTML = "Your post is only visible to the community admin.";
+            statusExplanation.innerHTML = "Your post is only visible to the club admin.";
         }
     }
 

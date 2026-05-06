@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Groups - Connect</title>
+    <title>My Groups - Clubknit</title>
     <style>
         /* My Groups Page Styles */
 
@@ -605,7 +605,7 @@
                 <div class="community-info-section">
                     <h3 class="section-title">Community Information</h3>
                     <div class="community-info">
-                        <div class="community-name" id="modal-community-name">Community Name</div>
+                        <div class="community-name" id="modal-community-name">Club Name</div>
                         <div class="community-description" id="modal-community-description">Community description will appear here...</div>
                     </div>
                 </div>
@@ -668,7 +668,7 @@
                 </svg>
             </div>
             <h3 class="empty-state-title">No Groups Found</h3>
-            <p class="empty-state-description">You haven't joined any groups yet. Contact your community administrator to be added to groups.</p>
+            <p class="empty-state-description">You haven't joined any groups yet. Contact your club administrator to be added to groups.</p>
         </div>
 
         <!-- Groups by Community -->
@@ -679,7 +679,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
-                        <span th:text="${communityEntry.key}">Community Name</span>
+                        <span th:text="${communityEntry.key}">Club Name</span>
                     </h2>
                     <div class="community-groups-count">
                         <span th:text="${#lists.size(communityEntry.value)}">0</span> groups
@@ -706,7 +706,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span th:text="${communityEntry.key}">Community Name</span>
+                                <span th:text="${communityEntry.key}">Club Name</span>
                             </div>
                             <p class="group-description-preview" th:text="${#strings.abbreviate(group.groupDescription, 100)}">
                                 A collaborative space for developers to share ideas, discuss projects, and learn from each other.

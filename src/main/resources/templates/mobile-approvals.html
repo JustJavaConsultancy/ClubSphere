@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
@@ -23,7 +23,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
                 <h1 style="font-size:1.3rem;font-weight:700;margin:0 0 4px 0;">Membership Approvals</h1>
-                <p style="font-size:13px;opacity:0.85;margin:0;">Review pending community join requests</p>
+                <p style="font-size:13px;opacity:0.85;margin:0;">Review pending club join requests</p>
             </div>
             <div style="background:rgba(255,255,255,0.25);border-radius:9999px;padding:6px 14px;font-size:13px;font-weight:600;" th:text="${pendingCount} + ' Pending'">0 Pending</div>
         </div>
@@ -62,7 +62,7 @@
             <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:12px;">
                 <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-bottom:6px;">Wants to join</div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-size:14px;font-weight:600;color:#1f2937;" th:text="${task.communityName ?: 'Community #' + task.communityId}">Community</span>
+                    <span style="font-size:14px;font-weight:600;color:#1f2937;" th:text="${task.communityName ?: 'Community #' + task.communityId}">Club</span>
                     <span th:if="${task.private}" class="ap-badge ap-private">🔒 Private</span>
                     <span th:unless="${task.private}" class="ap-badge ap-public">🌐 Public</span>
                 </div>

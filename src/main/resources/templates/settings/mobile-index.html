@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
 <head>
@@ -429,7 +429,7 @@
                     <span>Public Profile</span>
                 </div>
                 <div class="status-explanation" id="statusExplanation">
-                    Your profile is visible to everyone in the community.
+                    Your profile is visible to everyone in the club.
                 </div>
             </div>
             <label class="status-toggle">
@@ -651,11 +651,11 @@
                         if (isPrivate) {
                             indicator.className = 'status-indicator status-private';
                             indicator.innerHTML = '<span class="material-icons text-base">lock</span><span>Private Profile</span>';
-                            explanation.textContent = 'Your profile is only visible to the community admin.';
+                            explanation.textContent = 'Your profile is only visible to the club admin.';
                         } else {
                             indicator.className = 'status-indicator status-public';
                             indicator.innerHTML = '<span class="material-icons text-base">public</span><span>Public Profile</span>';
-                            explanation.textContent = 'Your profile is visible to everyone in the community.';
+                            explanation.textContent = 'Your profile is visible to everyone in the club.';
                         }
                     });
                     console.log('✅ Status toggle listener attached');

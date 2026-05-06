@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
@@ -330,10 +330,10 @@
         <div class="modal-box">
             <h2 class="modal-title"><i class="fas fa-user-plus text-indigo-600 mr-2"></i>Add Members</h2>
             <p style="font-size:0.8125rem; color:#6b7280; margin-bottom:1rem;">
-                Select community members to add to this network.
+                Select club members to add to this network.
             </p>
             <div id="addMemberList" class="add-member-list">
-                <div class="empty-section">Loading community members...</div>
+                <div class="empty-section">Loading club members...</div>
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeAddMemberModal()">Close</button>
@@ -473,7 +473,7 @@
             const available = await res.json();
 
             if (available.length === 0) {
-                listEl.innerHTML = '<div class="empty-section">All community members are already in this network</div>';
+                listEl.innerHTML = '<div class="empty-section">All club members are already in this network</div>';
                 return;
             }
 

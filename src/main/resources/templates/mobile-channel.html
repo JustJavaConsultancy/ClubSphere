@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Channel - Connect</title>
+    <title>Channel - Clubknit</title>
     <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
     <style>
         /* Mobile-optimized channel styles */
@@ -271,7 +271,7 @@
                 <span th:text="${#strings.arraySplit(usersName, ' ')[#strings.arraySplit(usersName, ' ').length - 1]}">Alex</span>!
             </h1>
             <p class="opacity-90 text-sm mb-4">
-                Stay connected with posts from all your communities in one place.
+                Stay connected with posts from all your clubs in one place.
             </p>
         </div>
     </div>
@@ -301,7 +301,7 @@
                         <p class="text-xs text-gray-500">
                             <span th:attr="data-time=${posts.dateCreated}" class="time-ago"></span> ·
                             <span class="material-icons text-xs">public</span> ·
-                            <span th:text="${posts.communityName}" class="font-medium" style="color: #2A2494;">Community Name</span>
+                            <span th:text="${posts.communityName}" class="font-medium" style="color: #2A2494;">Club Name</span>
                         </p>
                     </div>
                 </div>

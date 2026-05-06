@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -110,8 +110,8 @@
         <h2 style="font-size: 1.1rem; font-weight: 600; color: #374151; margin: 0 0 6px 0;"
             th:text="${pageType == 'claimed'} ? 'No tickets yet' : 'No tickets yet'">No tickets yet</h2>
         <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;"
-           th:text="${pageType == 'claimed'} ? 'You have not taken on any tickets yet. Go to Unclaimed Tickets to pick one up.' : 'When you need help, create a support ticket from your community home page.'">
-            When you need help, create a support ticket from your community home page.
+           th:text="${pageType == 'claimed'} ? 'You have not taken on any tickets yet. Go to Unclaimed Tickets to pick one up.' : 'When you need help, create a support ticket from your club home page.'">
+            When you need help, create a support ticket from your club home page.
         </p>
         <a th:if="${pageType == 'claimed'}" th:href="@{/mobile/support/agent/claim-ticket}"
            style="display:inline-block;padding:10px 20px;background:linear-gradient(135deg,#10b981,#059669);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">

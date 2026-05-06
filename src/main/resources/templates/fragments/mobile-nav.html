@@ -1,4 +1,4 @@
-<div th:fragment="mobile-nav" xmlns:th="http://www.thymeleaf.org">
+﻿<div th:fragment="mobile-nav" xmlns:th="http://www.thymeleaf.org">
     <!-- Mobile menu overlay -->
     <div class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" id="mobile-overlay"></div>
 
@@ -37,7 +37,7 @@
             <a th:href="@{/mobile/my-community}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-2 rounded-lg"
                th:classappend="${currentPath == '/my-community'} ? ' text-violet-950' : ' text-gray-500'">
                 <span class="material-icons text-xl md:text-2xl mb-1">handshake</span>
-                <span class="text-xs font-medium">Community</span>
+                <span class="text-xs font-medium">Club</span>
             </a>
 
             <a th:href="@{/mobile/network}" class="mobile-bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg"
@@ -143,7 +143,7 @@
                         <span class="material-icons text-white text-xl">celebration</span>
                     </div>
                     <span class="text-sm font-semibold text-gray-800">New Event</span>
-                    <span class="text-xs text-gray-500 mt-1">Create Community Event</span>
+                    <span class="text-xs text-gray-500 mt-1">Create Clb Event</span>
                 </a>
 
                 <a th:href="@{/mobile/modules}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">

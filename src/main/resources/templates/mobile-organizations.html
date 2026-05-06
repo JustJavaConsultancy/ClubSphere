@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{mobile-layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizations - Connect</title>
+    <title>Organizations - Clubknit</title>
     <style>
         /* Mobile-optimized organizations styles */
         .organizations-header {
@@ -480,17 +480,17 @@
             <div class="header-flex">
                 <div class="header-text">
                     <h1 class="text-xl font-bold mb-2">
-                        Your Organizations
+                        Your Clubs
                     </h1>
                     <p class="opacity-90 text-sm">
-                        Manage your communities and discover new ones.
+                        Manage your clubs and discover new ones.
                     </p>
                 </div>
                 <a th:if="${session.isAdmin}"
                    th:href="@{/mobile/add-community}"
                    class="add-community-btn">
                     <span class="material-icons text-sm">add</span>
-                    <span>Add Community</span>
+                    <span>Add Club</span>
                 </a>
             </div>
         </div>
@@ -527,11 +527,11 @@
                     <div class="empty-state-icon">
                         <span class="material-icons text-3xl" style="color: #2A2494;">business</span>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Organizations Yet</h3>
-                    <p class="text-gray-600 mb-6">You haven't joined any organizations yet. Check out suggested communities below or contact your administrator.</p>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">No Clubs Yet</h3>
+                    <p class="text-gray-600 mb-6">You haven't joined any clubs yet. Check out suggested clubs below or contact your administrator.</p>
                 </div>
 
-                <!-- My Community Cards -->
+                <!-- My Club Cards -->
                 <div th:each="community : ${userCommunities}"
                      class="community-card touch-feedback fade-in"
                      th:onclick="'selectCommunity(' + ${community.id} + ')'"
@@ -542,11 +542,11 @@
                     </div>
 
                     <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Community'}">
-                        Community Name
+                        Club Name
                     </h3>
 
                     <p class="community-description" th:text="${community.communityDescription != null ? community.communityDescription : 'No description available'}">
-                        This is a description of the community and what it's about.
+                        This is a description of the club and what it's about.
                     </p>
 
                     <div class="community-meta">
@@ -589,18 +589,18 @@
                     </div>
 
                     <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Community'}">
-                        Community Name
+                        Club Name
                     </h3>
 
                     <p class="community-description" th:text="${community.communityDescription != null ? community.communityDescription : 'No description available'}">
-                        This is a description of the community and what it's about.
+                        This is a description of the club and what it's about.
                     </p>
 
                     <div class="community-meta">
                         <div class="community-stats">
                             <span class="stat-item">
                                 <span class="material-icons text-sm">public</span>
-                                <span>Public Community</span>
+                                <span>Public Club</span>
                             </span>
                         </div>
 
@@ -649,8 +649,8 @@
                             <span th:text="${#strings.substring(invitation.communityName != null ? invitation.communityName : 'C', 0, 1)}">C</span>
                         </div>
                         <div class="request-info">
-                            <h4 th:text="${invitation.communityName}">Community Name</h4>
-                            <p>You've been invited to join this private community</p>
+                            <h4 th:text="${invitation.communityName}">Club Name</h4>
+                            <p>You've been invited to join this private club</p>
                         </div>
                     </div>
 
@@ -679,7 +679,7 @@
                         <span class="material-icons text-3xl" style="color: #2A2494;">inbox</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-3">No Pending Requests</h3>
-                    <p class="text-gray-600 mb-6">There are no pending community join requests at the moment.</p>
+                    <p class="text-gray-600 mb-6">There are no pending club join requests at the moment.</p>
                 </div>
 
                 <!-- Request Cards -->
@@ -693,7 +693,7 @@
                         </div>
                         <div class="request-info">
                             <h4 th:text="${request.fullName}">User Name</h4>
-                            <p>Wants to join <strong th:text="${request.communityName}">Community Name</strong></p>
+                            <p>Wants to join <strong th:text="${request.communityName}">Club Name</strong></p>
                         </div>
                     </div>
 
@@ -752,7 +752,7 @@
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px;">
                         <div style="flex: 1;">
                             <h4 style="font-weight: 700; color: #1f2937; margin: 0 0 4px 0;"
-                                th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Community</h4>
+                                th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Club</h4>
                             <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
                                   th:style="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? 'background-color: #fee2e2; color: #991b1b; display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #f3f4f6; color: #6b7280; display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;')"
                                   th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>
@@ -835,7 +835,7 @@
                         <span class="material-icons text-3xl" style="color: #ec4899;">favorite</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-3">No Donations Yet</h3>
-                    <p class="text-gray-600 mb-6">Visit a community to make your first donation!</p>
+                    <p class="text-gray-600 mb-6">Visit a club to make your first donation!</p>
                 </div>
 
                 <!-- Donations List -->
@@ -846,7 +846,7 @@
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                                     <h4 style="font-weight: 700; color: #1f2937; margin: 0; font-size: 15px;"
-                                        th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Community</h4>
+                                        th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Club</h4>
                                     <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; text-transform: uppercase; background-color: #fce7f3; color: #be185d;">
                                         Donation
                                     </span>
@@ -985,7 +985,7 @@
                             <div class="community-stats">
                                 <span class="stat-item">
                                     <span class="material-icons text-sm">public</span>
-                                    <span>Public Community</span>
+                                    <span>Public Club</span>
                                 </span>
                             </div>
                             <div class="flex gap-2">
@@ -1037,7 +1037,7 @@
                             <div class="community-stats">
                                 <span class="stat-item">
                                     <span class="material-icons text-sm">public</span>
-                                    <span>Public Community</span>
+                                    <span>Public Club</span>
                                 </span>
                             </div>
                             <button class="request-btn" onclick="requestToJoin(${communityId})" data-community-id="${communityId}">
