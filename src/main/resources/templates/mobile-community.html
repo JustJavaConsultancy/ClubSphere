@@ -2042,6 +2042,7 @@
               hx-target="#messages-container"
               hx-swap="innerHTML"
               hx-indicator="#invite-loading">
+            <input type="hidden" name="communityId" th:value="${communityId}">
             <div class="mobile-form-group">
                 <label for="userSelect" class="mobile-form-label">Select User to Invite</label>
                 <select id="userSelect"

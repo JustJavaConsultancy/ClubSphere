@@ -25,6 +25,7 @@ import com.justjava.mycommunity.organization.TownHallChannelService;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.util.ResendService;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class CommunityService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final DonationRepository donationRepository;
     private final EventRepository eventRepository;
+    private final ResendService resendService;
 
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
@@ -684,7 +686,32 @@ public class CommunityService {
             communityInvitationRepository.save(invitation);
         }
 
-        // 🔹 Step 5: Logging
+        // 🔹 Step 5: Send invitation email to the invited user
+        try {
+            String invitedEmail = user.getEmail();
+            String invitedName = (user.getFirstName() != null ? user.getFirstName() : "") +
+                    (user.getLastName() != null ? " " + user.getLastName() : "");
+            String communityName = community.getName();
+
+            String htmlContent = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f9fafb;padding:20px;'>" +
+                "<div style='max-width:520px;margin:auto;background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,0.08);'>" +
+                "<h2 style='color:#2A2494;margin-bottom:8px;'>You've Been Invited!</h2>" +
+                "<p style='color:#374151;'>Hi " + invitedName.trim() + ",</p>" +
+                "<p style='color:#374151;'>You have been invited to join the club <strong>" + communityName + "</strong> on <strong>Clubknit</strong>.</p>" +
+                "<p style='color:#374151;'>Log in to your Clubknit account and go to the <strong>Invitations</strong> tab in Clubs to accept or decline.</p>" +
+                "<div style='margin:24px 0;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;'>" +
+                "<a href='https://clubknit.app/organizations?tab=invitations' style='background:#2A2494;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;'>View on Web</a>" +
+                "<a href='https://clubknit.app/mobile/organizations?tab=invitations' style='background:#3730a3;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;'>View on Mobile</a>" +
+                "</div>" +
+                "<p style='color:#9ca3af;font-size:12px;margin-top:24px;'>If you did not expect this invitation, you can safely ignore this email.</p>" +
+                "</div></body></html>";
+
+            resendService.sendHtmlEmail(invitedEmail, "You've been invited to join " + communityName + " on Clubknit", htmlContent);
+        } catch (Exception e) {
+            System.err.println("Failed to send invitation email: " + e.getMessage());
+        }
+
+        // 🔹 Step 6: Logging
         //log.info("User {} invited to community {}", userId, communityId);
     }
 
