@@ -13,18 +13,13 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class Donation {
-
     @Id
     @GeneratedValue
     private Long id;
-
     private String userId;
     private Long communityId;
     private Long eventId;
-
     private BigDecimal amount;
-
     private String message;
-
     private LocalDateTime donatedAt;
 }

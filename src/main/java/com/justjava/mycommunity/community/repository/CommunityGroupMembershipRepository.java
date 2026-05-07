@@ -38,6 +38,12 @@ public interface CommunityGroupMembershipRepository extends JpaRepository<Commun
         FROM CommunityGroupMembership gm
         WHERE gm.communityMembership.userId = :userId
         AND gm.communityGroup.id = :groupId
+        AND (
+            gm.communityMembership.status = 'APPROVED'
+            OR (gm.communityMembership.status = 'SUSPENDED'
+                AND gm.communityMembership.suspendedUntil IS NOT NULL
+                AND gm.communityMembership.suspendedUntil <= CURRENT_TIMESTAMP)
+        )
         AND (gm.role = 'ADMIN' OR gm.role = 'CREATOR')
     """)
     boolean isUserGroupAdmin(@Param("userId") String userId, @Param("groupId") Long groupId);
@@ -47,7 +53,12 @@ public interface CommunityGroupMembershipRepository extends JpaRepository<Commun
         FROM CommunityGroupMembership gm
         WHERE gm.communityMembership.userId = :userId
         AND gm.communityGroup.id = :groupId
-        AND gm.communityMembership.status = 'APPROVED'
+        AND (
+            gm.communityMembership.status = 'APPROVED'
+            OR (gm.communityMembership.status = 'SUSPENDED'
+                AND gm.communityMembership.suspendedUntil IS NOT NULL
+                AND gm.communityMembership.suspendedUntil <= CURRENT_TIMESTAMP)
+        )
     """)
     boolean isUserMemberOfGroup(@Param("userId") String userId, @Param("groupId") Long groupId);
 
@@ -55,6 +66,12 @@ public interface CommunityGroupMembershipRepository extends JpaRepository<Commun
         SELECT DISTINCT gm.communityGroup.id
         FROM CommunityGroupMembership gm
         WHERE gm.communityMembership.userId = :userId
+        AND (
+            gm.communityMembership.status = 'APPROVED'
+            OR (gm.communityMembership.status = 'SUSPENDED'
+                AND gm.communityMembership.suspendedUntil IS NOT NULL
+                AND gm.communityMembership.suspendedUntil <= CURRENT_TIMESTAMP)
+        )
         AND (gm.role = 'ADMIN' OR gm.role = 'CREATOR')
     """)
     List<Long> findAdminGroupIdsByUserId(@Param("userId") String userId);

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -24,5 +26,14 @@ public class CommunityMembership {
     private Role role; // ADMIN, MEMBER
 
     @Enumerated(EnumType.STRING)
-    private MembershipStatus status; // PENDING, APPROVED
+    private MembershipStatus status; // PENDING, APPROVED, REJECTED, SUSPENDED
+
+    private LocalDateTime suspendedAt;
+
+    private LocalDateTime suspendedUntil;
+
+    @Column(length = 500)
+    private String suspensionReason;
+
+    private String suspendedByUserId;
 }

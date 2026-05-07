@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -156,11 +157,7 @@ public class CommunityService {
         // Use a query to check membership instead of accessing lazy collection
         boolean isMember = false;
         if (!isAdmin) {
-            isMember = communityMembershipRepository.existsByUserIdAndCommunityIdAndStatus(
-                    userId,
-                    communityId,
-                    MembershipStatus.APPROVED
-            );
+            isMember = communityMembershipRepository.existsActiveMembership(userId, communityId);
         }
 
         if (!isAdmin && !isMember) {
@@ -190,6 +187,10 @@ public class CommunityService {
     if (existingMembershipOpt.isPresent()) {
         CommunityMembership existingMembership = existingMembershipOpt.get();
 
+        if (isSuspensionActive(existingMembership)) {
+            throw new IllegalStateException("User is currently suspended in this community");
+        }
+
         if (existingMembership.getStatus() != MembershipStatus.APPROVED) {
             existingMembership.setStatus(MembershipStatus.APPROVED);
         }
@@ -197,6 +198,7 @@ public class CommunityService {
         if (existingMembership.getRole() == null) {
             existingMembership.setRole(Role.MEMBER);
         }
+        clearSuspension(existingMembership);
 
         communityMembershipRepository.save(existingMembership);
         return;
@@ -226,10 +228,7 @@ public class CommunityService {
         try {
             // 🔹 Step 1: Get approved memberships
             List<CommunityMembership> memberships =
-                    communityMembershipRepository.findByCommunityIdAndStatus(
-                            communityId,
-                            MembershipStatus.APPROVED
-                    );
+                    communityMembershipRepository.findActiveByCommunityId(communityId);
 
             if (memberships.isEmpty()) {
                 return communityMembers;
@@ -244,11 +243,17 @@ public class CommunityService {
             // 🔹 Step 3: Fetch users in ONE query
             List<User> users = userRepository.findByUserIdIn(userIds);
 
-            // 🔹 Step 4: Map role (optional but powerful)
+            // 🔹 Step 4: Map role and status (optional but powerful)
             Map<String, Role> roleMap = memberships.stream()
                     .collect(Collectors.toMap(
                             CommunityMembership::getUserId,
                             CommunityMembership::getRole
+                    ));
+
+            Map<String, MembershipStatus> statusMap = memberships.stream()
+                    .collect(Collectors.toMap(
+                            CommunityMembership::getUserId,
+                            CommunityMembership::getStatus
                     ));
 
             // 🔹 Step 5: Convert to DTO
@@ -260,8 +265,9 @@ public class CommunityService {
                 dto.setFirstName(user.getFirstName());
                 dto.setLastName(user.getLastName());
 
-                // 🔥 Optional: include role
+                // 🔥 Optional: include role and status
                 dto.setRole(roleMap.get(user.getUserId()));
+                dto.setStatus(statusMap.get(user.getUserId()).name());
                 communityMembers.add(dto);
             }
 
@@ -306,10 +312,15 @@ public class CommunityService {
 
             CommunityMembership existing = existingOpt.get();
 
+            if (isSuspensionActive(existing)) {
+                throw new IllegalStateException("User is currently suspended in this community");
+            }
+
             // ✅ Already approved → no need to request
             if (existing.getStatus() == MembershipStatus.APPROVED) {
                 throw new IllegalStateException("User is already a member of this community");
             }
+
 
             // ✅ Already pending → avoid duplicate workflow
             if (existing.getStatus() == MembershipStatus.PENDING) {
@@ -423,10 +434,7 @@ public class CommunityService {
 
             // 🔹 NORMAL USER → use membership
             List<CommunityMembership> memberships =
-                    communityMembershipRepository.findByUserIdAndStatus(
-                            userId,
-                            MembershipStatus.APPROVED
-                    );
+                    communityMembershipRepository.findActiveByUserId(userId);
 
             if (memberships.isEmpty()) {
                 return userCommunities;
@@ -646,10 +654,15 @@ public class CommunityService {
 
             CommunityMembership membership = membershipOpt.get();
 
+            if (isSuspensionActive(membership)) {
+                throw new IllegalStateException("User is currently suspended in this community");
+            }
+
             // ❌ Already member
             if (membership.getStatus() == MembershipStatus.APPROVED) {
                 throw new IllegalStateException("User is already a member of this community");
             }
+
 
             // ❌ Already pending (either request or invite)
             if (membership.getStatus() == MembershipStatus.PENDING) {
@@ -660,6 +673,7 @@ public class CommunityService {
             if (membership.getStatus() == MembershipStatus.REJECTED) {
                 membership.setStatus(MembershipStatus.PENDING);
                 membership.setRole(Role.MEMBER);
+                clearSuspension(membership);
                 communityMembershipRepository.save(membership);
             }
 
@@ -765,9 +779,14 @@ public class CommunityService {
                 return;
             }
 
+            if (isSuspensionActive(membership)) {
+                throw new IllegalStateException("Membership is currently suspended");
+            }
+
             // 🔥 Accept invitation → approve membership
             membership.setStatus(MembershipStatus.APPROVED);
             membership.setRole(Role.MEMBER);
+            clearSuspension(membership);
 
             communityMembershipRepository.save(membership);
 
@@ -916,8 +935,85 @@ public class CommunityService {
         return data;
     }
 
-    private void linkUserToCommunity(User user, Community community, Role role) {
+    @Transactional
+    public void suspendCommunityMember(String adminUserId,
+                                       String targetUserId,
+                                       Long communityId,
+                                       LocalDateTime suspendedUntil,
+                                       String reason) {
+        boolean isSystemAdmin = authenticationManager.isAdmin();
+        boolean isCommunityAdmin = communityMembershipRepository.isUserCommunityAdmin(adminUserId, communityId);
+        if (!isSystemAdmin && !isCommunityAdmin) {
+            throw new SecurityException("Only community admins can suspend members");
+        }
 
+        CommunityMembership membership = communityMembershipRepository
+                .findByUserIdAndCommunityId(targetUserId, communityId)
+                .orElseThrow(() -> new EntityNotFoundException("Membership not found"));
+
+        if (membership.getRole() == Role.ADMIN || membership.getRole() == Role.CREATOR) {
+            throw new IllegalStateException("Admins or creators cannot be suspended");
+        }
+        if (membership.getStatus() != MembershipStatus.APPROVED && membership.getStatus() != MembershipStatus.SUSPENDED) {
+            throw new IllegalStateException("Only approved members can be suspended");
+        }
+        if (suspendedUntil != null && !suspendedUntil.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Suspension end time must be in the future");
+        }
+
+        membership.setStatus(MembershipStatus.SUSPENDED);
+        membership.setSuspendedAt(LocalDateTime.now());
+        membership.setSuspendedUntil(suspendedUntil);
+        membership.setSuspensionReason(reason == null || reason.isBlank() ? null : reason.trim());
+        membership.setSuspendedByUserId(adminUserId);
+        communityMembershipRepository.save(membership);
+    }
+
+    @Transactional
+    public void unsuspendCommunityMember(String adminUserId, String targetUserId, Long communityId) {
+        boolean isSystemAdmin = authenticationManager.isAdmin();
+        boolean isCommunityAdmin = communityMembershipRepository.isUserCommunityAdmin(adminUserId, communityId);
+        if (!isSystemAdmin && !isCommunityAdmin) {
+            throw new SecurityException("Only community admins can unsuspend members");
+        }
+
+        CommunityMembership membership = communityMembershipRepository
+                .findByUserIdAndCommunityId(targetUserId, communityId)
+                .orElseThrow(() -> new EntityNotFoundException("Membership not found"));
+
+        if (membership.getStatus() != MembershipStatus.SUSPENDED) {
+            throw new IllegalStateException("Member is not suspended");
+        }
+
+        membership.setStatus(MembershipStatus.APPROVED);
+        clearSuspension(membership);
+        communityMembershipRepository.save(membership);
+    }
+
+    private boolean isSuspensionActive(CommunityMembership membership) {
+        if (membership.getStatus() != MembershipStatus.SUSPENDED) {
+            return false;
+        }
+        if (membership.getSuspendedUntil() == null) {
+            return true;
+        }
+        if (membership.getSuspendedUntil().isAfter(LocalDateTime.now())) {
+            return true;
+        }
+        membership.setStatus(MembershipStatus.APPROVED);
+        clearSuspension(membership);
+        communityMembershipRepository.save(membership);
+        return false;
+    }
+
+    private void clearSuspension(CommunityMembership membership) {
+        membership.setSuspendedAt(null);
+        membership.setSuspendedUntil(null);
+        membership.setSuspensionReason(null);
+        membership.setSuspendedByUserId(null);
+    }
+
+    private void linkUserToCommunity(User user, Community community, Role role) {
         Optional<CommunityMembership> existingOpt =
                 communityMembershipRepository.findByUserIdAndCommunityId(
                         user.getUserId(),
@@ -937,11 +1033,11 @@ public class CommunityService {
             if (existing.getStatus() != MembershipStatus.APPROVED) {
                 existing.setStatus(MembershipStatus.APPROVED);
             }
+            clearSuspension(existing);
 
             communityMembershipRepository.save(existing);
             return;
         }
-
         // ✅ Create new membership
         CommunityMembership membership = new CommunityMembership();
         membership.setUserId(user.getUserId());
@@ -970,12 +1066,7 @@ public class CommunityService {
 
         // 🔐 Step 1: Validate current user is admin (community-level or system-level)
         boolean isCommunityAdmin = communityMembershipRepository
-                .existsByUserIdAndCommunityIdAndRoleAndStatus(
-                        currentUserId,
-                        communityId,
-                        Role.ADMIN,
-                        MembershipStatus.APPROVED
-                );
+                .isUserCommunityAdmin(currentUserId, communityId);
 
         boolean isSystemAdmin = authenticationManager.isAdmin();
 
@@ -1008,6 +1099,7 @@ public class CommunityService {
             if (membership.getRole() != Role.ADMIN) {
                 membership.setRole(Role.ADMIN);
                 membership.setStatus(MembershipStatus.APPROVED);
+                clearSuspension(membership);
                 communityMembershipRepository.save(membership);
             }
 
@@ -1042,7 +1134,7 @@ public class CommunityService {
 
         // Validate membership (warn but don't block — payment already processed)
         boolean isMember = communityMembershipRepository
-                .existsByUserIdAndCommunityIdAndStatus(userId, communityId, MembershipStatus.APPROVED);
+                .existsActiveMembership(userId, communityId);
         if (!isMember) {
             System.out.println("WARNING: startSubscription called for non-approved member userId=" + userId + " communityId=" + communityId + " — proceeding anyway since payment was verified.");
         }
@@ -1206,7 +1298,7 @@ public class CommunityService {
 
         // Validate membership (warn but don't block — payment already processed)
         boolean isMember = communityMembershipRepository
-                .existsByUserIdAndCommunityIdAndStatus(userId, communityId, MembershipStatus.APPROVED);
+                .existsActiveMembership(userId, communityId);
         if (!isMember) {
             System.out.println("WARNING: makeDonation called for non-approved member userId=" + userId + " communityId=" + communityId + " — proceeding anyway since payment was verified.");
         }

@@ -14,6 +14,8 @@ import com.justjava.mycommunity.network.NetworkNewService;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -186,6 +189,55 @@ public class CommunityController {
 
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/");
+    }
+
+    @PostMapping("/members/{communityId}/{userId}/suspend")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> suspendMember(
+            @PathVariable Long communityId,
+            @PathVariable String userId,
+            @RequestParam(value = "suspendedUntil", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime suspendedUntil,
+            @RequestParam(value = "reason", required = false) String reason) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUserId = (String) authenticationManager.get("sub");
+            communityService.suspendCommunityMember(currentUserId, userId, communityId, suspendedUntil, reason);
+            response.put("success", true);
+            response.put("message", "Member suspended successfully");
+            return ResponseEntity.ok(response);
+        } catch (SecurityException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(403).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to suspend member: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/members/{communityId}/{userId}/unsuspend")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> unsuspendMember(
+            @PathVariable Long communityId,
+            @PathVariable String userId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUserId = (String) authenticationManager.get("sub");
+            communityService.unsuspendCommunityMember(currentUserId, userId, communityId);
+            response.put("success", true);
+            response.put("message", "Member unsuspended successfully");
+            return ResponseEntity.ok(response);
+        } catch (SecurityException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(403).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to unsuspend member: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     private Map<String, Object> extractCommunityData(Object communityResponse) {
