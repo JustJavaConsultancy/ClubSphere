@@ -503,6 +503,20 @@ public class HomeController {
         model.addAttribute("userCommunities", userCommunities);
         request.getSession(true).setAttribute("loggedInUser", authenticationManager.get("name"));
 
+        // Suspension check for the selected community
+        java.util.Map<String, Object> suspensionInfo = null;
+        boolean isSuspended = false;
+        if (selectedCommunityId != null) {
+            suspensionInfo = communityService.getCurrentUserSuspension(currentUserId, selectedCommunityId);
+            isSuspended = suspensionInfo != null;
+        }
+        // Suspended members cannot post regardless of role
+        if (isSuspended) {
+            model.addAttribute("canUserPost", false);
+        }
+        model.addAttribute("isSuspended", isSuspended);
+        model.addAttribute("suspensionInfo", suspensionInfo);
+
         // Subscription status for the current user
         boolean hasActiveSubscription = false;
         if (selectedCommunityId != null) {

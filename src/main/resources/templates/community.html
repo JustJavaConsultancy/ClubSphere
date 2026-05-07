@@ -1061,6 +1061,106 @@
             animation: rowSuccessFlash 1.4s ease forwards;
         }
 
+        /* ── Suspend / Unsuspend Buttons ── */
+        .suspend-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid #fee2e2;
+            background: #fff5f5;
+            color: #dc2626;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+        .suspend-btn:hover {
+            background: linear-gradient(135deg,#dc2626,#b91c1c);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+            transform: translateY(-1px);
+        }
+        .unsuspend-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid #bbf7d0;
+            background: #f0fdf4;
+            color: #15803d;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+        .unsuspend-btn:hover {
+            background: linear-gradient(135deg,#16a34a,#15803d);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+            transform: translateY(-1px);
+        }
+        /* ── Suspend Modal ── */
+        #suspendModal .modal-content {
+            max-width: 460px;
+            padding: 0;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .suspend-modal-header {
+            background: linear-gradient(135deg,#dc2626,#b91c1c);
+            padding: 24px 24px 18px;
+            color: white;
+            text-align: center;
+        }
+        .suspend-modal-header h3 { font-size:18px; font-weight:700; margin:0 0 4px; }
+        .suspend-modal-header p  { font-size:13px; opacity:.85; margin:0; }
+        .suspend-modal-body { padding:24px; }
+        .suspend-duration-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .suspend-duration-option {
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+            transition: all 0.15s ease;
+            background: white;
+        }
+        .suspend-duration-option:hover, .suspend-duration-option.selected {
+            border-color: #dc2626;
+            background: #fff5f5;
+            color: #dc2626;
+        }
+        .suspend-modal-actions { display:flex; gap:10px; margin-top:20px; }
+        .suspend-cancel-btn {
+            flex:1; padding:10px; border-radius:10px;
+            border:1.5px solid #e2e8f0; background:#f8fafc;
+            color:#475569; font-weight:600; font-size:14px; cursor:pointer;
+        }
+        .suspend-confirm-btn {
+            flex:1.4; padding:10px; border-radius:10px; border:none;
+            background:linear-gradient(135deg,#dc2626,#b91c1c);
+            color:white; font-weight:700; font-size:14px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:7px;
+            box-shadow:0 4px 12px rgba(220,38,38,0.3); transition:all 0.18s ease;
+        }
+        .suspend-confirm-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(220,38,38,0.4); }
+        .suspend-confirm-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+
         /* ── Manage Page Tab Navigation ── */
         .manage-tab-container {
             background: white;
@@ -1137,6 +1237,36 @@
 
         <div th:if="${errorMessage}" class="alert alert-error">
             <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
+
+    <!-- Suspension Banner -->
+    <div th:if="${isSuspended}" style="background:linear-gradient(135deg,#fef2f2,#fff7ed);border:1.5px solid #fca5a5;border-radius:16px;padding:20px 24px;margin-bottom:20px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fas fa-ban" style="color:#dc2626;font-size:18px;"></i>
+            </div>
+            <div>
+                <p style="font-weight:700;color:#b91c1c;font-size:15px;margin:0;">You are suspended from this club</p>
+                <p th:if="${suspensionInfo != null and suspensionInfo['suspendedUntil'] != null}"
+                   style="font-size:13px;color:#6b7280;margin:2px 0 0 0;">
+                    Suspension lifts on <strong th:text="${#temporals.format(suspensionInfo['suspendedUntil'], 'MMMM d, yyyy \'at\' h:mm a')}"></strong>
+                </p>
+                <p th:if="${suspensionInfo == null or suspensionInfo['suspendedUntil'] == null}"
+                   style="font-size:13px;color:#6b7280;margin:2px 0 0 0;">This suspension is indefinite.</p>
+            </div>
+        </div>
+        <div th:if="${suspensionInfo != null and suspensionInfo['suspensionReason'] != null}"
+             style="background:#fff;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;">
+            <p style="font-size:12px;font-weight:600;color:#9ca3af;margin:0 0 2px 0;text-transform:uppercase;letter-spacing:.05em;">Reason</p>
+            <p th:text="${suspensionInfo['suspensionReason']}" style="font-size:13px;color:#374151;margin:0;"></p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-info-circle" style="color:#f59e0b;font-size:13px;"></i>
+            <span style="font-size:13px;color:#6b7280;">You can view the club but cannot interact while suspended.</span>
+            <button type="button" onclick="openSuspensionSupportModal()" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:#2A2494;color:white;padding:7px 16px;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;">
+                <i class="fas fa-headset"></i> Contact Support
+            </button>
         </div>
     </div>
 
@@ -1724,6 +1854,14 @@
 
                                 <!-- Role -->
                                 <td class="py-3 px-4">
+                                    <!-- CREATOR -->
+                                    <span th:if="${member.role != null and member.role.name() == 'CREATOR'}"
+                                          class="role-badge-admin" style="background:#fdf4ff;color:#7e22ce;border-color:#e9d5ff;">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                </svg>
+                                Creator
+                            </span>
                                     <!-- ADMIN -->
                                     <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
                                           class="role-badge-admin">
@@ -1741,7 +1879,8 @@
                                 Moderator
                             </span>
                                     <!-- MEMBER / fallback -->
-                                    <span th:if="${member.role == null or (member.role.name() != 'ADMIN' and member.role.name() != 'MODERATOR')}"
+                                    <!-- MEMBER / fallback -->
+                                    <span th:if="${member.role == null or (member.role.name() != 'CREATOR' and member.role.name() != 'ADMIN' and member.role.name() != 'MODERATOR')}"
                                           class="role-badge-member">
                                 <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
@@ -1750,11 +1889,11 @@
                             </span>
                                 </td>
 
-
                                 <!-- Actions (Admin only) -->
                                 <td th:if="${isAdmin}" class="py-3 px-4">
-                                    <!-- Non-admin member: show Make Admin button -->
-                                    <button th:if="${member.role == null or member.role.name() != 'ADMIN'}"
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                    <!-- Regular member: show Make Admin + Suspend buttons -->
+                                    <button th:if="${member.role == null or (member.role.name() != 'ADMIN' and member.role.name() != 'CREATOR')}"
                                             class="make-admin-btn"
                                             th:attr="
             data-user-id=${member.userId},
@@ -1762,22 +1901,66 @@
             data-email=${member.email != null ? member.email : ''},
             data-initials=${(member.firstName != null ? #strings.substring(member.firstName,0,1) : '?') + (member.lastName != null ? #strings.substring(member.lastName,0,1) : '')}
         ">
-
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                   d="M5 3l1.5 4.5L10 5l1 4 3.5-2L13 11h6l-2.5 3.5L19 18H5l2.5-3.5L5 11h6L9.5 7 13 9l1-4-3.5 2.5L9 3H5z"/>
                                         </svg>
-
                                         Make Admin
                                     </button>
-                                    <!-- Already admin: greyed label -->
+                                    <!-- Admin label -->
                                     <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
                                           class="already-admin-label">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
-                                </svg>
-                                Admin
-                            </span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Admin
+                                    </span>
+                                    <!-- Remove Admin button (CREATOR only) -->
+                                    <button th:if="${isCreator and member.role != null and member.role.name() == 'ADMIN'}"
+                                            class="suspend-btn"
+                                            style="border-color:#fde68a;background:#fffbeb;color:#b45309;"
+                                            th:attr="data-user-id=${member.userId},
+                                                     data-full-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+                                                     data-community-id=${communityId}"
+                                            onclick="removeAdminRole(this.getAttribute('data-user-id'), this.getAttribute('data-full-name'), this.getAttribute('data-community-id'))">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/>
+                                        </svg>
+                                        Remove Admin
+                                    </button>
+                                    <!-- Creator label -->
+                                    <span th:if="${member.role != null and member.role.name() == 'CREATOR'}"
+                                          class="already-admin-label" style="color:#7e22ce;border-color:#e9d5ff;background:#fdf4ff;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Creator
+                                    </span>
+                                    <!-- Suspend button (non-Creator, non-Admin members only, not already suspended) -->
+                                    <button th:if="${(member.role == null or (member.role.name() != 'CREATOR' and member.role.name() != 'ADMIN')) and (member.suspended == null or !member.suspended)}"
+                                            class="suspend-btn"
+                                            th:attr="data-user-id=${member.userId},
+                                                     data-full-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+                                                     data-community-id=${communityId}"
+                                            onclick="openSuspendModal(this.getAttribute('data-user-id'), this.getAttribute('data-full-name'), this.getAttribute('data-community-id'))">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                        </svg>
+                                        Suspend
+                                    </button>
+                                    <!-- Unsuspend button -->
+                                    <button th:if="${member.suspended != null and member.suspended}"
+                                            class="unsuspend-btn"
+                                            th:attr="data-user-id=${member.userId},
+                                                     data-full-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+                                                     data-community-id=${communityId}"
+                                            onclick="unsuspendMember(this.getAttribute('data-user-id'), this.getAttribute('data-full-name'), this.getAttribute('data-community-id'))">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Unsuspend
+                                    </button>
+                                    </div>
                                 </td>
                             </tr>
 
@@ -1836,6 +2019,51 @@
                 </div>
 
             </div><!-- END members tab -->
+
+            <!-- ══ Suspend Member Modal ══ -->
+            <div th:if="${isAdmin}" id="suspendModal" class="modal">
+                <div class="modal-content" style="max-width:460px;padding:0;border-radius:16px;overflow:hidden;">
+                    <div class="suspend-modal-header">
+                        <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:9999px;background:rgba(255,255,255,0.2);margin-bottom:12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                            </svg>
+                        </div>
+                        <h3>Suspend Member</h3>
+                        <p id="suspendModalSubtitle">Choose suspension duration and reason</p>
+                    </div>
+                    <div class="suspend-modal-body">
+                        <input type="hidden" id="suspendUserId">
+                        <input type="hidden" id="suspendCommunityId">
+                        <p class="text-sm text-gray-600 mb-4">Select how long to suspend <strong id="suspendMemberName"></strong>:</p>
+                        <div class="suspend-duration-grid">
+                            <button type="button" class="suspend-duration-option" onclick="selectDuration(this,'1d')">1 Day</button>
+                            <button type="button" class="suspend-duration-option" onclick="selectDuration(this,'3d')">3 Days</button>
+                            <button type="button" class="suspend-duration-option" onclick="selectDuration(this,'7d')">1 Week</button>
+                            <button type="button" class="suspend-duration-option" onclick="selectDuration(this,'30d')">1 Month</button>
+                            <button type="button" class="suspend-duration-option" onclick="selectDuration(this,'custom')">Custom Date</button>
+                            <button type="button" class="suspend-duration-option" onclick="selectDuration(this,'indefinite')">Indefinite</button>
+                        </div>
+                        <div id="customDateWrapper" style="display:none;margin-bottom:14px;">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Suspend Until</label>
+                            <input type="datetime-local" id="customSuspendDate"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400">
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-gray-400">(optional)</span></label>
+                            <textarea id="suspendReason" rows="3" placeholder="Enter reason for suspension..."
+                                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-400"></textarea>
+                        </div>
+                        <div class="suspend-modal-actions">
+                            <button type="button" class="suspend-cancel-btn" onclick="closeSuspendModal()">Cancel</button>
+                            <button type="button" class="suspend-confirm-btn" id="confirmSuspendBtn" onclick="submitSuspend()">
+                                <span class="btn-spinner"></span>
+                                <span class="btn-label-text">Suspend Member</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- ═══════════ SUBSCRIPTIONS TAB (Admin Only) ═══════════ -->
             <div th:if="${isAdmin}" id="subscriptions" class="manage-tab-panel">
@@ -2753,6 +2981,20 @@
         document.addEventListener('click', function(event) {
             if (event.target.id === 'assignAdminModal') closeAssignAdminModal();
         });
+
+        function removeAdminRole(userId, fullName, communityId) {
+            if (!confirm('Remove admin role from ' + (fullName || 'this member') + '? They will become a regular member.')) return;
+            fetch('/my-community/removeAdmin/' + userId + '/' + communityId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(r => {
+                if (!r.ok) throw new Error('Request failed');
+                showMessage('Admin role removed successfully.', 'success');
+                window.location.reload();
+            }).catch(() => {
+                showMessage('Failed to remove admin role. Please try again.', 'error');
+            });
+        }
     </script>
 
     <!-- Subscriptions auto-load script (Admin only) -->
@@ -2990,10 +3232,149 @@
                 btn.disabled = false;
             }
         }
+
+        // ══ Suspend / Unsuspend Member ══
+        let _selectedDuration = null;
+
+        function openSuspendModal(userId, fullName, communityId) {
+            document.getElementById('suspendUserId').value = userId;
+            document.getElementById('suspendCommunityId').value = communityId;
+            document.getElementById('suspendMemberName').textContent = fullName;
+            document.getElementById('suspendReason').value = '';
+            document.getElementById('customDateWrapper').style.display = 'none';
+            document.querySelectorAll('.suspend-duration-option').forEach(el => el.classList.remove('selected'));
+            _selectedDuration = null;
+            document.getElementById('suspendModal').classList.add('show');
+        }
+
+        function closeSuspendModal() {
+            document.getElementById('suspendModal').classList.remove('show');
+        }
+
+        function selectDuration(el, val) {
+            document.querySelectorAll('.suspend-duration-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            _selectedDuration = val;
+            document.getElementById('customDateWrapper').style.display = (val === 'custom') ? 'block' : 'none';
+        }
+
+        async function submitSuspend() {
+            if (!_selectedDuration) { alert('Please select a suspension duration.'); return; }
+            const userId = document.getElementById('suspendUserId').value;
+            const communityId = document.getElementById('suspendCommunityId').value;
+            const reason = document.getElementById('suspendReason').value.trim();
+            const btn = document.getElementById('confirmSuspendBtn');
+            btn.disabled = true; btn.classList.add('loading');
+
+            let suspendedUntil = null;
+            const now = new Date();
+            if (_selectedDuration === '1d')       suspendedUntil = new Date(now.getTime() + 1*24*3600*1000);
+            else if (_selectedDuration === '3d')  suspendedUntil = new Date(now.getTime() + 3*24*3600*1000);
+            else if (_selectedDuration === '7d')  suspendedUntil = new Date(now.getTime() + 7*24*3600*1000);
+            else if (_selectedDuration === '30d') suspendedUntil = new Date(now.getTime() + 30*24*3600*1000);
+            else if (_selectedDuration === 'custom') {
+                const val = document.getElementById('customSuspendDate').value;
+                if (!val) { alert('Please select a custom date.'); btn.disabled = false; btn.classList.remove('loading'); return; }
+                suspendedUntil = new Date(val);
+            }
+
+            const params = new URLSearchParams();
+            if (suspendedUntil) params.append('suspendedUntil', suspendedUntil.toISOString().slice(0,19));
+            if (reason) params.append('reason', reason);
+
+            try {
+                const res = await fetch(`/my-community/members/${communityId}/${userId}/suspend`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: params.toString()
+                });
+                const data = await res.json();
+                if (data.success) { closeSuspendModal(); window.location.reload(); }
+                else alert('Error: ' + data.message);
+            } catch (e) { alert('Failed to suspend: ' + e.message); }
+            finally { btn.disabled = false; btn.classList.remove('loading'); }
+        }
+
+        async function unsuspendMember(userId, fullName, communityId) {
+            if (!confirm(`Unsuspend ${fullName}? They will regain full access.`)) return;
+            try {
+                const res = await fetch(`/my-community/members/${communityId}/${userId}/unsuspend`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) window.location.reload();
+                else alert('Error: ' + data.message);
+            } catch (e) { alert('Failed to unsuspend: ' + e.message); }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sm = document.getElementById('suspendModal');
+            if (sm) sm.addEventListener('click', e => { if (e.target === sm) closeSuspendModal(); });
+        });
     </script>
 
     <!-- Donation Toast Notification -->
     <div id="donationToast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9999; min-width:300px; max-width:480px; padding:14px 20px; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.18); font-size:15px; font-weight:600; text-align:center; transition:opacity 0.4s;"></div>
+
+    <!-- Suspension Support Ticket Modal -->
+    <div id="suspension-support-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:20px;padding:28px;width:100%;max-width:480px;margin:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;font-size:1.15rem;font-weight:700;color:#1f2937;">
+                    <i class="fas fa-headset" style="color:#4f46e5;margin-right:8px;"></i>Contact Support
+                </h3>
+                <button onclick="closeSuspensionSupportModal()" style="background:none;border:none;cursor:pointer;padding:4px;">
+                    <svg style="width:20px;height:20px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <p style="font-size:14px;color:#6b7280;margin-bottom:18px;">Describe your situation and our support team will review your suspension appeal.</p>
+            <form id="suspensionSupportForm" hx-post="/support/submit-request" hx-target="#suspensionSupportFeedback" hx-swap="innerHTML">
+                <input type="hidden" name="communityId" th:value="${communityId}">
+                <input type="hidden" name="attachmentUrl" value="">
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Subject</label>
+                    <input type="text" name="subject" id="suspensionSupportSubject" value="Club Suspension Appeal"
+                           style="width:100%;padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;background:#f3f4f6;box-sizing:border-box;" readonly>
+                </div>
+                <div style="margin-bottom:18px;">
+                    <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Description</label>
+                    <textarea name="description" id="suspensionSupportDesc" rows="4"
+                              placeholder="Please explain why you believe this suspension should be reviewed or lifted..."
+                              style="width:100%;padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;resize:vertical;box-sizing:border-box;"
+                              onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e5e7eb'" required></textarea>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button type="submit" style="flex:1;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;padding:10px 24px;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;">
+                        Submit Ticket
+                    </button>
+                    <button type="button" onclick="closeSuspensionSupportModal()" style="padding:10px 20px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:10px;font-weight:500;cursor:pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+            <div id="suspensionSupportFeedback" style="margin-top:12px;"></div>
+        </div>
+    </div>
+    <script>
+        function openSuspensionSupportModal() {
+            const modal = document.getElementById('suspension-support-modal');
+            if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+            const desc = document.getElementById('suspensionSupportDesc');
+            if (desc) { desc.value = ''; desc.focus(); }
+        }
+        function closeSuspensionSupportModal() {
+            const modal = document.getElementById('suspension-support-modal');
+            if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+            const form = document.getElementById('suspensionSupportForm');
+            if (form) form.reset();
+            const feedback = document.getElementById('suspensionSupportFeedback');
+            if (feedback) feedback.innerHTML = '';
+            // restore readonly subject
+            const subj = document.getElementById('suspensionSupportSubject');
+            if (subj) subj.value = 'Club Suspension Appeal';
+        }
+        // close on backdrop click
+        document.getElementById('suspension-support-modal')
+            ?.addEventListener('click', function(e) { if (e.target === this) closeSuspensionSupportModal(); });
+    </script>
 
 </div>
 </body>

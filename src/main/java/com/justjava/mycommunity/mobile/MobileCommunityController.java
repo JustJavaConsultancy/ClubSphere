@@ -96,7 +96,9 @@ public class MobileCommunityController {
             List<UserDTO> communityMembers = new ArrayList<>();
             List<UserDTO> availableUsersToInvite = new ArrayList<>();
             try {
-                communityMembers = communityService.getCommunityMembers(communityId);
+                communityMembers = isAdmin
+                        ? communityService.getCommunityMembersAll(communityId)
+                        : communityService.getCommunityMembers(communityId);
                 if (isAdmin) {
                     availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
                 }
@@ -153,6 +155,15 @@ public class MobileCommunityController {
             model.addAttribute("groupRequests", groupRequests);
             model.addAttribute("isAdmin", isAdmin);
             model.addAttribute("userId", currentUserId);
+
+            boolean isCreator = communityMembershipRepository.isUserCommunityCreator(currentUserId, communityId);
+            model.addAttribute("isCreator", isCreator);
+
+            // Check if current user is suspended in this community
+            Map<String, Object> suspensionInfo = communityService.getCurrentUserSuspension(currentUserId, communityId);
+            boolean isSuspended = suspensionInfo != null;
+            model.addAttribute("isSuspended", isSuspended);
+            model.addAttribute("suspensionInfo", suspensionInfo);
             model.addAttribute("usersName", authenticationManager.get("name"));
 
             boolean canUserPost = postService.canUserPostToCommunity(currentUserId, communityId);
@@ -476,6 +487,29 @@ public class MobileCommunityController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Failed to assign admin role: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/removeAdmin/{userId}/{communityId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> removeAdmin(
+            @PathVariable("userId") String userId,
+            @PathVariable("communityId") Long communityId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String currentUser = (String) authenticationManager.get("sub");
+            communityService.removeCommunityAdmin(currentUser, userId, communityId);
+            response.put("success", true);
+            response.put("message", "Admin role removed successfully");
+            return ResponseEntity.ok(response);
+        } catch (SecurityException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(403).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to remove admin role: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
     }

@@ -97,8 +97,7 @@ public class CommunityController {
 
             // Also treat community-level admins as admin for this community
             if (!isAdmin) {
-                isAdmin = communityMembershipRepository.existsByUserIdAndCommunityIdAndRoleAndStatus(
-                        currentUserId, communityId, Role.ADMIN, MembershipStatus.APPROVED);
+                isAdmin = communityMembershipRepository.isUserCommunityAdmin(currentUserId, communityId);
             }
 
             // Keep session in sync so /networks and other session-dependent pages
@@ -116,7 +115,9 @@ public class CommunityController {
             // Also store the community name in session
             request.getSession().setAttribute("selectedCommunityName", community.getName());
 
-            List<UserDTO> communityMembers = communityService.getCommunityMembers(communityId);
+            List<UserDTO> communityMembers = isAdmin
+                    ? communityService.getCommunityMembersAll(communityId)
+                    : communityService.getCommunityMembers(communityId);
             List<UserDTO> availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
 
             List<Map<String, Object>> processedGroups = new ArrayList<>();
@@ -142,10 +143,21 @@ public class CommunityController {
 
             model.addAttribute("community", community);
             model.addAttribute("groups", processedGroups);
+            model.addAttribute("communityMembers", communityMembers);
             model.addAttribute("availableMembers", communityMembers);
             model.addAttribute("availableUsersToInvite", availableUsersToInvite);
             model.addAttribute("communityId", communityId);
             model.addAttribute("isAdmin", isAdmin);
+
+            // Check if current user is CREATOR of this specific community
+            boolean isCreator = communityMembershipRepository.isUserCommunityCreator(currentUserId, communityId);
+            model.addAttribute("isCreator", isCreator);
+
+            // Check if current user is suspended in this community
+            Map<String, Object> suspensionInfo = communityService.getCurrentUserSuspension(currentUserId, communityId);
+            boolean isSuspended = suspensionInfo != null;
+            model.addAttribute("isSuspended", isSuspended);
+            model.addAttribute("suspensionInfo", suspensionInfo);
 
             // Subscription status for the current user
             boolean hasActiveSubscription = false;
@@ -174,7 +186,6 @@ public class CommunityController {
             return "redirect:/my-community/select";
         }
 
-        model.addAttribute("communityMembers", communityService.getCommunityMembers(communityId));
         model.addAttribute("currentPath", "/my-mycommunity");
         return "community";
     }
@@ -187,6 +198,18 @@ public class CommunityController {
         String currentUser = (String) authenticationManager.get("sub");
         communityService.assignCommunityAdmin(currentUser, userId, communityId);
 
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
+    }
+
+    @PostMapping("removeAdmin/{userId}/{communityId}")
+    public String removeAdmin(
+            @PathVariable("userId") String userId,
+            @PathVariable("communityId") Long communityId,
+            HttpServletRequest request
+    ) {
+        String currentUser = (String) authenticationManager.get("sub");
+        communityService.removeCommunityAdmin(currentUser, userId, communityId);
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/");
     }

@@ -280,6 +280,49 @@ public class CommunityService {
     }
 
     /**
+     * Get ALL community members (APPROVED + SUSPENDED) with suspension details.
+     * Intended for admin views so admins can see and manage suspended members.
+     */
+    public List<UserDTO> getCommunityMembersAll(Long communityId) {
+        List<UserDTO> communityMembers = new ArrayList<>();
+        try {
+            List<CommunityMembership> memberships = communityMembershipRepository.findByCommunityId(communityId)
+                    .stream()
+                    .filter(m -> m.getStatus() == MembershipStatus.APPROVED || m.getStatus() == MembershipStatus.SUSPENDED)
+                    .toList();
+
+            if (memberships.isEmpty()) return communityMembers;
+
+            List<String> userIds = memberships.stream().map(CommunityMembership::getUserId).distinct().toList();
+            List<com.justjava.mycommunity.chat.entity.User> users = userRepository.findByUserIdIn(userIds);
+            Map<String, CommunityMembership> membershipMap = memberships.stream()
+                    .collect(Collectors.toMap(CommunityMembership::getUserId, m -> m));
+
+            for (com.justjava.mycommunity.chat.entity.User user : users) {
+                CommunityMembership m = membershipMap.get(user.getUserId());
+                if (m == null) continue;
+                UserDTO dto = new UserDTO();
+                dto.setUserId(user.getUserId());
+                dto.setEmail(user.getEmail());
+                dto.setFirstName(user.getFirstName());
+                dto.setLastName(user.getLastName());
+                dto.setRole(m.getRole());
+                dto.setStatus(m.getStatus().name());
+                boolean activelySuspended = m.getStatus() == MembershipStatus.SUSPENDED
+                        && (m.getSuspendedUntil() == null || m.getSuspendedUntil().isAfter(LocalDateTime.now()));
+                dto.setSuspended(activelySuspended);
+                dto.setSuspendedUntil(m.getSuspendedUntil());
+                dto.setSuspensionReason(m.getSuspensionReason());
+                communityMembers.add(dto);
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting all community members: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return communityMembers;
+    }
+
+    /**
      * Get all approved community members excluding the specified user.
      * Used for network page to show potential connections within the same community.
      */
@@ -432,12 +475,18 @@ public class CommunityService {
                 return userCommunities;
             }
 
-            // 🔹 NORMAL USER → use membership
+            // 🔹 NORMAL USER → use membership (include actively-suspended memberships)
             List<CommunityMembership> memberships =
-                    communityMembershipRepository.findActiveByUserId(userId);
+                    communityMembershipRepository.findApprovedOrSuspendedByUserId(userId);
 
             if (memberships.isEmpty()) {
                 return userCommunities;
+            }
+
+            // 🔹 Build a quick lookup of communityId → membership for suspension info
+            Map<Long, CommunityMembership> membershipByComId = new HashMap<>();
+            for (CommunityMembership m : memberships) {
+                membershipByComId.put(m.getCommunityId(), m);
             }
 
             // 🔹 Extract community IDs
@@ -450,7 +499,17 @@ public class CommunityService {
             List<Community> communities = communityRepository.findAllById(communityIds);
 
             for (Community community : communities) {
-                userCommunities.add(mapCommunity(community));
+                Map<String, Object> communityMap = mapCommunity(community);
+                CommunityMembership m = membershipByComId.get(community.getId());
+                boolean activelySuspended = m != null
+                        && m.getStatus() == MembershipStatus.SUSPENDED
+                        && (m.getSuspendedUntil() == null || m.getSuspendedUntil().isAfter(java.time.LocalDateTime.now()));
+                communityMap.put("suspended", activelySuspended);
+                if (activelySuspended && m != null) {
+                    communityMap.put("suspendedUntil", m.getSuspendedUntil());
+                    communityMap.put("suspensionReason", m.getSuspensionReason());
+                }
+                userCommunities.add(communityMap);
             }
 
         } catch (Exception e) {
@@ -935,6 +994,33 @@ public class CommunityService {
         return data;
     }
 
+    /**
+     * Returns suspension info for the given user in the given community,
+     * or null if they are not currently suspended.
+     */
+    public Map<String, Object> getCurrentUserSuspension(String userId, Long communityId) {
+        try {
+            Optional<CommunityMembership> opt = communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
+            if (opt.isEmpty()) return null;
+            CommunityMembership m = opt.get();
+            if (m.getStatus() != MembershipStatus.SUSPENDED) return null;
+            // Check if suspension has expired
+            if (m.getSuspendedUntil() != null && !m.getSuspendedUntil().isAfter(java.time.LocalDateTime.now())) {
+                // auto-lift
+                m.setStatus(MembershipStatus.APPROVED);
+                clearSuspension(m);
+                communityMembershipRepository.save(m);
+                return null;
+            }
+            Map<String, Object> info = new HashMap<>();
+            info.put("suspendedUntil", m.getSuspendedUntil());
+            info.put("suspensionReason", m.getSuspensionReason());
+            return info;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Transactional
     public void suspendCommunityMember(String adminUserId,
                                        String targetUserId,
@@ -951,8 +1037,11 @@ public class CommunityService {
                 .findByUserIdAndCommunityId(targetUserId, communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Membership not found"));
 
-        if (membership.getRole() == Role.ADMIN || membership.getRole() == Role.CREATOR) {
-            throw new IllegalStateException("Admins or creators cannot be suspended");
+        if (membership.getRole() == Role.CREATOR) {
+            throw new IllegalStateException("Creators cannot be suspended");
+        }
+        if (membership.getRole() == Role.ADMIN) {
+            throw new IllegalStateException("Admins cannot be suspended");
         }
         if (membership.getStatus() != MembershipStatus.APPROVED && membership.getStatus() != MembershipStatus.SUSPENDED) {
             throw new IllegalStateException("Only approved members can be suspended");
@@ -1114,6 +1203,22 @@ public class CommunityService {
 
             communityMembershipRepository.save(membership);
         }
+    }
+
+    public void removeCommunityAdmin(String currentUserId, String targetUserId, Long communityId) {
+        boolean isCreator = communityMembershipRepository.isUserCommunityCreator(currentUserId, communityId);
+        boolean isSystemAdmin = authenticationManager.isAdmin();
+        if (!isCreator && !isSystemAdmin) {
+            throw new SecurityException("Only the community creator can remove an admin");
+        }
+        CommunityMembership membership = communityMembershipRepository
+                .findByUserIdAndCommunityId(targetUserId, communityId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Membership not found"));
+        if (membership.getRole() != Role.ADMIN) {
+            throw new IllegalStateException("Target user is not an admin");
+        }
+        membership.setRole(Role.MEMBER);
+        communityMembershipRepository.save(membership);
     }
 
     // ══════════════════ SUBSCRIPTIONS ══════════════════

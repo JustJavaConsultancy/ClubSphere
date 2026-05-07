@@ -673,6 +673,35 @@
         </div>
     </div>
 
+    <!-- Suspension Banner -->
+    <div th:if="${isSuspended}" style="background:linear-gradient(135deg,#fef2f2,#fff7ed);border:1.5px solid #fca5a5;border-radius:20px;padding:18px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:38px;height:38px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span class="material-icons" style="color:#dc2626;font-size:20px;">block</span>
+            </div>
+            <div>
+                <p style="font-weight:700;color:#b91c1c;font-size:14px;margin:0;">Suspended from this club</p>
+                <p th:if="${suspensionInfo != null and suspensionInfo['suspendedUntil'] != null}"
+                   style="font-size:12px;color:#6b7280;margin:2px 0 0 0;">
+                    Lifts on <strong th:text="${#temporals.format(suspensionInfo['suspendedUntil'], 'MMM d, yyyy \'at\' h:mm a')}"></strong>
+                </p>
+                <p th:if="${suspensionInfo == null or suspensionInfo['suspendedUntil'] == null}"
+                   style="font-size:12px;color:#6b7280;margin:2px 0 0 0;">Indefinite suspension</p>
+            </div>
+        </div>
+        <div th:if="${suspensionInfo != null and suspensionInfo['suspensionReason'] != null}"
+             style="background:#fff;border:1px solid #fecaca;border-radius:10px;padding:8px 12px;margin-bottom:10px;">
+            <p style="font-size:11px;font-weight:600;color:#9ca3af;margin:0 0 2px 0;text-transform:uppercase;">Reason</p>
+            <p th:text="${suspensionInfo['suspensionReason']}" style="font-size:13px;color:#374151;margin:0;"></p>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span style="font-size:12px;color:#6b7280;">You can read posts but cannot interact.</span>
+            <button type="button" onclick="openSuspensionSupportModal()" style="display:inline-flex;align-items:center;gap:5px;background:#2A2494;color:white;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:600;border:none;cursor:pointer;">
+                <span class="material-icons" style="font-size:14px;">headset_mic</span> Support
+            </button>
+        </div>
+    </div>
+
     <!-- Create Post Card (only for club admins/creators) -->
     <div th:if="${canUserPost}" class="mobile-card touch-feedback">
         <form hx-post="/mobile/create-post"
@@ -1154,6 +1183,23 @@
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('click', () => toggleSupportModal(false));
             });
+
+            // Opens the support modal pre-filled for a suspension appeal
+            window.openSuspensionSupportModal = function() {
+                toggleSupportModal(true);
+                const subjectInput = document.querySelector('#mobileSupportForm input[name="subject"]');
+                if (subjectInput) {
+                    subjectInput.value = 'Club Suspension Appeal';
+                    subjectInput.readOnly = true;
+                    subjectInput.style.background = '#f3f4f6';
+                }
+                const descInput = document.querySelector('#mobileSupportForm textarea[name="description"]');
+                if (descInput) {
+                    descInput.value = '';
+                    descInput.placeholder = 'Please explain why you believe this suspension should be reviewed or lifted...';
+                    descInput.focus();
+                }
+            };
 
             // --- Mobile support ticket attachment handling ---
             (function() {

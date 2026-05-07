@@ -51,6 +51,17 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
     List<CommunityMembership> findActiveByUserId(@Param("userId") String userId);
 
     @Query("""
+        SELECT cm
+        FROM CommunityMembership cm
+        WHERE cm.userId = :userId
+        AND (
+            cm.status = 'APPROVED'
+            OR cm.status = 'SUSPENDED'
+        )
+    """)
+    List<CommunityMembership> findApprovedOrSuspendedByUserId(@Param("userId") String userId);
+
+    @Query("""
         SELECT CASE WHEN COUNT(cm) > 0 THEN true ELSE false END
         FROM CommunityMembership cm
         WHERE cm.userId = :userId
@@ -121,6 +132,19 @@ public interface CommunityMembershipRepository extends JpaRepository<CommunityMe
         AND (cm.role = 'ADMIN' OR cm.role = 'CREATOR')
     """)
     boolean isUserAdminOfAnyCommunity(String userId);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(cm) > 0 THEN true ELSE false END
+        FROM CommunityMembership cm
+        WHERE cm.userId = :userId
+        AND cm.communityId = :communityId
+        AND cm.role = 'CREATOR'
+        AND (
+            cm.status = 'APPROVED'
+            OR (cm.status = 'SUSPENDED' AND cm.suspendedUntil IS NOT NULL AND cm.suspendedUntil <= CURRENT_TIMESTAMP)
+        )
+    """)
+    boolean isUserCommunityCreator(@Param("userId") String userId, @Param("communityId") Long communityId);
 
     @Query("""
         SELECT DISTINCT cm.communityId

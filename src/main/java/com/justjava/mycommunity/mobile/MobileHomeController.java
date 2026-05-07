@@ -124,6 +124,13 @@ public class MobileHomeController {
 
         // Check if user can post (community-aware: only admin/creator of this community)
         boolean canUserPost = postService.canUserPostToCommunity(currentUserId, selectedCommunityId);
+
+        // Suspension check — suspended members cannot post and get a banner
+        java.util.Map<String, Object> suspensionInfo = communityService.getCurrentUserSuspension(currentUserId, selectedCommunityId);
+        boolean isSuspended = suspensionInfo != null;
+        if (isSuspended) canUserPost = false;
+        model.addAttribute("isSuspended", isSuspended);
+        model.addAttribute("suspensionInfo", suspensionInfo);
         model.addAttribute("canUserPost", canUserPost);
 
         // Subscription status for the current user
