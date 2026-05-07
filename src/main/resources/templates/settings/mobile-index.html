@@ -616,22 +616,15 @@
                 Sign out of your account. You'll need to enter your credentials to sign back in.
             </p>
 
-            <button hx-post="/mobile/logout"
-                    hx-target="#logoutFeedback"
-                    hx-swap="innerHTML"
-                    type="button"
-                    id="logoutBtn"
-                    class="danger-btn touch-feedback"
-                    _="on click
-                        put 'Signing out...' into #logoutFeedback.innerHTML
-                        add .info to #logoutFeedback
-                        remove .error from #logoutFeedback
-                        remove .success from #logoutFeedback">
-                <span class="material-icons">logout</span>
-                Sign Out
-            </button>
-
-            <div id="logoutFeedback" class="feedback"></div>
+            <form th:action="@{/logout}" method="post" id="logoutForm" class="w-full">
+                <button type="submit"
+                        id="logoutBtn"
+                        class="danger-btn touch-feedback w-full"
+                        style="width: 100%; cursor: pointer;">
+                    <span class="material-icons">logout</span>
+                    Sign Out
+                </button>
+            </form>
         </div>
     </section>
 
