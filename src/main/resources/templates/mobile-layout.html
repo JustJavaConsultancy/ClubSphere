@@ -426,7 +426,7 @@
     <!-- Main content -->
     <main class="flex-1 mobile-spacing sm:px-6 sm:py-6 max-w-6xl w-full">
         <!-- Back Button -->
-        <div th:if="${currentPath != '/mobile/home' and currentPath != '/'}" class="mb-3 px-1">
+        <div th:if="${currentPath != '/mobile/home' and currentPath != '/' and currentPath != '/channel' and currentPath != '/organizations'}" class="mb-3 px-1">
             <button type="button" onclick="history.back()"
                     class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full shadow-sm active:scale-95 transition-all duration-200"
                     style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
