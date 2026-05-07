@@ -1033,6 +1033,7 @@
             opacity: 0.65;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         /* Spinner inside confirm button */
@@ -1124,49 +1125,6 @@
                 font-size: 0.8125rem;
             }
         }
-
-        /* Suspend/Unsuspend Buttons */
-        .suspend-btn, .unsuspend-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1.5px solid;
-            cursor: pointer;
-            transition: all 0.18s ease;
-            white-space: nowrap;
-        }
-
-        .suspend-btn {
-            background: #fef2f2;
-            color: #dc2626;
-            border-color: #fecaca;
-        }
-
-        .suspend-btn:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
-            transform: translateY(-1px);
-        }
-
-        .unsuspend-btn {
-            background: #f0fdf4;
-            color: #16a34a;
-            border-color: #bbf7d0;
-        }
-
-        .unsuspend-btn:hover {
-            background: linear-gradient(135deg, #16a34a, #15803d);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
-            transform: translateY(-1px);
-        }
     </style>
 </head>
 <body>
@@ -1245,333 +1203,1007 @@
             <!-- ═══════════ GENERAL TAB ═══════════ -->
             <div id="general" class="manage-tab-panel active">
 
-    <!-- Community Settings -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 community-settings-grid">
-        <!-- Update Club Name -->
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover community-card" th:classappend="${!isAdmin} ? 'read-only-section' : ''">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <span th:if="${isAdmin}">Update Club Name</span>
-                <span th:if="${!isAdmin}">Club Name</span>
-            </h2>
-            <div class="form-content">
-                <form th:if="${isAdmin}" hx-post="/my-community/update-name"
-                      hx-target="#messages-container"
-                      hx-swap="innerHTML"
-                      hx-indicator="#name-loading">
-                    <input type="hidden" name="communityId" th:value="${communityId}" required>
-                    <div class="mb-4">
-                        <label for="communityName" class="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
-                        <input type="text" id="communityName" name="name"
-                               th:value="${community != null && community.name != null ? community.name : ''}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               required>
-                    </div>
-                    <button type="submit" class="w-full primary-button">
+                <!-- Community Settings -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 community-settings-grid">
+                    <!-- Update Club Name -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 card-hover community-card" th:classappend="${!isAdmin} ? 'read-only-section' : ''">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span th:if="${isAdmin}">Update Club Name</span>
+                            <span th:if="${!isAdmin}">Club Name</span>
+                        </h2>
+                        <div class="form-content">
+                            <form th:if="${isAdmin}" hx-post="/my-community/update-name"
+                                  hx-target="#messages-container"
+                                  hx-swap="innerHTML"
+                                  hx-indicator="#name-loading">
+                                <input type="hidden" name="communityId" th:value="${communityId}" required>
+                                <div class="mb-4">
+                                    <label for="communityName" class="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
+                                    <input type="text" id="communityName" name="name"
+                                           th:value="${community != null && community.name != null ? community.name : ''}"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           required>
+                                </div>
+                                <button type="submit" class="w-full primary-button">
                         <span class="htmx-indicator" id="name-loading">
                             <span class="loading-spinner"></span>
                         </span>
-                        Update Name
-                    </button>
-                </form>
-                <div th:if="${!isAdmin}" class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
-                    <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-700"
-                         th:text="${community != null && community.name != null ? community.name : 'Unknown Community'}">
-                    Club Name
+                                    Update Name
+                                </button>
+                            </form>
+                            <div th:if="${!isAdmin}" class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
+                                <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-700"
+                                     th:text="${community != null && community.name != null ? community.name : 'Unknown Community'}">
+                                    Club Name
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Update Community Description -->
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover community-card" th:classappend="${!isAdmin} ? 'read-only-section' : ''">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-                </svg>
-                <span th:if="${isAdmin}">Update Description</span>
-                <span th:if="${!isAdmin}">Club Description</span>
-            </h2>
-            <div class="form-content">
-                <form th:if="${isAdmin}" hx-post="/my-community/update-description"
-                      hx-target="#messages-container"
-                      hx-swap="innerHTML"
-                      hx-indicator="#desc-loading">
-                    <input type="hidden" name="communityId" th:value="${communityId}" required>
-                    <div class="mb-4">
-                        <label for="communityDescription" class="block text-sm font-medium text-gray-700 mb-2">Club Description</label>
-                        <textarea id="communityDescription" name="description" rows="4"
-                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  required
-                                  th:text="${community != null && community.description != null ? community.description : ''}"></textarea>
-                    </div>
-                    <button type="submit" class="w-full primary-button">
+                    <!-- Update Community Description -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 card-hover community-card" th:classappend="${!isAdmin} ? 'read-only-section' : ''">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                            </svg>
+                            <span th:if="${isAdmin}">Update Description</span>
+                            <span th:if="${!isAdmin}">Club Description</span>
+                        </h2>
+                        <div class="form-content">
+                            <form th:if="${isAdmin}" hx-post="/my-community/update-description"
+                                  hx-target="#messages-container"
+                                  hx-swap="innerHTML"
+                                  hx-indicator="#desc-loading">
+                                <input type="hidden" name="communityId" th:value="${communityId}" required>
+                                <div class="mb-4">
+                                    <label for="communityDescription" class="block text-sm font-medium text-gray-700 mb-2">Club Description</label>
+                                    <textarea id="communityDescription" name="description" rows="4"
+                                              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                              required
+                                              th:text="${community != null && community.description != null ? community.description : ''}"></textarea>
+                                </div>
+                                <button type="submit" class="w-full primary-button">
                         <span class="htmx-indicator" id="desc-loading">
                             <span class="loading-spinner"></span>
                         </span>
-                        Update Description
-                    </button>
-                </form>
-                <div th:if="${!isAdmin}" class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Club Description</label>
-                    <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 min-h-[100px]"
-                         th:text="${community != null && community.description != null ? community.description : 'No description available'}">
-                    Community Description
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Community Privacy Toggle (Admin Only) -->
-    <div th:if="${isAdmin}" class="bg-white rounded-xl shadow-sm p-6 mb-6 card-hover community-card">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-            Community Privacy
-        </h2>
-        <div class="privacy-toggle-wrapper">
-            <div>
-                <p class="text-sm text-gray-700 mb-2">Control club visibility</p>
-                <div id="privacyStatusBadge"
-                     class="privacy-status-badge"
-                     th:classappend="${community != null && community.communityPrivacy != null && community.communityPrivacy} ? 'private' : 'public'">
-                    <svg id="privacyIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path th:if="${community == null || community.communityPrivacy == null || !community.communityPrivacy}"
-                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        <path th:if="${community != null && community.communityPrivacy != null && community.communityPrivacy}"
-                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    <span id="privacyStatusText"
-                          th:text="${community != null && community.communityPrivacy != null && community.communityPrivacy} ? 'Private' : 'Public'">Public</span>
-                </div>
-                <p id="privacyExplanation" class="text-xs text-gray-500 mt-2"
-                   th:text="${community != null && community.communityPrivacy != null && community.communityPrivacy}
-                       ? 'This club is private. Only invited members can access it.'
-                       : 'This club is public. Anyone can discover and join it.'">
-                    This club is public. Anyone can discover and join it.
-                </p>
-            </div>
-            <label class="privacy-toggle">
-                <input type="checkbox"
-                       id="privacyToggle"
-                       th:checked="${community != null && community.communityPrivacy != null && community.communityPrivacy}"
-                       hx-post="/my-community/update-privacy"
-                       hx-target="#privacyFeedback"
-                       hx-swap="innerHTML"
-                       hx-vals='js:{communityId: document.querySelector("[name=communityId]").value, status: document.getElementById("privacyToggle").checked ? "private" : "public"}'
-                       onchange="updatePrivacyUI(this.checked)">
-                <span class="privacy-slider"></span>
-            </label>
-        </div>
-        <div class="mt-3">
-            <span id="privacyFeedback" class="text-sm text-green-600"></span>
-        </div>
-    </div>
-
-    <!-- Community Subscription -->
-    <div class="bg-white rounded-xl shadow-sm p-6 mb-6 subscription-card">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Community Subscription
-        </h2>
-        <div th:if="${hasActiveSubscription}">
-            <div class="sub-active-badge mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Active Subscription
-            </div>
-            <p class="text-sm text-gray-600">You have an active subscription to this community. Thank you for your support!</p>
-        </div>
-        <div th:if="${!hasActiveSubscription}">
-            <div class="sub-inactive-badge mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Not Subscribed
-            </div>
-            <p class="text-sm text-gray-600 mb-4">Support this community with a recurring monthly subscription. You choose the amount.</p>
-            <button type="button" onclick="openSubscribeModal()" class="subscribe-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Subscribe Now
-            </button>
-        </div>
-        <div id="subscriptionFeedback" class="mt-3"></div>
-    </div>
-
-    <!-- Subscribe Modal -->
-    <div id="subscribeModal" class="sub-modal-overlay" onclick="if(event.target===this) closeSubscribeModal()">
-        <div class="sub-modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h3 style="margin:0;">Subscribe to Club</h3>
-                <button onclick="closeSubscribeModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-            <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to pay monthly. You can choose any amount.</p>
-            <form hx-post="/subscription/subscribe"
-                  hx-target="#subscriptionFeedback"
-                  hx-swap="innerHTML"
-                  onsubmit="closeSubscribeModal()">
-                <input type="hidden" name="communityId" th:value="${communityId}">
-                <input type="hidden" name="source" value="web">
-                <div style="margin-bottom: 16px;">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Amount</label>
-                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
-                           class="sub-amount-input" required>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center;">
-                        Confirm Subscription
-                    </button>
-                    <button type="button" onclick="closeSubscribeModal()"
-                            class="secondary-button" style="flex:0 0 auto;">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Community Donation -->
-    <div class="bg-white rounded-xl shadow-sm p-6 mb-6 subscription-card">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-            Donate to Club
-        </h2>
-        <p class="text-sm text-gray-600 mb-4">Show your appreciation and support this club with a one-time donation. You choose the amount.</p>
-        <button type="button" onclick="openDonateModal()" class="subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-            Donate Now
-        </button>
-        <div id="donationFeedback" class="mt-3"></div>
-    </div>
-
-    <!-- Donate Modal -->
-    <div id="donateModal" class="sub-modal-overlay" style="display:none;" onclick="if(event.target===this) closeDonateModal()">
-        <div class="sub-modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h3 style="margin:0;">Donate to Club</h3>
-                <button onclick="closeDonateModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-            <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to donate. You can also include an optional message. All donations must be attached to an event.</p>
-            <form hx-post="/donation/donate"
-                  hx-target="#donationFeedback"
-                  hx-swap="innerHTML"
-                  hx-on::after-request="handleCommunityDonationResponse(event)">
-                <input type="hidden" name="communityId" th:value="${communityId}">
-                <input type="hidden" name="source" value="web">
-                <div style="margin-bottom: 16px;">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Event</label>
-                    <select name="eventId" class="sub-amount-input" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: white;">
-                        <option value="" disabled selected>-- Select an Event --</option>
-                        <option th:each="event : ${communityEvents}" th:value="${event.id}" th:text="${event.moduleName}"></option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 16px;">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Donation Amount</label>
-                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
-                           class="sub-amount-input" required>
-                </div>
-                <div style="margin-bottom: 16px;">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Message (optional)</label>
-                    <textarea name="message" rows="2" placeholder="Leave a message..."
-                              style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; resize:vertical;"></textarea>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center; background: linear-gradient(135deg, #ec4899, #db2777);">
-                        Confirm Donation
-                    </button>
-                    <button type="button" onclick="closeDonateModal()"
-                            class="secondary-button" style="flex:0 0 auto;">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- SUSPEND MEMBER MODAL -->
-    <div th:if="${isAdmin}" id="suspendModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="suspendModalTitle">
-        <div class="modal-content">
-            <div class="admin-modal-header">
-                <div class="admin-modal-crown-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <h3 id="suspendModalTitle">Suspend Community Member</h3>
-                <p>Suspend this member from participating in the community</p>
-            </div>
-            <div class="admin-modal-body">
-                <div class="admin-modal-member-card">
-                    <div class="admin-modal-avatar" id="suspendModalAvatar">JD</div>
-                    <div>
-                        <div class="admin-modal-member-name" id="suspendModalMemberName">John Doe</div>
-                        <div class="admin-modal-member-email" id="suspendModalMemberEmail">john@example.com</div>
-                        <div style="margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-                            <span class="role-badge-member" style="font-size:11px;">
-                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
-                                Member
-                            </span>
+                                    Update Description
+                                </button>
+                            </form>
+                            <div th:if="${!isAdmin}" class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Club Description</label>
+                                <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 min-h-[100px]"
+                                     th:text="${community != null && community.description != null ? community.description : 'No description available'}">
+                                    Community Description
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <form id="suspendForm">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Suspension Type</label>
-                        <select id="suspensionType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="toggleSuspensionFields()">
-                            <option value="temporary">Temporary Suspension</option>
-                            <option value="indefinite">Indefinite Suspension</option>
+
+                <!-- Community Privacy Toggle (Admin Only) -->
+                <div th:if="${isAdmin}" class="bg-white rounded-xl shadow-sm p-6 mb-6 card-hover community-card">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Community Privacy
+                    </h2>
+                    <div class="privacy-toggle-wrapper">
+                        <div>
+                            <p class="text-sm text-gray-700 mb-2">Control club visibility</p>
+                            <div id="privacyStatusBadge"
+                                 class="privacy-status-badge"
+                                 th:classappend="${community != null && community.communityPrivacy != null && community.communityPrivacy} ? 'private' : 'public'">
+                                <svg id="privacyIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path th:if="${community == null || community.communityPrivacy == null || !community.communityPrivacy}"
+                                          stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <path th:if="${community != null && community.communityPrivacy != null && community.communityPrivacy}"
+                                          stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                <span id="privacyStatusText"
+                                      th:text="${community != null && community.communityPrivacy != null && community.communityPrivacy} ? 'Private' : 'Public'">Public</span>
+                            </div>
+                            <p id="privacyExplanation" class="text-xs text-gray-500 mt-2"
+                               th:text="${community != null && community.communityPrivacy != null && community.communityPrivacy}
+                       ? 'This club is private. Only invited members can access it.'
+                       : 'This club is public. Anyone can discover and join it.'">
+                                This club is public. Anyone can discover and join it.
+                            </p>
+                        </div>
+                        <label class="privacy-toggle">
+                            <input type="checkbox"
+                                   id="privacyToggle"
+                                   th:checked="${community != null && community.communityPrivacy != null && community.communityPrivacy}"
+                                   hx-post="/my-community/update-privacy"
+                                   hx-target="#privacyFeedback"
+                                   hx-swap="innerHTML"
+                                   hx-vals='js:{communityId: document.querySelector("[name=communityId]").value, status: document.getElementById("privacyToggle").checked ? "private" : "public"}'
+                                   onchange="updatePrivacyUI(this.checked)">
+                            <span class="privacy-slider"></span>
+                        </label>
+                    </div>
+                    <div class="mt-3">
+                        <span id="privacyFeedback" class="text-sm text-green-600"></span>
+                    </div>
+                </div>
+
+                <!-- Community Subscription -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6 subscription-card">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Community Subscription
+                    </h2>
+                    <div th:if="${hasActiveSubscription}">
+                        <div class="sub-active-badge mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Active Subscription
+                        </div>
+                        <p class="text-sm text-gray-600">You have an active subscription to this community. Thank you for your support!</p>
+                    </div>
+                    <div th:if="${!hasActiveSubscription}">
+                        <div class="sub-inactive-badge mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Not Subscribed
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Support this community with a recurring monthly subscription. You choose the amount.</p>
+                        <button type="button" onclick="openSubscribeModal()" class="subscribe-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Subscribe Now
+                        </button>
+                    </div>
+                    <div id="subscriptionFeedback" class="mt-3"></div>
+                </div>
+
+                <!-- Subscribe Modal -->
+                <div id="subscribeModal" class="sub-modal-overlay" onclick="if(event.target===this) closeSubscribeModal()">
+                    <div class="sub-modal-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <h3 style="margin:0;">Subscribe to Club</h3>
+                            <button onclick="closeSubscribeModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to pay monthly. You can choose any amount.</p>
+                        <form hx-post="/subscription/subscribe"
+                              hx-target="#subscriptionFeedback"
+                              hx-swap="innerHTML"
+                              onsubmit="closeSubscribeModal()">
+                            <input type="hidden" name="communityId" th:value="${communityId}">
+                            <input type="hidden" name="source" value="web">
+                            <div style="margin-bottom: 16px;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Amount</label>
+                                <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                                       class="sub-amount-input" required>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center;">
+                                    Confirm Subscription
+                                </button>
+                                <button type="button" onclick="closeSubscribeModal()"
+                                        class="secondary-button" style="flex:0 0 auto;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Community Donation -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6 subscription-card">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        Donate to Club
+                    </h2>
+                    <p class="text-sm text-gray-600 mb-4">Show your appreciation and support this club with a one-time donation. You choose the amount.</p>
+                    <button type="button" onclick="openDonateModal()" class="subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        Donate Now
+                    </button>
+                    <div id="donationFeedback" class="mt-3"></div>
+                </div>
+
+                <!-- Donate Modal -->
+                <div id="donateModal" class="sub-modal-overlay" style="display:none;" onclick="if(event.target===this) closeDonateModal()">
+                    <div class="sub-modal-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <h3 style="margin:0;">Donate to Club</h3>
+                            <button onclick="closeDonateModal()" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to donate. You can also include an optional message. All donations must be attached to an event.</p>
+                        <form hx-post="/donation/donate"
+                              hx-target="#donationFeedback"
+                              hx-swap="innerHTML"
+                              hx-on::after-request="handleCommunityDonationResponse(event)">
+                            <input type="hidden" name="communityId" th:value="${communityId}">
+                            <input type="hidden" name="source" value="web">
+                            <div style="margin-bottom: 16px;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Event</label>
+                                <select name="eventId" class="sub-amount-input" required style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: white;">
+                                    <option value="" disabled selected>-- Select an Event --</option>
+                                    <option th:each="event : ${communityEvents}" th:value="${event.id}" th:text="${event.moduleName}"></option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Donation Amount</label>
+                                <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                                       class="sub-amount-input" required>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Message (optional)</label>
+                                <textarea name="message" rows="2" placeholder="Leave a message..."
+                                          style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; resize:vertical;"></textarea>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center; background: linear-gradient(135deg, #ec4899, #db2777);">
+                                    Confirm Donation
+                                </button>
+                                <button type="button" onclick="closeDonateModal()"
+                                        class="secondary-button" style="flex:0 0 auto;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div><!-- END general tab -->
+
+            <!-- ═══════════ GROUPS TAB ═══════════ -->
+            <div id="groups" class="manage-tab-panel">
+
+                <!-- Groups Management -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Club Groups
+                        </h2>
+                        <button th:if="${isAdmin}" onclick="openAddGroupModal()" class="primary-button flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Add Group
+                        </button>
+                    </div>
+
+                    <!-- Groups Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Group Name</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Members</th>
+                                <th th:if="${isAdmin}" class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="groups-table-body">
+                            <tr th:if="${#lists.isEmpty(groups)}" class="border-b border-gray-100">
+                                <td th:colspan="${isAdmin} ? 4 : 3" class="py-8 text-center text-gray-500">
+                                    <div class="flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <p th:if="${isAdmin}">No groups found. Create your first group to get started!</p>
+                                        <p th:if="${!isAdmin}">No groups available.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:each="group : ${groups}" class="border-b border-gray-100 hover:bg-gray-50 group-row" th:id="'group-row-' + ${group.id}">
+                                <td class="py-3 px-4">
+                                    <div class="font-medium text-gray-800"
+                                         th:text="${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}">Frontend
+                                        Developers
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="text-gray-600 text-sm"
+                                         th:text="${group != null && group.groupDescription != null ? group.groupDescription : 'No description'}">
+                                        A group for frontend developers
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                            <span class="members-badge"
+                                  th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}"
+                                  onclick="viewGroupMembers(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))"
+                                  title="Click to view members">
+                                <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                </svg>
+                                <span th:text="${group != null && group.memberCount != null ? group.memberCount + ' members' : '0 members'}">45 members</span>
+                            </span>
+                                </td>
+                                <td th:if="${isAdmin}" class="py-3 px-4">
+                                    <div class="relative">
+                                        <button th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'}" onclick="toggleDropdown(this.getAttribute('data-group-id'))" class="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                            </svg>
+                                        </button>
+                                        <div th:id="'dropdown-' + ${group != null && group.id != null ? group.id : 'unknown'}" class="dropdown-menu">
+                                            <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'}" onclick="editGroup(this.getAttribute('data-group-id'))" class="dropdown-item text-blue-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </div>
+                                            <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'}"
+                                                 onclick="toggleSupportModal(true, this.getAttribute('data-group-id'))"
+                                                 class="dropdown-item text-indigo-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                </svg>
+                                                Support Ticket
+                                            </div>
+                                            <div th:attr="data-group-id=${group != null && group.id != null ? group.id : 'unknown'},data-group-name=${group != null && group.groupName != null ? group.groupName : 'Unknown Group'}"
+                                                 onclick="deleteGroup(this.getAttribute('data-group-id'), this.getAttribute('data-group-name'))"
+                                                 class="dropdown-item text-red-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- END groups tab -->
+
+            <!-- ═══════════ MEMBERS TAB ═══════════ -->
+            <div id="members" class="manage-tab-panel">
+
+                <!-- ══════════════════════════════════════════════
+                     COMMUNITY MEMBERS SECTION
+                     Model: List<UserDTO> communityMembers
+                     Fields: userId, firstName, lastName, email,
+                             level, privacy, online, role
+                ══════════════════════════════════════════════ -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+
+                    <!-- Section Header -->
+                    <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Community Members
+                        </h2>
+                        <span class="members-badge">
+                <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                <span th:text="${communityMembers != null and !#lists.isEmpty(communityMembers)} ? ${#lists.size(communityMembers)} + ' members' : '0 members'">0 members</span>
+            </span>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div class="flex flex-col sm:flex-row gap-3 mb-5">
+
+                        <!-- Name / Email Search -->
+                        <div class="members-search-bar relative flex-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="search-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+                            </svg>
+                            <input type="text"
+                                   id="memberSearchFilter"
+                                   placeholder="Search by name or email…"
+                                   oninput="filterCommunityMembers()"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- Role Filter -->
+                        <select id="memberRoleFilter"
+                                onchange="filterCommunityMembers()"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Roles</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="MODERATOR">Moderator</option>
+                            <option value="MEMBER">Member</option>
+                        </select>
+
+                        <!-- Status Filter -->
+                        <select id="memberStatusFilter"
+                                onchange="filterCommunityMembers()"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Status</option>
+                            <option value="online">Online</option>
+                            <option value="offline">Offline</option>
                         </select>
                     </div>
-                    <div id="temporaryFields" class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Suspension End Date & Time</label>
-                        <input type="datetime-local" id="suspendedUntil" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" required>
+
+                    <!-- Members Table -->
+                    <div class="overflow-x-auto rounded-lg border border-gray-100">
+                        <table class="w-full" id="communityMembersTable">
+                            <thead>
+                            <tr class="members-table-header border-b border-gray-200">
+                                <th class="text-left py-3 px-4 rounded-tl-lg">Member</th>
+                                <th class="text-left py-3 px-4">Email</th>
+                                <th class="text-left py-3 px-4">Role</th>
+                                <th th:if="${isAdmin}" class="text-left py-3 px-4 rounded-tr-lg">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="communityMembersTableBody">
+
+                            <!-- Empty State -->
+                            <tr th:if="${communityMembers == null or #lists.isEmpty(communityMembers)}"
+                                id="membersEmptyState">
+                                <td th:colspan="${isAdmin} ? 6 : 5" class="py-14 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
+                                        </div>
+                                        <p class="font-semibold text-gray-500">No members yet</p>
+                                        <p class="text-sm text-gray-400">Invite members to grow your club.</p>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- No-results row shown by JS when search yields nothing -->
+                            <tr id="membersNoResults" style="display:none;">
+                                <td th:colspan="${isAdmin} ? 6 : 5" class="py-10 text-center text-gray-400 text-sm">
+                                    No members match your search criteria.
+                                </td>
+                            </tr>
+
+                            <!-- Member Rows -->
+                            <tr th:each="member : ${communityMembers}"
+                                class="border-b border-gray-100 hover:bg-blue-50 member-row transition-colors duration-150"
+                                th:attr="data-name=${member.firstName != null ? member.firstName : ''} + ' ' + ${member.lastName != null ? member.lastName : ''},
+                                 data-email=${member.email != null ? member.email : ''},
+                                 data-role=${member.role != null ? member.role.name() : 'MEMBER'},
+                                 data-status=${member.online != null and member.online ? 'online' : 'offline'}">
+
+                                <!-- Avatar + Name + ID -->
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative">
+                                            <div class="member-avatar"
+                                                 th:text="${member.firstName != null ? #strings.substring(member.firstName, 0, 1) : '?'} + ${member.lastName != null ? #strings.substring(member.lastName, 0, 1) : ''}">
+                                                JD
+                                            </div>
+                                            <span th:if="${member.online != null and member.online}"  class="status-dot-online"  title="Online"></span>
+                                            <span th:if="${member.online == null or !member.online}" class="status-dot-offline" title="Offline"></span>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-800 text-sm leading-tight"
+                                               th:text="${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')}">
+                                                John Doe
+                                            </p>
+                                            <!-- Show ID only if profile is not private -->
+                                            <p class="text-xs text-gray-400 mt-0.5"
+                                               th:if="${member.privacy == null or !member.privacy}"
+                                               th:text="${member.userId != null ? '#' + member.userId : ''}">
+                                                #001
+                                            </p>
+                                            <p class="text-xs text-gray-400 italic mt-0.5"
+                                               th:if="${member.privacy != null and member.privacy}">
+                                                Private profile
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Email -->
+                                <td class="py-3 px-4">
+                            <span class="text-sm text-gray-600"
+                                  th:text="${member.email != null ? member.email : '—'}">
+                                <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="563c393e3816332e373b263a337835393b">[email&#160;protected]</a>
+                            </span>
+                                </td>
+
+                                <!-- Role -->
+                                <td class="py-3 px-4">
+                                    <!-- ADMIN -->
+                                    <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
+                                          class="role-badge-admin">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                </svg>
+                                Admin
+                            </span>
+                                    <!-- MODERATOR -->
+                                    <span th:if="${member.role != null and member.role.name() == 'MODERATOR'}"
+                                          class="role-badge-moderator">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Moderator
+                            </span>
+                                    <!-- MEMBER / fallback -->
+                                    <span th:if="${member.role == null or (member.role.name() != 'ADMIN' and member.role.name() != 'MODERATOR')}"
+                                          class="role-badge-member">
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                                Member
+                            </span>
+                                </td>
+
+
+                                <!-- Actions (Admin only) -->
+                                <td th:if="${isAdmin}" class="py-3 px-4">
+                                    <!-- Non-admin member: show Make Admin button -->
+                                    <button th:if="${member.role == null or member.role.name() != 'ADMIN'}"
+                                            class="make-admin-btn"
+                                            th:attr="
+            data-user-id=${member.userId},
+            data-full-name=${(member.firstName != null ? member.firstName : '') + ' ' + (member.lastName != null ? member.lastName : '')},
+            data-email=${member.email != null ? member.email : ''},
+            data-initials=${(member.firstName != null ? #strings.substring(member.firstName,0,1) : '?') + (member.lastName != null ? #strings.substring(member.lastName,0,1) : '')}
+        ">
+
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M5 3l1.5 4.5L10 5l1 4 3.5-2L13 11h6l-2.5 3.5L19 18H5l2.5-3.5L5 11h6L9.5 7 13 9l1-4-3.5 2.5L9 3H5z"/>
+                                        </svg>
+
+                                        Make Admin
+                                    </button>
+                                    <!-- Already admin: greyed label -->
+                                    <span th:if="${member.role != null and member.role.name() == 'ADMIN'}"
+                                          class="already-admin-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 1l2.39 4.843 5.345.777-3.868 3.769.913 5.323L10 13.347l-4.78 2.515.913-5.323L2.265 6.62l5.345-.777L10 1z" clip-rule="evenodd"/>
+                                </svg>
+                                Admin
+                            </span>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Suspension (optional)</label>
-                        <textarea id="suspensionReason" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Provide a reason for the suspension..."></textarea>
+
+                    <!-- Table Footer: count + legend -->
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500 border-t border-gray-100 pt-4">
+                        <p>
+                            Showing
+                            <span id="visibleMemberCount"
+                                  th:text="${communityMembers != null ? #lists.size(communityMembers) : 0}">0</span>
+                            of
+                            <span th:text="${communityMembers != null ? #lists.size(communityMembers) : 0}">0</span>
+                            members
+                        </p>
                     </div>
-                </form>
-                <div class="admin-modal-warning">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                    </svg>
-                    <span>The member will be unable to participate in community activities during the suspension period. This action can be reversed by uns suspending the member.</span>
                 </div>
-                <div class="admin-modal-actions">
-                    <button type="button" class="admin-modal-cancel-btn" onclick="closeSuspendModal()">Cancel</button>
-                    <button type="button" class="admin-modal-confirm-btn" id="confirmSuspendBtn" onclick="submitSuspend()">
-                        <span class="btn-spinner"></span>
-                        <span class="btn-label-text" style="display:inline-flex;align-items:center;gap:6px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <!-- ══════════════════ END Community Members ══════════════════ -->
+
+                <!-- Invite Members -->
+                <div th:if="${isAdmin or (community != null and community.isPrivate != null and !community.isPrivate)}"
+                     class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                        </svg>
+                        Invite Members
+                    </h2>
+                    <form hx-post="/my-community/invite"
+                          hx-target="#messages-container"
+                          hx-swap="innerHTML"
+                          hx-indicator="#invite-loading"
+                          class="flex gap-4">
+                        <input type="hidden" name="communityId" th:value="${communityId}" required>
+                        <div class="flex-1">
+                            <select name="userId"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required>
+                                <option value="">Select a user to invite...</option>
+                                <option th:each="user : ${availableUsersToInvite}"
+                                        th:value="${user.userId}"
+                                        th:text="${user.firstName != null && user.lastName != null ? user.firstName + ' ' + user.lastName + ' (' + user.email + ')' : user.email}">
+                                    John Doe (<template class="__cf_email__" data-cfemail="2b414443456b4e534a465b474e05484446">[email&#160;protected]</template>)
+                                </option>
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 btn-transition">
+                <span class="htmx-indicator" id="invite-loading">
+                    <span class="loading-spinner"></span>
+                </span>
+                            Send Invite
+                        </button>
+                    </form>
+                </div>
+
+            </div><!-- END members tab -->
+
+            <!-- ═══════════ SUBSCRIPTIONS TAB (Admin Only) ═══════════ -->
+            <div th:if="${isAdmin}" id="subscriptions" class="manage-tab-panel">
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="community-subscriptions-section">
+                    <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                             </svg>
-                            Suspend Member
+                            Community Subscriptions
+                        </h2>
+                        <button type="button"
+                                th:attr="hx-get='/subscription/subscriptions/list?communityId=' + ${communityId}"
+                                hx-target="#subscriptions-table-body"
+                                hx-swap="innerHTML"
+                                hx-trigger="click"
+                                class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                                onclick="this.classList.add('opacity-50');">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+
+                    <!-- Subscriptions Table -->
+                    <div class="overflow-x-auto rounded-lg border border-gray-100">
+                        <table class="w-full" id="communitySubscriptionsTable">
+                            <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Subscriber</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Start Date</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Next Billing</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Total Paid</th>
+                            </tr>
+                            </thead>
+                            <tbody id="subscriptions-table-body">
+                            <tr id="subscriptions-loading-row">
+                                <td colspan="6" class="py-8 text-center text-gray-400">
+                                    <div class="flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        </svg>
+                                        <p class="text-sm">Loading subscriptions...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- END subscriptions tab -->
+
+            <!-- ═══════════ DONATIONS TAB (Admin Only) ═══════════ -->
+            <div th:if="${isAdmin}" id="donations" class="manage-tab-panel">
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="community-donations-section">
+                    <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            Community Donations
+                        </h2>
+                        <button type="button"
+                                th:attr="hx-get='/donation/donations/list?communityId=' + ${communityId}"
+                                hx-target="#donations-table-body"
+                                hx-swap="innerHTML"
+                                hx-trigger="click"
+                                class="text-sm text-pink-600 hover:text-pink-800 font-medium flex items-center gap-1"
+                                onclick="this.classList.add('opacity-50');">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+
+                    <!-- Donations Table -->
+                    <div class="overflow-x-auto rounded-lg border border-gray-100">
+                        <table class="w-full" id="communityDonationsTable">
+                            <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Donor</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Event</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Amount</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Message</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Date</th>
+                            </tr>
+                            </thead>
+                            <tbody id="donations-table-body">
+                            <tr id="donations-loading-row">
+                                <td colspan="5" class="py-8 text-center text-gray-400">
+                                    <div class="flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                        </svg>
+                                        <p class="text-sm">Loading donations...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- END donations tab -->
+
+            <!-- ═══════════ NETWORKS TAB (Admin Only) ═══════════ -->
+            <div th:if="${isAdmin}" id="networks" class="manage-tab-panel">
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            Networks
+                        </h2>
+                        <button type="button" onclick="openNetworkCreateModal()"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition"
+                                style="background: #4f46e5;">
+                            <i class="fas fa-plus"></i> Create Network
+                        </button>
+                    </div>
+
+                    <!-- Networks List -->
+                    <div id="networks-list">
+                        <div th:if="${#lists.isEmpty(communityNetworks)}" class="text-center py-12" style="border: 2px dashed #e5e7eb; border-radius: 0.75rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            <h3 class="text-lg font-semibold text-gray-600 mb-1">No networks yet</h3>
+                            <p class="text-sm text-gray-500">Create your first network to organize members into focused groups for collaboration.</p>
+                        </div>
+
+                        <div th:if="${!#lists.isEmpty(communityNetworks)}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div th:each="net : ${communityNetworks}"
+                                 class="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200 bg-white relative">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                                         style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <a th:href="@{'/networks/' + ${net.id}}" class="font-semibold text-gray-900 hover:text-indigo-600 transition truncate" th:text="${net.name}">Network Name</a>
+                                            <span th:if="${net.currentUserRole != null}"
+                                                  class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                                                  th:classappend="${net.currentUserRole == 'OWNER'} ? ' bg-amber-100 text-amber-800' : ' bg-blue-100 text-blue-800'"
+                                                  th:text="${net.currentUserRole}">OWNER</span>
+                                        </div>
+                                        <p class="text-sm text-gray-500 mb-2 line-clamp-2" th:text="${net.description ?: 'No description'}">Network description</p>
+                                        <div class="flex items-center gap-3 text-xs text-gray-400">
+                                <span class="flex items-center gap-1">
+                                    <i class="fas fa-users"></i>
+                                    <span th:text="${net.memberCount}">0</span> members
+                                </span>
+                                            <span class="flex items-center gap-1">
+                                    <i class="fas fa-user"></i>
+                                    Created by <span th:text="${net.createdByName}">Admin</span>
+                                </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-shrink-0 flex items-center gap-1">
+                                        <a th:href="@{'/networks/' + ${net.id}}" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="View Network">
+                                            <i class="fas fa-external-link-alt text-sm"></i>
+                                        </a>
+                                        <button type="button" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                th:data-network-id="${net.id}" th:data-network-name="${net.name}"
+                                                onclick="confirmDeleteNetwork(this)" title="Delete Network">
+                                            <i class="fas fa-trash-alt text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Network Modal -->
+                <div id="networkCreateModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;"
+                     onclick="if(event.target===this) closeNetworkCreateModal()">
+                    <div style="background:white; border-radius:1rem; padding:2rem; width:90%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-plus-circle text-indigo-600 mr-2"></i> Create New Network
+                        </h3>
+                        <form id="networkCreateForm" onsubmit="return submitCreateNetworkFromCommunity(event)">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="newNetworkName">Network Name *</label>
+                                <input class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                       id="newNetworkName" type="text" placeholder="e.g., Sales Team, Engineering" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="newNetworkDesc">Description</label>
+                                <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                          id="newNetworkDesc" rows="3" placeholder="Describe the purpose of this network..."></textarea>
+                            </div>
+                            <div class="flex justify-end gap-3">
+                                <button type="button" onclick="closeNetworkCreateModal()"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="networkCreateBtn"
+                                        class="px-4 py-2 text-sm font-semibold text-white rounded-lg transition inline-flex items-center gap-2"
+                                        style="background:#4f46e5;">
+                                    <i class="fas fa-check"></i> Create
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div><!-- END networks tab -->
+
+        </div><!-- END manage-tab-content -->
+    </div><!-- END manage-tab-container -->
+
+    <!-- ══════════════════════════════════════════════
+         COMMUNITY SUBSCRIPTIONS (Admin Only)
+         Loaded via HTMX from /subscription/subscriptions/list
+    ══════════════════════════════════════════════ -->
+    <!-- The subscriptions section is now in its own tab above -->
+
+    <!-- Add Group Modal (Admin Only) -->
+    <div th:if="${isAdmin}" id="addGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Add New Group</h3>
+                <button onclick="closeAddGroupModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form hx-post="/my-community/groups/add"
+                  hx-target="#groups-table-body"
+                  hx-swap="beforeend"
+                  hx-indicator="#add-group-loading"
+                  hx-on::after-request="handleAddGroupResponse(event)">
+                <input type="hidden" name="communityId" th:value="${communityId}" required>
+                <div class="mb-4">
+                    <label for="groupName" class="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
+                    <input type="text" id="groupName" name="groupName"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="groupDescription" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="groupDescription" name="groupDescription" rows="3"
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              required></textarea>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Members</label>
+                    <div class="searchable-dropdown">
+                        <input type="text" id="memberSearch" class="dropdown-search w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Search and select members..." autocomplete="off">
+                        <div id="memberOptions" class="dropdown-options">
+                            <div th:each="member : ${availableMembers}" class="dropdown-option"
+                                 th:attr="data-member=${member.userId}"
+                                 th:text="${member.firstName != null && member.lastName != null ? member.firstName + ' ' + member.lastName : (member.firstName != null ? member.firstName : member.email)}">John Smith</div>
+                        </div>
+                    </div>
+                    <div id="selectedMembers" class="selected-members"></div>
+                    <input type="hidden" id="selectedMembersInput" name="selectedMembers">
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" onclick="closeAddGroupModal()" class="secondary-button">
+                        Cancel
+                    </button>
+                    <button type="submit" class="primary-button">
+                        <span class="htmx-indicator" id="add-group-loading">
+                            <span class="loading-spinner"></span>
                         </span>
+                        Create Group
                     </button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal (Admin Only) -->
+    <div th:if="${isAdmin}" id="editGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Edit Group</h3>
+                <button onclick="closeEditGroupModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
+
+            <form id="editGroupForm"
+                  hx-indicator="#edit-group-loading"
+                  hx-on::after-request="handleEditGroupResponse(event)">
+                <input type="hidden" name="communityId" th:value="${communityId}" required>
+                <div class="mb-4">
+                    <label for="editGroupName" class="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
+                    <input type="text" id="editGroupName" name="groupName"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           required>
+                </div>
+
+                <div class="mb-6">
+                    <label for="editGroupDescription" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="editGroupDescription" name="groupDescription" rows="3"
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              required></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" onclick="closeEditGroupModal()" class="secondary-button">
+                        Cancel
+                    </button>
+                    <button type="submit" class="primary-button">
+                        <span class="htmx-indicator" id="edit-group-loading">
+                            <span class="loading-spinner"></span>
+                        </span>
+                        Update Group
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal (Admin Only) -->
+    <div th:if="${isAdmin}" id="deleteConfirmModal" class="modal">
+        <div class="modal-content max-w-md">
+            <form id="deleteGroupForm"
+                  hx-indicator="#delete-group-loading"
+                  hx-on::after-request="handleDeleteGroupResponse(event)">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Delete Group</h3>
+                    <p class="text-sm text-gray-500 mb-6">
+                        Are you sure you want to delete "<span id="deleteGroupName"></span>"? This action cannot be undone.
+                    </p>
+                    <div class="action-buttons">
+                        <button type="button" onclick="closeDeleteModal()" class="secondary-button">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                            <span class="htmx-indicator" id="delete-group-loading">
+                                <span class="loading-spinner"></span>
+                            </span>
+                            Delete Group
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1799,68 +2431,152 @@
             if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) form.reset();
         }
     });
+</script>
 
-    // ── Subscribe Modal ──
-    function openSubscribeModal() {
-        document.getElementById('subscribeModal').classList.add('show');
-        document.body.style.overflow = 'hidden';
-    }
-    function closeSubscribeModal() {
-        document.getElementById('subscribeModal').classList.remove('show');
-        document.body.style.overflow = 'auto';
-    }
-
-    function updatePrivacyUI(isPrivate) {
-        var badge = document.getElementById('privacyStatusBadge');
-        var text = document.getElementById('privacyStatusText');
-        var explanation = document.getElementById('privacyExplanation');
-        if (!badge) return;
-        if (isPrivate) {
-            badge.className = 'privacy-status-badge private';
-            text.textContent = 'Private';
-            explanation.textContent = 'This club is private. Only invited members can access it.';
-        } else {
-            badge.className = 'privacy-status-badge public';
-            text.textContent = 'Public';
-            explanation.textContent = 'This club is public. Anyone can discover and join it.';
-        }
-    }
-
-    function viewGroupMembers(groupId, groupName) {
-        var modal = document.getElementById('groupMembersModal');
-        var titleEl = document.getElementById('gmModalTitle');
-        var subtitleEl = document.getElementById('gmModalSubtitle');
-        var listEl = document.getElementById('gmMembersList');
-        var searchInput = document.getElementById('gmSearchInput');
-
-        titleEl.textContent = (groupName || 'Group') + ' Members';
-        subtitleEl.textContent = 'Loading members...';
-        listEl.innerHTML = '<div class="gm-loading">Loading members...</div>';
-        searchInput.value = '';
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-
-        fetch('/api/group/' + groupId + '/members')
-            .then(function(response) { return response.json(); })
-            .then(function(members) {
-                if (!members || members.length === 0) {
-                    subtitleEl.textContent = '0 members';
-                    listEl.innerHTML = '<div class="gm-empty"><p>No members in this group yet.</p></div>';
-                    return;
+    <script th:if="${!isAdmin}">
+        function showMessage(message, type) {
+            const messagesContainer = document.getElementById('messages-container');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            messagesContainer.innerHTML = `<div class="alert ${alertClass}"><span>${message}</span></div>`;
+            setTimeout(() => {
+                const alert = messagesContainer.querySelector('.alert');
+                if (alert) {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.5s';
+                    setTimeout(() => alert.remove(), 500);
                 }
-                subtitleEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
-                listEl.innerHTML = members.map(function(m) {
-                    var fn = m.firstName || '';
-                    var ln = m.lastName || '';
-                    var fullName = (fn + ' ' + ln).trim() || m.email || 'Unknown';
-                    var initials = ((fn.charAt(0) || '') + (ln.charAt(0) || '')).toUpperCase() || (m.email ? m.email.charAt(0).toUpperCase() : 'U');
-                    return '<div class="gm-member-item" data-name="' + fullName.toLowerCase() + '" data-email="' + (m.email || '').toLowerCase() + '">' +
-                        '<div class="gm-member-avatar">' + initials + '</div>' +
-                        '<div><div class="gm-member-name">' + fullName + '</div>' +
-                        '<div class="gm-member-email">' + (m.email || '') + '</div></div></div>';
-                }).join('');
-            })
-            .catch(function(err) {
+            }, 5000);
+        }
+
+        document.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.xhr.status === 200 && event.detail.elt.tagName === 'FORM') {
+                const form = event.detail.elt;
+                if (form.getAttribute('hx-post') && form.getAttribute('hx-post').includes('/invite')) form.reset();
+            }
+        });
+    </script>
+
+    <!-- ── Community Members Filter Script ── -->
+    <script>
+        function filterCommunityMembers() {
+            const searchTerm   = (document.getElementById('memberSearchFilter').value || '').toLowerCase();
+            const roleFilter   = (document.getElementById('memberRoleFilter').value   || '').toUpperCase();
+            const statusFilter = (document.getElementById('memberStatusFilter').value || '').toLowerCase();
+
+            const rows       = document.querySelectorAll('#communityMembersTableBody .member-row');
+            const noResults  = document.getElementById('membersNoResults');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name   = (row.getAttribute('data-name')   || '').toLowerCase();
+                const email  = (row.getAttribute('data-email')  || '').toLowerCase();
+                const role   = (row.getAttribute('data-role')   || '').toUpperCase();
+                const status = (row.getAttribute('data-status') || '').toLowerCase();
+
+                const matchSearch = !searchTerm || name.includes(searchTerm) || email.includes(searchTerm);
+                const matchRole   = !roleFilter   || role   === roleFilter;
+                const matchStatus = !statusFilter || status === statusFilter;
+
+                if (matchSearch && matchRole && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update visible count label
+            const countEl = document.getElementById('visibleMemberCount');
+            if (countEl) countEl.textContent = visibleCount;
+
+            // Show / hide no-results message
+            if (noResults) noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+    </script>
+
+    <!-- GROUP MEMBERS MODAL -->
+    <div id="groupMembersModal" class="group-members-modal" role="dialog" aria-modal="true">
+        <div class="group-members-modal-content">
+            <div class="gm-modal-header">
+                <div>
+                    <h2 class="gm-modal-title" id="gmModalTitle">Group Members</h2>
+                    <p class="gm-modal-subtitle" id="gmModalSubtitle">Loading...</p>
+                </div>
+                <button class="gm-modal-close" onclick="closeGroupMembersModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="gm-modal-body">
+                <input type="text" class="gm-search-input" id="gmSearchInput" placeholder="Search members..." oninput="filterGroupMembersModal()">
+                <div id="gmMembersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Subscribe Modal ──
+        function openSubscribeModal() {
+            document.getElementById('subscribeModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSubscribeModal() {
+            document.getElementById('subscribeModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function updatePrivacyUI(isPrivate) {
+            var badge = document.getElementById('privacyStatusBadge');
+            var text = document.getElementById('privacyStatusText');
+            var explanation = document.getElementById('privacyExplanation');
+            if (!badge) return;
+            if (isPrivate) {
+                badge.className = 'privacy-status-badge private';
+                text.textContent = 'Private';
+                explanation.textContent = 'This club is private. Only invited members can access it.';
+            } else {
+                badge.className = 'privacy-status-badge public';
+                text.textContent = 'Public';
+                explanation.textContent = 'This club is public. Anyone can discover and join it.';
+            }
+        }
+
+        function viewGroupMembers(groupId, groupName) {
+            var modal = document.getElementById('groupMembersModal');
+            var titleEl = document.getElementById('gmModalTitle');
+            var subtitleEl = document.getElementById('gmModalSubtitle');
+            var listEl = document.getElementById('gmMembersList');
+            var searchInput = document.getElementById('gmSearchInput');
+
+            titleEl.textContent = (groupName || 'Group') + ' Members';
+            subtitleEl.textContent = 'Loading members...';
+            listEl.innerHTML = '<div class="gm-loading">Loading members...</div>';
+            searchInput.value = '';
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            fetch('/api/group/' + groupId + '/members')
+                .then(function(response) { return response.json(); })
+                .then(function(members) {
+                    if (!members || members.length === 0) {
+                        subtitleEl.textContent = '0 members';
+                        listEl.innerHTML = '<div class="gm-empty"><p>No members in this group yet.</p></div>';
+                        return;
+                    }
+                    subtitleEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
+                    listEl.innerHTML = members.map(function(m) {
+                        var fn = m.firstName || '';
+                        var ln = m.lastName || '';
+                        var fullName = (fn + ' ' + ln).trim() || m.email || 'Unknown';
+                        var initials = ((fn.charAt(0) || '') + (ln.charAt(0) || '')).toUpperCase() || (m.email ? m.email.charAt(0).toUpperCase() : 'U');
+                        return '<div class="gm-member-item" data-name="' + fullName.toLowerCase() + '" data-email="' + (m.email || '').toLowerCase() + '">' +
+                            '<div class="gm-member-avatar">' + initials + '</div>' +
+                            '<div><div class="gm-member-name">' + fullName + '</div>' +
+                            '<div class="gm-member-email">' + (m.email || '') + '</div></div></div>';
+                    }).join('');
+                })
+                .catch(function(err) {
                     console.error('Error fetching group members:', err);
                     subtitleEl.textContent = 'Error';
                     listEl.innerHTML = '<div class="gm-empty"><p>Failed to load members. Please try again.</p></div>';
@@ -1938,7 +2654,7 @@
                         <span class="btn-spinner"></span>
                         <span class="btn-label-text" style="display:inline-flex;align-items:center;gap:6px;">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l3-9 4 5 2-8 2 8 4-5 3 9H3z"/>
                             </svg>
                             Yes, Make Admin
                         </span>
@@ -2088,6 +2804,192 @@
                     }
                 });
         })();
+    </script>
+
+    <!-- Donate modal scripts -->
+    <script>
+        function openDonateModal() {
+            document.getElementById('donateModal').style.display = 'flex';
+        }
+        function closeDonateModal() {
+            document.getElementById('donateModal').style.display = 'none';
+            document.getElementById('donationFeedback').innerHTML = '';
+        }
+        function handleCommunityDonationResponse(event) {
+            var response = event.detail.xhr.responseText;
+            if (!response || response.trim() === '') return; // Paystack redirect — let HTMX handle it
+            var isSuccess = response.includes('successfully') || response.includes('text-green');
+            if (isSuccess) {
+                closeDonateModal();
+                showDonationToast('Donation made successfully! Thank you for your generosity.', true);
+            } else {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = response;
+                showDonationToast(tmp.textContent || 'Something went wrong. Please try again.', false);
+            }
+        }
+        function showDonationToast(message, isSuccess) {
+            var toast = document.getElementById('donationToast');
+            toast.innerHTML = (isSuccess ? '✅ ' : '❌ ') + message;
+            toast.style.background = isSuccess ? '#d1fae5' : '#fee2e2';
+            toast.style.color = isSuccess ? '#065f46' : '#991b1b';
+            toast.style.border = isSuccess ? '1.5px solid #6ee7b7' : '1.5px solid #fca5a5';
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            clearTimeout(window._donationToastTimer);
+            window._donationToastTimer = setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() { toast.style.display = 'none'; toast.style.opacity = '1'; }, 400);
+            }, 4000);
+        }
+    </script>
+
+    <!-- Donations auto-load script (Admin only) -->
+    <script th:if="${isAdmin}" th:inline="javascript">
+        (function() {
+            const communityId = /*[[${communityId}]]*/ null;
+            if (!communityId) return;
+
+            fetch('/donation/donations/list?communityId=' + communityId)
+                .then(r => r.json())
+                .then(donations => {
+                    const tbody = document.getElementById('donations-table-body');
+                    if (!tbody) return;
+
+                    if (!donations || donations.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-400"><div class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><p class="text-sm">No donations found for this community.</p></div></td></tr>';
+                        return;
+                    }
+
+                    let html = '';
+                    donations.forEach(don => {
+                        const fullName = ((don.firstName || '') + ' ' + (don.lastName || '')).trim() || 'Unknown';
+                        const eventTitle = don.eventTitle || 'Unknown Event';
+                        const amount = don.amount != null ? '₦' + Number(don.amount).toFixed(2) : '₦0.00';
+                        const message = don.message || '—';
+                        const donatedAt = don.donatedAt ? new Date(don.donatedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'N/A';
+
+                        html += '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+                        html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
+                        html += '<td class="py-3 px-4 text-gray-600 text-sm">' + eventTitle + '</td>';
+                        html += '<td class="py-3 px-4 text-sm font-medium text-pink-600">' + amount + '</td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + message + '</td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + donatedAt + '</td>';
+                        html += '</tr>';
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error('Error loading donations:', err);
+                    const tbody = document.getElementById('donations-table-body');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-red-400 text-sm">Error loading donations.</td></tr>';
+                    }
+                });
+        })();
+    </script>
+
+    <!-- Tab navigation logic for manage page -->
+    <script>
+        (function() {
+            function initializeManageTabs() {
+                const tabButtons = document.querySelectorAll('.manage-tab-button');
+                const tabPanels = document.querySelectorAll('.manage-tab-panel');
+
+                tabButtons.forEach(function(button) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const targetTab = button.getAttribute('data-manage-tab');
+
+                        // Remove active class from all buttons and panels
+                        tabButtons.forEach(function(btn) { btn.classList.remove('active'); });
+                        tabPanels.forEach(function(panel) { panel.classList.remove('active'); });
+
+                        // Add active class to clicked button and corresponding panel
+                        button.classList.add('active');
+                        var targetPanel = document.getElementById(targetTab);
+                        if (targetPanel) {
+                            targetPanel.classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeManageTabs);
+            } else {
+                initializeManageTabs();
+            }
+        })();
+    </script>
+
+    <!-- Network management scripts -->
+    <script th:inline="javascript">
+        const networkCommunityId = /*[[${communityId}]]*/ null;
+
+        function openNetworkCreateModal() {
+            const modal = document.getElementById('networkCreateModal');
+            modal.style.display = 'flex';
+        }
+        function closeNetworkCreateModal() {
+            const modal = document.getElementById('networkCreateModal');
+            modal.style.display = 'none';
+            document.getElementById('networkCreateForm').reset();
+        }
+
+        async function submitCreateNetworkFromCommunity(e) {
+            e.preventDefault();
+            const btn = document.getElementById('networkCreateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+            try {
+                const res = await fetch('/networks/api/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('newNetworkName').value,
+                        description: document.getElementById('newNetworkDesc').value,
+                        communityId: networkCommunityId
+                    })
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    const text = await res.text();
+                    alert('Error creating network: ' + text);
+                }
+            } catch (err) {
+                alert('Failed to create network: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Create';
+            }
+        }
+
+        async function confirmDeleteNetwork(btn) {
+            const networkId = btn.dataset.networkId;
+            const networkName = btn.dataset.networkName;
+            if (!confirm('Are you sure you want to delete the network "' + networkName + '"? This action cannot be undone.')) {
+                return;
+            }
+            btn.disabled = true;
+            try {
+                const res = await fetch('/networks/api/' + networkId, { method: 'DELETE' });
+                if (res.ok || res.status === 204) {
+                    window.location.reload();
+                } else {
+                    const text = await res.text();
+                    alert('Error deleting network: ' + text);
+                }
+            } catch (err) {
+                alert('Failed to delete network: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
     </script>
 
     <!-- Donation Toast Notification -->
