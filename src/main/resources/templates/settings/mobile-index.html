@@ -616,12 +616,11 @@
                 Sign out of your account. You'll need to enter your credentials to sign back in.
             </p>
 
-            <form th:action="@{/logout}" method="post" id="logoutForm">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <form th:action="@{/logout}" method="post" id="logoutForm" class="w-full">
                 <button type="submit"
                         id="logoutBtn"
                         class="danger-btn touch-feedback w-full"
-                        onclick="this.disabled=true; this.querySelector('span.material-icons').textContent='hourglass_empty'; this.childNodes[1].textContent=' Signing out...';">
+                        style="width: 100%; cursor: pointer;">
                     <span class="material-icons">logout</span>
                     Sign Out
                 </button>
