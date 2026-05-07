@@ -2,9 +2,9 @@ spring:
   application:
     name: MyCommunity
   datasource:
-    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/mycommunity}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5433/mycommunity}
     username: ${JDBC_DATABASE_USERNAME:postgres}
-    password: ${JDBC_DATABASE_PASSWORD:Boluwatife2006}
+    password: ${JDBC_DATABASE_PASSWORD:020775Rashy!}
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 10

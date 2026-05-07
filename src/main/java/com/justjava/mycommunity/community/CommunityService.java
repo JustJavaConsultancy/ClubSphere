@@ -1323,6 +1323,7 @@ public class CommunityService {
         donation.setAmount(amount);
         donation.setMessage(message != null && !message.isBlank() ? message.trim() : null);
         donation.setDonatedAt(java.time.LocalDateTime.now());
+        donation.setStatus(PaymentStatus.SUCCESS);
         donationRepository.save(donation);
 
         // Save payment transaction
@@ -1335,6 +1336,40 @@ public class CommunityService {
         tx.setProviderRef(paystackRef != null ? paystackRef : "DON-" + donation.getId());
         tx.setCreatedAt(java.time.LocalDateTime.now());
         paymentTransactionRepository.save(tx);
+    }
+
+    @Transactional
+    public void promiseDonation(String userId, Long communityId, Long eventId, BigDecimal amount, String message) {
+
+        // Validate membership (warn but don't block — promise can be made)
+        boolean isMember = communityMembershipRepository
+                .existsActiveMembership(userId, communityId);
+        if (!isMember) {
+            System.out.println("WARNING: promiseDonation called for non-approved member userId=" + userId + " communityId=" + communityId + " — proceeding anyway.");
+        }
+
+        // Validate event
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        if (!event.getCommunity().getId().equals(communityId)) {
+            throw new IllegalArgumentException("Event does not belong to this community");
+        }
+
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException("Donation amount must be at least ₦1");
+        }
+
+        // Save donation promise record
+        Donation donation = new Donation();
+        donation.setUserId(userId);
+        donation.setCommunityId(communityId);
+        donation.setEventId(eventId);
+        donation.setAmount(amount);
+        donation.setMessage(message != null && !message.isBlank() ? message.trim() : null);
+        donation.setDonatedAt(java.time.LocalDateTime.now());
+        donation.setStatus(PaymentStatus.PENDING);
+        donationRepository.save(donation);
     }
 
     @Transactional(readOnly = true)
@@ -1381,6 +1416,7 @@ public class CommunityService {
             data.put("amount", don.getAmount());
             data.put("message", don.getMessage());
             data.put("donatedAt", don.getDonatedAt());
+            data.put("status", don.getStatus() != null ? don.getStatus().name() : "UNKNOWN");
             result.add(data);
         }
 
@@ -1437,6 +1473,88 @@ public class CommunityService {
             data.put("amount", don.getAmount());
             data.put("message", don.getMessage());
             data.put("donatedAt", don.getDonatedAt());
+            data.put("status", don.getStatus() != null ? don.getStatus().name() : "UNKNOWN");
+            result.add(data);
+        }
+
+        // Sort newest first
+        result.sort((a, b) -> {
+            java.time.LocalDateTime da = (java.time.LocalDateTime) a.get("donatedAt");
+            java.time.LocalDateTime db = (java.time.LocalDateTime) b.get("donatedAt");
+            if (da == null || db == null) return 0;
+            return db.compareTo(da);
+        });
+
+        return result;
+    }
+
+    @Transactional
+    public void fulfillDonationPromise(Long donationId, String paystackRef) {
+        Donation donation = donationRepository.findById(donationId)
+                .orElseThrow(() -> new EntityNotFoundException("Donation promise not found"));
+
+        if (donation.getStatus() != PaymentStatus.PENDING) {
+            throw new IllegalStateException("Donation is not in pending status");
+        }
+
+        donation.setStatus(PaymentStatus.SUCCESS);
+        donationRepository.save(donation);
+
+        // Record payment transaction
+        PaymentTransaction tx = new PaymentTransaction();
+        tx.setUserId(donation.getUserId());
+        tx.setCommunityId(donation.getCommunityId());
+        tx.setAmount(donation.getAmount());
+        tx.setType(PaymentType.DONATION);
+        tx.setStatus(PaymentStatus.SUCCESS);
+        tx.setProviderRef(paystackRef != null ? paystackRef : "DON-" + donation.getId());
+        tx.setCreatedAt(java.time.LocalDateTime.now());
+        paymentTransactionRepository.save(tx);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserPendingDonations(String userId) {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        List<Donation> donations = donationRepository.findByUserIdAndStatus(userId, PaymentStatus.PENDING);
+        if (donations.isEmpty()) return result;
+
+        // Fetch community names in batch
+        List<Long> communityIds = donations.stream()
+                .map(Donation::getCommunityId)
+                .distinct()
+                .toList();
+
+        Map<Long, Community> communityMap = communityRepository.findAllById(communityIds)
+                .stream()
+                .collect(Collectors.toMap(Community::getId, c -> c));
+
+        // Fetch events in batch
+        List<Long> eventIds = donations.stream()
+                .map(Donation::getEventId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, Event> eventMap = eventRepository.findAllById(eventIds)
+                .stream()
+                .collect(Collectors.toMap(Event::getId, e -> e));
+
+        for (Donation don : donations) {
+            Community community = communityMap.get(don.getCommunityId());
+            Event event = eventMap.get(don.getEventId());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("donationId", don.getId());
+            data.put("communityId", don.getCommunityId());
+            data.put("communityName", community != null ? community.getName() : "Unknown Community");
+            data.put("eventId", don.getEventId());
+            data.put("eventTitle", event != null ? event.getTitle() : "Unknown Event");
+            data.put("amount", don.getAmount());
+            data.put("message", don.getMessage());
+            data.put("donatedAt", don.getDonatedAt());
+            data.put("status", don.getStatus() != null ? don.getStatus().name() : "UNKNOWN");
             result.add(data);
         }
 

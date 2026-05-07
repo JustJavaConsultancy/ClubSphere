@@ -328,4 +328,57 @@ public class CommunityPaymentController {
         model.addAttribute("usersName", authenticationManager.get("name"));
         return "mobile-my-donations";
     }
+
+    // 🔹 Promise Donation
+    @PostMapping("/donation/promise")
+    public String promiseDonation(@RequestParam Long communityId,
+                                  @RequestParam Long eventId,
+                                  @RequestParam BigDecimal amount,
+                                  @RequestParam(required = false) String message,
+                                  @RequestParam(defaultValue = "web") String source,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            String userId = (String) authenticationManager.get("sub");
+            communityService.promiseDonation(userId, communityId, eventId, amount, message);
+            redirectAttributes.addFlashAttribute("successMessage", "✅ Donation promised! You can fulfill it later when ready.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Donation promise could not be made: " + e.getMessage());
+        }
+        if ("mobile".equals(source)) {
+            return "redirect:/donation/mobile/my-donations";
+        }
+        return "redirect:/donation/my-donations";
+    }
+
+    // 🔹 Fulfill Donation Promise
+    @PostMapping("/donation/fulfill")
+    public String fulfillDonationPromise(@RequestParam Long donationId,
+                                         @RequestParam String reference,
+                                         @RequestParam(defaultValue = "web") String source,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            Map<String, Object> paymentData = paystackService.verifyPayment(reference);
+            String status = (String) paymentData.get("status");
+            if ("success".equals(status)) {
+                communityService.fulfillDonationPromise(donationId, reference);
+                redirectAttributes.addFlashAttribute("successMessage", "✅ Donation fulfilled! Thank you for keeping your promise.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Donation fulfillment could not be completed: " + e.getMessage());
+        }
+        if ("mobile".equals(source)) {
+            return "redirect:/donation/mobile/my-donations";
+        }
+        return "redirect:/donation/my-donations";
+    }
+
+    // 🔹 User: My Pending Donations JSON
+    @GetMapping("/donation/my-pending-donations/data")
+    @ResponseBody
+    public List<Map<String, Object>> myPendingDonationsData() {
+        String userId = (String) authenticationManager.get("sub");
+        return communityService.getUserPendingDonations(userId);
+    }
 }
