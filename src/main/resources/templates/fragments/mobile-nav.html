@@ -122,7 +122,7 @@
                     <span class="text-xs text-gray-500 mt-1">Schedule & Events</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/create-session}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin == true or session.isAdmin == true}" th:href="@{/mobile/create-session}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.12s;">
                         <span class="material-icons text-white text-xl">add_circle</span>
                     </div>
@@ -130,7 +130,7 @@
                     <span class="text-xs text-gray-500 mt-1">Create Training</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/create-meeting}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin == true or session.isAdmin == true}" th:href="@{/mobile/create-meeting}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.14s;">
                         <span class="material-icons text-white text-xl">video_call</span>
                     </div>
@@ -138,7 +138,7 @@
                     <span class="text-xs text-gray-500 mt-1">Schedule Meeting</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/events/create}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin == true or session.isAdmin == true}" th:href="@{/mobile/events/create}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-pink-600 to-rose-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.16s;">
                         <span class="material-icons text-white text-xl">celebration</span>
                     </div>
@@ -194,7 +194,7 @@
                     <span class="text-xs text-gray-500 mt-1">Support Requests</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin or session.isSupportAdmin or session.isGroupAdmin}" th:href="@{/mobile/support/agent/claim-ticket}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin == true or session.isAdmin == true or session.isSupportAdmin == true or session.isGroupAdmin == true}" th:href="@{/mobile/support/agent/claim-ticket}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-green-800 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.48s;">
                         <span class="material-icons text-white text-xl">support_agent</span>
                     </div>
@@ -250,7 +250,7 @@
                     <span class="text-xs text-gray-500 mt-1">My Tickets</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin or session.isSupportAdmin}" th:href="@{/mobile/support/dashboard}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin == true or session.isAdmin == true or session.isSupportAdmin == true}" th:href="@{/mobile/support/dashboard}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.62s;">
                         <span class="material-icons text-white text-xl">support_agent</span>
                     </div>
@@ -258,7 +258,7 @@
                     <span class="text-xs text-gray-500 mt-1">Support Mgmt</span>
                 </a>
 
-                <a th:if="${session.isCommunityAdmin or session.isAdmin}" th:href="@{/mobile/admin/approvals}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <a th:if="${session.isCommunityAdmin == true or session.isAdmin == true}" th:href="@{/mobile/admin/approvals}" class="menu-item ripple-effect flex flex-col items-center p-5 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-teal-700 rounded-2xl flex items-center justify-center mb-3 floating-animation" style="animation-delay: 0.64s;">
                         <span class="material-icons text-white text-xl">how_to_reg</span>
                     </div>
