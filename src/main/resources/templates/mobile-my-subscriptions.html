@@ -104,6 +104,9 @@
                 <span class="mobile-status-badge mt-1"
                       th:classappend="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? ' mobile-status-active' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? ' mobile-status-cancelled' : ' mobile-status-expired')"
                       th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>
+                <span class="mobile-status-badge mt-1"
+                      th:classappend="${sub['hasPaidInvoice'] == true} ? ' mobile-status-active' : ' bg-amber-100 text-amber-700'"
+                      th:text="${sub['hasPaidInvoice'] == true} ? 'INVOICE PAID' : 'INVOICE PENDING'">INVOICE PENDING</span>
             </div>
             <button type="button" class="mobile-expand-btn p-1 text-gray-400"
                     th:onclick="'toggleMobileTx(' + ${iterStat.index} + ')'"
@@ -122,6 +125,10 @@
         </div>
 
         <!-- Cancel Button -->
+        <a href="/subscription/mobile/my-invoices"
+           style="display:block;width:100%;padding:8px;border-radius:10px;border:1px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;font-size:13px;font-weight:600;text-align:center;margin-bottom:8px;">
+            View Invoices
+        </a>
         <button th:if="${sub['status'] != null && sub['status'] == 'ACTIVE'}"
                 type="button"
                 style="width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #fca5a5; background: #fef2f2; color: #dc2626; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 8px;"

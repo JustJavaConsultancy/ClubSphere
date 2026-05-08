@@ -504,29 +504,36 @@
     <!-- Tab Container -->
     <div class="tab-container">
         <nav class="tab-nav">
-            <button class="tab-button" th:classappend="${activeTab == 'my-communities'} ? ' active'" data-tab="my-communities">
+            <button class="tab-button" th:classappend="${activeTab == 'my-communities'} ? ' active'" data-tab="my-communities"
+                    th:hx-get="@{/organizations/tab(tab='my-communities')}" hx-target="#organizations-tab-panel-host" hx-swap="outerHTML">
                 My Clubs
             </button>
-            <button th:if="${!session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'suggested'} ? ' active'" data-tab="suggested">
+            <button th:if="${!session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'suggested'} ? ' active'" data-tab="suggested"
+                    th:hx-get="@{/organizations/tab(tab='suggested')}" hx-target="#organizations-tab-panel-host" hx-swap="outerHTML">
                 Suggested
             </button>
-            <button th:if="${!session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'invitations'} ? ' active'" data-tab="invitations">
+            <button th:if="${!session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'invitations'} ? ' active'" data-tab="invitations"
+                    th:hx-get="@{/organizations/tab(tab='invitations')}" hx-target="#organizations-tab-panel-host" hx-swap="outerHTML">
                 Invitations
             </button>
-            <button th:if="${session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'requests'} ? ' active'" data-tab="requests">
+            <button th:if="${session.isAdmin}" class="tab-button" th:classappend="${activeTab == 'requests'} ? ' active'" data-tab="requests"
+                    th:hx-get="@{/organizations/tab(tab='requests')}" hx-target="#organizations-tab-panel-host" hx-swap="outerHTML">
                 Requests
             </button>
-            <button class="tab-button" th:classappend="${activeTab == 'subscriptions'} ? ' active'" data-tab="subscriptions">
+            <button class="tab-button" th:classappend="${activeTab == 'subscriptions'} ? ' active'" data-tab="subscriptions"
+                    th:hx-get="@{/organizations/tab(tab='subscriptions')}" hx-target="#organizations-tab-panel-host" hx-swap="outerHTML">
                 Subscriptions
             </button>
-            <button class="tab-button" th:classappend="${activeTab == 'donations'} ? ' active'" data-tab="donations">
+            <button class="tab-button" th:classappend="${activeTab == 'donations'} ? ' active'" data-tab="donations"
+                    th:hx-get="@{/organizations/tab(tab='donations')}" hx-target="#organizations-tab-panel-host" hx-swap="outerHTML">
                 Donations
             </button>
         </nav>
 
         <div class="tab-content">
+            <div id="organizations-tab-panel-host" th:fragment="organizations-tab-panel-host">
             <!-- My Communities Tab -->
-            <div id="my-communities" class="tab-panel" th:classappend="${activeTab == 'my-communities'} ? ' active'">
+            <div id="my-communities" class="tab-panel active" th:if="${requestedTab == 'my-communities'}">
                 <!-- Empty State for My Communities -->
                 <div th:if="${#lists.isEmpty(userCommunities)}" class="empty-state">
                     <div class="empty-state-icon">
@@ -590,7 +597,7 @@
             </div>
 
             <!-- Suggested Communities Tab (for non-admin users) -->
-            <div th:if="${!session.isAdmin}" id="suggested" class="tab-panel">
+            <div th:if="${!session.isAdmin and requestedTab == 'suggested'}" id="suggested" class="tab-panel active">
                 <!-- Empty State for Suggested Communities -->
                 <div th:if="${#lists.isEmpty(suggestedCommunities)}" class="empty-state">
                     <div class="empty-state-icon">
@@ -650,7 +657,7 @@
             </div>
 
             <!-- Invitations Tab (for non-admin users) -->
-            <div th:if="${!session.isAdmin}" id="invitations" class="tab-panel">
+            <div th:if="${!session.isAdmin and requestedTab == 'invitations'}" id="invitations" class="tab-panel active">
                 <!-- Empty State for Invitations -->
                 <div th:if="${#lists.isEmpty(communityInvitations)}" class="empty-state">
                     <div class="empty-state-icon">
@@ -693,7 +700,7 @@
             </div>
 
             <!-- Requests Tab (for admin users) -->
-            <div th:if="${session.isAdmin}" id="requests" class="tab-panel">
+            <div th:if="${session.isAdmin and requestedTab == 'requests'}" id="requests" class="tab-panel active">
                 <!-- Empty State for Requests -->
                 <div th:if="${#lists.isEmpty(communityRequests)}" class="empty-state">
                     <div class="empty-state-icon">
@@ -736,7 +743,7 @@
             </div>
 
             <!-- Subscriptions Tab -->
-            <div id="subscriptions" class="tab-panel" th:classappend="${activeTab == 'subscriptions'} ? ' active'">
+            <div id="subscriptions" class="tab-panel active" th:if="${requestedTab == 'subscriptions'}">
                 <!-- Summary Cards -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
                     <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
@@ -781,6 +788,9 @@
                                         <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
                                               th:style="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? 'background-color: #fee2e2; color: #991b1b; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #f3f4f6; color: #6b7280; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;')"
                                               th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>
+                                        <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
+                                              th:style="${sub['hasPaidInvoice'] == true} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #fef3c7; color: #92400e; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;'"
+                                              th:text="${sub['hasPaidInvoice'] == true} ? 'INVOICE PAID' : 'INVOICE PENDING'">INVOICE PENDING</span>
                                     </div>
                                     <div style="display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.85rem; color: #6b7280;">
                                         <span style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #1f2937; font-size: 0.95rem;">
@@ -860,7 +870,7 @@
             </div>
 
             <!-- Donations Tab -->
-            <div id="donations" class="tab-panel" th:classappend="${activeTab == 'donations'} ? ' active'">
+            <div id="donations" class="tab-panel active" th:if="${requestedTab == 'donations'}">
                 <!-- Summary Cards -->
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
                     <div style="background: white; border-radius: 12px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #ec4899;">
@@ -893,7 +903,9 @@
                                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
                                     <h4 style="font-size: 1.05rem; font-weight: 700; color: #1f2937; margin: 0;"
                                         th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Club Name</h4>
-                                    <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fce7f3; color: #be185d;">
+                                    <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
+                                          th:style="${don['status'] == 'PENDING'} ? 'display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fef3c7; color: #92400e;' : 'display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fce7f3; color: #be185d;'"
+                                          th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Donation'">
                                         Donation
                                     </span>
                                 </div>
@@ -919,35 +931,20 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Tab switching functionality
-        function initializeTabs() {
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabPanels = document.querySelectorAll('.tab-panel');
-
-            tabButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const targetTab = button.getAttribute('data-tab');
-
-                    // Remove active class from all buttons and panels
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabPanels.forEach(panel => panel.classList.remove('active'));
-
-                    // Add active class to clicked button and corresponding panel
-                    button.classList.add('active');
-                    const targetPanel = document.getElementById(targetTab);
-                    if (targetPanel) {
-                        targetPanel.classList.add('active');
-                    }
-                });
+        // HTMX tab active-state sync
+        document.addEventListener('click', function(event) {
+            const tabButton = event.target.closest('.tab-button');
+            if (!tabButton) return;
+            document.querySelectorAll('.tab-button').forEach(function(btn) {
+                btn.classList.remove('active');
             });
-        }
+            tabButton.classList.add('active');
+        });
 
         // Pagination functionality for communities
         function initializePagination() {
@@ -1337,7 +1334,6 @@
 
         // Initialize everything
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTabs();
             initializePagination();
             hideSuccessMessage();
 
@@ -1353,6 +1349,12 @@
                 }
             } catch (error) {
                 console.error('Error initializing communities:', error);
+            }
+        });
+
+        document.addEventListener('htmx:afterSwap', function(event) {
+            if (event.target && event.target.id === 'organizations-tab-panel-host') {
+                initializePagination();
             }
         });
     </script>

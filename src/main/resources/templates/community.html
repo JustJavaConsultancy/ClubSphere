@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Club - Clubknit</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         .dropdown-menu {
             display: none;
@@ -1281,29 +1280,69 @@
     ══════════════════════════════════════════════ -->
     <div class="manage-tab-container">
         <nav class="manage-tab-nav">
-            <button type="button" class="manage-tab-button active" data-manage-tab="general">
+            <button type="button"
+                    class="manage-tab-button"
+                    th:classappend="${activeTab == 'general'} ? ' active' : ''"
+                    data-manage-tab="general"
+                    th:hx-get="@{/my-community/tab(communityId=${communityId},tab='general')}"
+                    hx-target="#manage-tab-panel-host"
+                    hx-swap="outerHTML">
                 <i class="fas fa-cog" style="margin-right:6px;"></i> General
             </button>
-            <button type="button" class="manage-tab-button" data-manage-tab="groups">
+            <button type="button"
+                    class="manage-tab-button"
+                    th:classappend="${activeTab == 'groups'} ? ' active' : ''"
+                    data-manage-tab="groups"
+                    th:hx-get="@{/my-community/tab(communityId=${communityId},tab='groups')}"
+                    hx-target="#manage-tab-panel-host"
+                    hx-swap="outerHTML">
                 <i class="fas fa-users" style="margin-right:6px;"></i> Groups
             </button>
-            <button type="button" class="manage-tab-button" data-manage-tab="members">
+            <button type="button"
+                    class="manage-tab-button"
+                    th:classappend="${activeTab == 'members'} ? ' active' : ''"
+                    data-manage-tab="members"
+                    th:hx-get="@{/my-community/tab(communityId=${communityId},tab='members')}"
+                    hx-target="#manage-tab-panel-host"
+                    hx-swap="outerHTML">
                 <i class="fas fa-user-friends" style="margin-right:6px;"></i> Members
             </button>
-            <button type="button" th:if="${isAdmin}" class="manage-tab-button" data-manage-tab="networks">
+            <button type="button"
+                    th:if="${isAdmin}"
+                    class="manage-tab-button"
+                    th:classappend="${activeTab == 'networks'} ? ' active' : ''"
+                    data-manage-tab="networks"
+                    th:hx-get="@{/my-community/tab(communityId=${communityId},tab='networks')}"
+                    hx-target="#manage-tab-panel-host"
+                    hx-swap="outerHTML">
                 <i class="fas fa-project-diagram" style="margin-right:6px;"></i> Networks
             </button>
-            <button type="button" th:if="${isAdmin}" class="manage-tab-button" data-manage-tab="subscriptions">
+            <button type="button"
+                    th:if="${isAdmin}"
+                    class="manage-tab-button"
+                    th:classappend="${activeTab == 'subscriptions'} ? ' active' : ''"
+                    data-manage-tab="subscriptions"
+                    th:hx-get="@{/my-community/tab(communityId=${communityId},tab='subscriptions')}"
+                    hx-target="#manage-tab-panel-host"
+                    hx-swap="outerHTML">
                 <i class="fas fa-credit-card" style="margin-right:6px;"></i> Subscriptions
             </button>
-            <button type="button" th:if="${isAdmin}" class="manage-tab-button" data-manage-tab="donations">
+            <button type="button"
+                    th:if="${isAdmin}"
+                    class="manage-tab-button"
+                    th:classappend="${activeTab == 'donations'} ? ' active' : ''"
+                    data-manage-tab="donations"
+                    th:hx-get="@{/my-community/tab(communityId=${communityId},tab='donations')}"
+                    hx-target="#manage-tab-panel-host"
+                    hx-swap="outerHTML">
                 <i class="fas fa-heart" style="margin-right:6px;"></i> Donations
             </button>
         </nav>
 
         <div class="manage-tab-content">
+            <div id="manage-tab-panel-host" th:fragment="manage-tab-panel-host">
             <!-- ═══════════ GENERAL TAB ═══════════ -->
-            <div id="general" class="manage-tab-panel active">
+            <div id="general" class="manage-tab-panel active" th:if="${requestedTab == 'general'}">
 
                 <!-- Community Settings -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 community-settings-grid">
@@ -1441,6 +1480,32 @@
                         </svg>
                         Community Subscription
                     </h2>
+                    <div th:if="${isAdmin}" class="mb-4 p-4 rounded-lg border border-purple-100 bg-purple-50">
+                        <p class="text-sm font-semibold text-purple-900 mb-3">Subscription Plan Setup</p>
+                        <form hx-post="/subscription/plan/configure"
+                              hx-target="#subscriptionFeedback"
+                              hx-swap="innerHTML"
+                              class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                            <input type="hidden" name="communityId" th:value="${communityId}">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Billing Cycle</label>
+                                <select name="billingCycle" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                                    <option value="MONTHLY" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and activeSubscriptionPlan.billingCycle.name() == 'MONTHLY'}">Monthly</option>
+                                    <option value="QUARTERLY" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and activeSubscriptionPlan.billingCycle.name() == 'QUARTERLY'}">Quarterly</option>
+                                    <option value="YEARLY" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and (activeSubscriptionPlan.billingCycle.name() == 'ANNUALLY' or activeSubscriptionPlan.billingCycle.name() == 'YEARLY')}">Annually</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Amount (Naira)</label>
+                                <input type="number" name="amount" min="1" step="0.01" required
+                                       th:value="${activeSubscriptionPlan != null ? activeSubscriptionPlan.amount : ''}"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            </div>
+                            <button type="submit" class="primary-button !py-2 !px-4">
+                                Save Plan
+                            </button>
+                        </form>
+                    </div>
                     <div th:if="${hasActiveSubscription}">
                         <div class="sub-active-badge mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1448,7 +1513,10 @@
                             </svg>
                             Active Subscription
                         </div>
-                        <p class="text-sm text-gray-600">You have an active subscription to this community. Thank you for your support!</p>
+                        <p class="text-sm text-gray-600">You are subscribed. Subscription payments are managed through generated invoices for each billing cycle.</p>
+                        <a href="/subscription/my-invoices" class="inline-flex items-center mt-3 text-sm font-medium text-purple-700 hover:text-purple-900">
+                            View My Invoices
+                        </a>
                     </div>
                     <div th:if="${!hasActiveSubscription}">
                         <div class="sub-inactive-badge mb-3">
@@ -1457,12 +1525,24 @@
                             </svg>
                             Not Subscribed
                         </div>
-                        <p class="text-sm text-gray-600 mb-4">Support this community with a recurring monthly subscription. You choose the amount.</p>
-                        <button type="button" onclick="openSubscribeModal()" class="subscribe-btn">
+                        <p class="text-sm text-gray-600 mb-4"
+                           th:if="${activeSubscriptionPlan != null}">
+                            Subscribe to this community plan and pay by invoice each cycle:
+                            <strong th:text="${'₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2)}">₦0.00</strong>
+                            /
+                            <strong th:text="${activeSubscriptionPlan.billingCycle}">MONTHLY</strong>.
+                        </p>
+                        <p class="text-sm text-amber-700 mb-4"
+                           th:if="${activeSubscriptionPlan == null}">
+                            Subscription plan is not configured yet. Please check back later.
+                        </p>
+                        <button type="button" onclick="openSubscribeModal()" class="subscribe-btn"
+                                th:disabled="${activeSubscriptionPlan == null}"
+                                th:styleappend="${activeSubscriptionPlan == null} ? 'opacity:.6;cursor:not-allowed;' : ''">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            Subscribe Now
+                            Subscribe
                         </button>
                     </div>
                     <div id="subscriptionFeedback" class="mt-3"></div>
@@ -1479,17 +1559,20 @@
                                 </svg>
                             </button>
                         </div>
-                        <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to pay monthly. You can choose any amount.</p>
+                        <p class="text-sm text-gray-500 mb-4">Your first invoice is generated immediately on subscription, and future invoices are generated automatically each cycle.</p>
                         <form hx-post="/subscription/subscribe"
                               hx-target="#subscriptionFeedback"
                               hx-swap="innerHTML"
                               onsubmit="closeSubscribeModal()">
                             <input type="hidden" name="communityId" th:value="${communityId}">
                             <input type="hidden" name="source" value="web">
+                            <input type="hidden" name="amount"
+                                   th:value="${activeSubscriptionPlan != null ? activeSubscriptionPlan.amount : 0}">
                             <div style="margin-bottom: 16px;">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Amount</label>
-                                <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
-                                       class="sub-amount-input" required>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Plan Amount</label>
+                                <input type="text"
+                                       th:value="${activeSubscriptionPlan != null ? ('₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2) + ' / ' + activeSubscriptionPlan.billingCycle) : 'Plan not configured'}"
+                                       class="sub-amount-input" readonly>
                             </div>
                             <div style="display: flex; gap: 10px;">
                                 <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center;">
@@ -1512,12 +1595,12 @@
                         </svg>
                         Donate to Club
                     </h2>
-                    <p class="text-sm text-gray-600 mb-4">Show your appreciation and support this club with a one-time donation. You choose the amount.</p>
+                    <p class="text-sm text-gray-600 mb-4">Donate toward an event either immediately or by promise. Choose the option that works for you.</p>
                     <button type="button" onclick="openDonateModal()" class="subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                         </svg>
-                        Donate Now
+                        Donate Now or Promise
                     </button>
                     <div id="donationFeedback" class="mt-3"></div>
                 </div>
@@ -1533,11 +1616,8 @@
                                 </svg>
                             </button>
                         </div>
-                        <p class="text-sm text-gray-500 mb-4">Enter the amount you'd like to donate. You can also include an optional message. All donations must be attached to an event.</p>
-                        <form hx-post="/donation/donate"
-                              hx-target="#donationFeedback"
-                              hx-swap="innerHTML"
-                              hx-on::after-request="handleCommunityDonationResponse(event)">
+                        <p class="text-sm text-gray-500 mb-4">Enter the amount for this event donation. You can pay now or promise and fulfill later.</p>
+                        <form method="post" action="/donation/promise">
                             <input type="hidden" name="communityId" th:value="${communityId}">
                             <input type="hidden" name="source" value="web">
                             <div style="margin-bottom: 16px;">
@@ -1558,8 +1638,19 @@
                                           style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; resize:vertical;"></textarea>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                <button type="submit" class="subscribe-btn" style="flex:1; justify-content:center; background: linear-gradient(135deg, #ec4899, #db2777);">
-                                    Confirm Donation
+                                <button type="submit"
+                                        class="subscribe-btn"
+                                        style="flex:1; justify-content:center; background: linear-gradient(135deg, #ec4899, #db2777);"
+                                        hx-post="/donation/donate"
+                                        hx-target="#donationFeedback"
+                                        hx-swap="innerHTML"
+                                        hx-on::after-request="handleCommunityDonationResponse(event)">
+                                    Pay Now
+                                </button>
+                                <button type="submit"
+                                        class="subscribe-btn"
+                                        style="flex:1; justify-content:center; background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                                    Promise
                                 </button>
                                 <button type="button" onclick="closeDonateModal()"
                                         class="secondary-button" style="flex:0 0 auto;">
@@ -1573,7 +1664,7 @@
             </div><!-- END general tab -->
 
             <!-- ═══════════ GROUPS TAB ═══════════ -->
-            <div id="groups" class="manage-tab-panel">
+            <div id="groups" class="manage-tab-panel active" th:if="${requestedTab == 'groups'}">
 
                 <!-- Groups Management -->
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -1681,7 +1772,7 @@
             </div><!-- END groups tab -->
 
             <!-- ═══════════ MEMBERS TAB ═══════════ -->
-            <div id="members" class="manage-tab-panel">
+            <div id="members" class="manage-tab-panel active" th:if="${requestedTab == 'members'}">
 
                 <!-- ══════════════════════════════════════════════
                      COMMUNITY MEMBERS SECTION
@@ -2038,7 +2129,7 @@
             </div>
 
             <!-- ═══════════ SUBSCRIPTIONS TAB (Admin Only) ═══════════ -->
-            <div th:if="${isAdmin}" id="subscriptions" class="manage-tab-panel">
+            <div th:if="${isAdmin and requestedTab == 'subscriptions'}" id="subscriptions" class="manage-tab-panel active">
 
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="community-subscriptions-section">
                     <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
@@ -2049,12 +2140,8 @@
                             Community Subscriptions
                         </h2>
                         <button type="button"
-                                th:attr="hx-get='/subscription/subscriptions/list?communityId=' + ${communityId}"
-                                hx-target="#subscriptions-table-body"
-                                hx-swap="innerHTML"
-                                hx-trigger="click"
                                 class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                                onclick="this.classList.add('opacity-50');">
+                                onclick="loadCommunitySubscriptions();">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
@@ -2072,10 +2159,12 @@
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Start Date</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Next Billing</th>
-                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Total Paid</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Invoice Status</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Plan Amount</th>
                             </tr>
                             </thead>
-                            <tbody id="subscriptions-table-body">
+                            <tbody id="subscriptions-table-body"
+                                   th:attr="data-community-id=${communityId}">
                             <tr id="subscriptions-loading-row">
                                 <td colspan="6" class="py-8 text-center text-gray-400">
                                     <div class="flex flex-col items-center">
@@ -2094,7 +2183,7 @@
             </div><!-- END subscriptions tab -->
 
             <!-- ═══════════ DONATIONS TAB (Admin Only) ═══════════ -->
-            <div th:if="${isAdmin}" id="donations" class="manage-tab-panel">
+            <div th:if="${isAdmin and requestedTab == 'donations'}" id="donations" class="manage-tab-panel active">
 
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6" id="community-donations-section">
                     <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
@@ -2105,12 +2194,8 @@
                             Community Donations
                         </h2>
                         <button type="button"
-                                th:attr="hx-get='/donation/donations/list?communityId=' + ${communityId}"
-                                hx-target="#donations-table-body"
-                                hx-swap="innerHTML"
-                                hx-trigger="click"
                                 class="text-sm text-pink-600 hover:text-pink-800 font-medium flex items-center gap-1"
-                                onclick="this.classList.add('opacity-50');">
+                                onclick="loadCommunityDonations();">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
@@ -2126,13 +2211,15 @@
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Donor</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Event</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Amount</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Message</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Date</th>
                             </tr>
                             </thead>
-                            <tbody id="donations-table-body">
+                            <tbody id="donations-table-body"
+                                   th:attr="data-community-id=${communityId}">
                             <tr id="donations-loading-row">
-                                <td colspan="5" class="py-8 text-center text-gray-400">
+                                <td colspan="7" class="py-8 text-center text-gray-400">
                                     <div class="flex flex-col items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -2149,7 +2236,7 @@
             </div><!-- END donations tab -->
 
             <!-- ═══════════ NETWORKS TAB (Admin Only) ═══════════ -->
-            <div th:if="${isAdmin}" id="networks" class="manage-tab-panel">
+            <div th:if="${isAdmin and requestedTab == 'networks'}" id="networks" class="manage-tab-panel active">
 
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
                     <div class="flex flex-wrap gap-3 justify-between items-center mb-6">
@@ -2372,6 +2459,7 @@
                     </button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 
@@ -2969,56 +3057,6 @@
         }
     </script>
 
-    <!-- Subscriptions auto-load script (Admin only) -->
-    <script th:if="${isAdmin}" th:inline="javascript">
-        (function() {
-            const communityId = /*[[${communityId}]]*/ null;
-            if (!communityId) return;
-
-            fetch('/subscription/subscriptions/list?communityId=' + communityId)
-                .then(r => r.json())
-                .then(subs => {
-                    const tbody = document.getElementById('subscriptions-table-body');
-                    if (!tbody) return;
-
-                    if (!subs || subs.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400"><div class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg><p class="text-sm">No subscriptions found for this community.</p></div></td></tr>';
-                        return;
-                    }
-
-                    let html = '';
-                    subs.forEach(sub => {
-                        const fullName = ((sub.firstName || '') + ' ' + (sub.lastName || '')).trim() || 'Unknown';
-                        const email = sub.email || '—';
-                        const status = sub.status || 'UNKNOWN';
-                        const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
-                        const nextBilling = sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
-                        const totalPaid = sub.amount != null ? '₦' + Number(sub.amount).toFixed(2) : '₦0.00';
-
-                        let statusClass = 'bg-gray-100 text-gray-600';
-                        if (status === 'ACTIVE') statusClass = 'bg-green-100 text-green-700';
-                        else if (status === 'CANCELLED') statusClass = 'bg-red-100 text-red-700';
-
-                        html += '<tr class="border-b border-gray-100 hover:bg-gray-50">';
-                        html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
-                        html += '<td class="py-3 px-4 text-gray-600 text-sm">' + email + '</td>';
-                        html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + statusClass + '">' + status + '</span></td>';
-                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + startDate + '</td>';
-                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + nextBilling + '</td>';
-                        html += '<td class="py-3 px-4 text-sm font-medium text-gray-800">' + totalPaid + '</td>';
-                        html += '</tr>';
-                    });
-                    tbody.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error('Error loading subscriptions:', err);
-                    const tbody = document.getElementById('subscriptions-table-body');
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-red-400 text-sm">Error loading subscriptions.</td></tr>';
-                    }
-                });
-        })();
-    </script>
 
     <!-- Donate modal scripts -->
     <script>
@@ -3058,85 +3096,118 @@
         }
     </script>
 
-    <!-- Donations auto-load script (Admin only) -->
-    <script th:if="${isAdmin}" th:inline="javascript">
-        (function() {
-            const communityId = /*[[${communityId}]]*/ null;
+    <!-- HTMX tab active-state sync -->
+    <script>
+        document.addEventListener('click', function(event) {
+            const tabButton = event.target.closest('.manage-tab-button');
+            if (!tabButton) return;
+            document.querySelectorAll('.manage-tab-button').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            tabButton.classList.add('active');
+        });
+
+        function loadCommunitySubscriptions() {
+            const tbody = document.getElementById('subscriptions-table-body');
+            if (!tbody) return;
+            const communityId = tbody.getAttribute('data-community-id');
             if (!communityId) return;
 
-            fetch('/donation/donations/list?communityId=' + communityId)
-                .then(r => r.json())
-                .then(donations => {
-                    const tbody = document.getElementById('donations-table-body');
-                    if (!tbody) return;
-
-                    if (!donations || donations.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-400"><div class="flex flex-col items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><p class="text-sm">No donations found for this community.</p></div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">Loading subscriptions...</td></tr>';
+            fetch('/subscription/subscriptions/list?communityId=' + encodeURIComponent(communityId))
+                .then(function(r) { return r.json(); })
+                .then(function(subs) {
+                    if (!Array.isArray(subs) || subs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">No subscriptions found for this community.</td></tr>';
                         return;
                     }
 
                     let html = '';
-                    donations.forEach(don => {
+                    subs.forEach(function(sub) {
+                        const fullName = ((sub.firstName || '') + ' ' + (sub.lastName || '')).trim() || 'Unknown';
+                        const email = sub.email || '—';
+                        const status = sub.status || 'UNKNOWN';
+                        const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
+                        const nextBilling = sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
+                        const planAmount = sub.amount != null ? ('₦' + Number(sub.amount).toFixed(2)) : '₦0.00';
+                        const hasPaidInvoice = !!sub.hasPaidInvoice;
+
+                        let statusClass = 'bg-gray-100 text-gray-600';
+                        if (status === 'ACTIVE') statusClass = 'bg-green-100 text-green-700';
+                        else if (status === 'CANCELLED') statusClass = 'bg-red-100 text-red-700';
+
+                        html += '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+                        html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
+                        html += '<td class="py-3 px-4 text-gray-600 text-sm">' + email + '</td>';
+                        html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + statusClass + '">' + status + '</span></td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + startDate + '</td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-600">' + nextBilling + '</td>';
+                        html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + (hasPaidInvoice ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700') + '">' + (hasPaidInvoice ? 'PAID' : 'PENDING') + '</span></td>';
+                        html += '<td class="py-3 px-4 text-sm font-medium text-gray-800">' + planAmount + '</td>';
+                        html += '</tr>';
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(function() {
+                    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-400 text-sm">Error loading subscriptions.</td></tr>';
+                });
+        }
+
+        function loadCommunityDonations() {
+            const tbody = document.getElementById('donations-table-body');
+            if (!tbody) return;
+            const communityId = tbody.getAttribute('data-community-id');
+            if (!communityId) return;
+
+            tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">Loading donations...</td></tr>';
+            fetch('/donation/donations/list?communityId=' + encodeURIComponent(communityId))
+                .then(function(r) { return r.json(); })
+                .then(function(donations) {
+                    if (!Array.isArray(donations) || donations.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">No donations found for this community.</td></tr>';
+                        return;
+                    }
+
+                    let html = '';
+                    donations.forEach(function(don) {
                         const fullName = ((don.firstName || '') + ' ' + (don.lastName || '')).trim() || 'Unknown';
                         const eventTitle = don.eventTitle || 'Unknown Event';
-                        const amount = don.amount != null ? '₦' + Number(don.amount).toFixed(2) : '₦0.00';
+                        const amount = don.amount != null ? ('₦' + Number(don.amount).toFixed(2)) : '₦0.00';
+                        const status = (don.status || 'UNKNOWN').toUpperCase();
                         const message = don.message || '—';
                         const donatedAt = don.donatedAt ? new Date(don.donatedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'N/A';
+                        let statusClass = 'bg-gray-100 text-gray-600';
+                        if (status === 'SUCCESS' || status === 'PAID') statusClass = 'bg-green-100 text-green-700';
+                        else if (status === 'PENDING') statusClass = 'bg-amber-100 text-amber-700';
+                        else if (status === 'FAILED') statusClass = 'bg-red-100 text-red-700';
 
                         html += '<tr class="border-b border-gray-100 hover:bg-gray-50">';
                         html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
                         html += '<td class="py-3 px-4 text-gray-600 text-sm">' + eventTitle + '</td>';
                         html += '<td class="py-3 px-4 text-sm font-medium text-pink-600">' + amount + '</td>';
+                        html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + statusClass + '">' + status + '</span></td>';
                         html += '<td class="py-3 px-4 text-sm text-gray-600" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + message + '</td>';
                         html += '<td class="py-3 px-4 text-sm text-gray-600">' + donatedAt + '</td>';
                         html += '</tr>';
                     });
                     tbody.innerHTML = html;
                 })
-                .catch(err => {
-                    console.error('Error loading donations:', err);
-                    const tbody = document.getElementById('donations-table-body');
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-red-400 text-sm">Error loading donations.</td></tr>';
-                    }
+                .catch(function() {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-red-400 text-sm">Error loading donations.</td></tr>';
                 });
-        })();
-    </script>
+        }
 
-    <!-- Tab navigation logic for manage page -->
-    <script>
-        (function() {
-            function initializeManageTabs() {
-                const tabButtons = document.querySelectorAll('.manage-tab-button');
-                const tabPanels = document.querySelectorAll('.manage-tab-panel');
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCommunitySubscriptions();
+            loadCommunityDonations();
+        });
 
-                tabButtons.forEach(function(button) {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        const targetTab = button.getAttribute('data-manage-tab');
-
-                        // Remove active class from all buttons and panels
-                        tabButtons.forEach(function(btn) { btn.classList.remove('active'); });
-                        tabPanels.forEach(function(panel) { panel.classList.remove('active'); });
-
-                        // Add active class to clicked button and corresponding panel
-                        button.classList.add('active');
-                        var targetPanel = document.getElementById(targetTab);
-                        if (targetPanel) {
-                            targetPanel.classList.add('active');
-                        }
-                    });
-                });
+        document.addEventListener('htmx:afterSwap', function(event) {
+            if (event.target && event.target.id === 'manage-tab-panel-host') {
+                loadCommunitySubscriptions();
+                loadCommunityDonations();
             }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initializeManageTabs);
-            } else {
-                initializeManageTabs();
-            }
-        })();
+        });
     </script>
 
     <!-- Network management scripts -->

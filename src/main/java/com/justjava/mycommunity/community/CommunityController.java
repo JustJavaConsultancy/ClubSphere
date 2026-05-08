@@ -12,6 +12,7 @@ import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.network.NetworkDTO;
 import com.justjava.mycommunity.network.NetworkNewService;
 import com.justjava.mycommunity.userManagement.UserDTO;
+import com.justjava.mycommunity.community.SubscriptionPlan;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -91,94 +92,9 @@ public class CommunityController {
             if (communityId == null) {
                 return "redirect:/my-community/select";
             }
-
-            String currentUserId = (String) authenticationManager.get("sub");
-            boolean isAdmin = authenticationManager.isAdmin();
-
-            // Also treat community-level admins as admin for this community
-            if (!isAdmin) {
-                isAdmin = communityMembershipRepository.isUserCommunityAdmin(currentUserId, communityId);
-            }
-
-            // Keep session in sync so /networks and other session-dependent pages
-            // always reference the community the user is currently managing
-            request.getSession().setAttribute("selectedCommunityId", communityId);
-
-
-            CommunityDTO community = communityService.getCommunityById(communityId);
-
-            if (community == null) {
-                model.addAttribute("errorMessage", "Community not found or access denied.");
-                return "redirect:/my-community/select";
-            }
-
-            // Also store the community name in session
-            request.getSession().setAttribute("selectedCommunityName", community.getName());
-
-            List<UserDTO> communityMembers = isAdmin
-                    ? communityService.getCommunityMembersAll(communityId)
-                    : communityService.getCommunityMembers(communityId);
-            List<UserDTO> availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
-
-            List<Map<String, Object>> processedGroups = new ArrayList<>();
-            try {
-                List<CreateChatDTO> groupsResponse = isAdmin
-                        ? communityGroupService.getCommunityGroupsByCommunityId(communityId)
-                        : communityGroupService.getUserCommunityGroups(currentUserId, communityId);
-
-                if (groupsResponse != null) {
-                    for (CreateChatDTO group : groupsResponse) {
-                        Map<String, Object> processedGroup = new HashMap<>();
-                        processedGroup.put("id", group.getId() != null ? group.getId() : 0L);
-                        processedGroup.put("groupName", group.getGroupName() != null ? group.getGroupName() : "Unknown Group");
-                        processedGroup.put("groupDescription", group.getGroupDescription() != null ? group.getGroupDescription() : "No description");
-                        processedGroup.put("memberCount", group.getMemberCount() != null ? group.getMemberCount() : 0);
-                        processedGroups.add(processedGroup);
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("Error getting groups: " + e.getMessage());
-                e.printStackTrace();
-            }
-
-            model.addAttribute("community", community);
-            model.addAttribute("groups", processedGroups);
-            model.addAttribute("communityMembers", communityMembers);
-            model.addAttribute("availableMembers", communityMembers);
-            model.addAttribute("availableUsersToInvite", availableUsersToInvite);
-            model.addAttribute("communityId", communityId);
-            model.addAttribute("isAdmin", isAdmin);
-
-            // Check if current user is CREATOR of this specific community
-            boolean isCreator = communityMembershipRepository.isUserCommunityCreator(currentUserId, communityId);
-            model.addAttribute("isCreator", isCreator);
-
-            // Check if current user is suspended in this community
-            Map<String, Object> suspensionInfo = communityService.getCurrentUserSuspension(currentUserId, communityId);
-            boolean isSuspended = suspensionInfo != null;
-            model.addAttribute("isSuspended", isSuspended);
-            model.addAttribute("suspensionInfo", suspensionInfo);
-
-            // Subscription status for the current user
-            boolean hasActiveSubscription = false;
-            try {
-                hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, communityId);
-            } catch (Exception e) {
-                System.out.println("Error checking subscription status: " + e.getMessage());
-            }
-            model.addAttribute("hasActiveSubscription", hasActiveSubscription);
-
-            // Networks within this community
-            List<NetworkDTO> communityNetworks = new ArrayList<>();
-            try {
-                communityNetworks = isAdmin
-                        ? networkNewService.getAllNetworksInCommunity(communityId, currentUserId)
-                        : networkNewService.getUserNetworksInCommunity(currentUserId, communityId);
-            } catch (Exception e) {
-                System.out.println("Error loading networks: " + e.getMessage());
-            }
-            model.addAttribute("communityNetworks", communityNetworks);
-            model.addAttribute("communityEvents", eventService.getCommunityDonationEvents(communityId));
+            populateCommunityPageModel(communityId, model, request);
+            model.addAttribute("requestedTab", "general");
+            model.addAttribute("activeTab", "general");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -188,6 +104,108 @@ public class CommunityController {
 
         model.addAttribute("currentPath", "/my-mycommunity");
         return "community";
+    }
+
+    @GetMapping("/tab")
+    public String communityTabContent(@RequestParam("communityId") Long communityId,
+                                      @RequestParam("tab") String tab,
+                                      Model model,
+                                      HttpServletRequest request) {
+        try {
+            populateCommunityPageModel(communityId, model, request);
+            model.addAttribute("requestedTab", tab);
+            model.addAttribute("activeTab", tab);
+            return "community :: manage-tab-panel-host";
+        } catch (Exception e) {
+            model.addAttribute("requestedTab", "general");
+            model.addAttribute("activeTab", "general");
+            return "community :: manage-tab-panel-host";
+        }
+    }
+
+    private void populateCommunityPageModel(Long communityId, Model model, HttpServletRequest request) {
+        String currentUserId = (String) authenticationManager.get("sub");
+        boolean isAdmin = authenticationManager.isAdmin();
+
+        if (!isAdmin) {
+            isAdmin = communityMembershipRepository.isUserCommunityAdmin(currentUserId, communityId);
+        }
+
+        request.getSession().setAttribute("selectedCommunityId", communityId);
+
+        CommunityDTO community = communityService.getCommunityById(communityId);
+        if (community == null) {
+            throw new IllegalStateException("Community not found or access denied.");
+        }
+
+        request.getSession().setAttribute("selectedCommunityName", community.getName());
+
+        List<UserDTO> communityMembers = isAdmin
+                ? communityService.getCommunityMembersAll(communityId)
+                : communityService.getCommunityMembers(communityId);
+        List<UserDTO> availableUsersToInvite = communityService.getAvailableUsersToInvite(communityId);
+
+        List<Map<String, Object>> processedGroups = new ArrayList<>();
+        try {
+            List<CreateChatDTO> groupsResponse = isAdmin
+                    ? communityGroupService.getCommunityGroupsByCommunityId(communityId)
+                    : communityGroupService.getUserCommunityGroups(currentUserId, communityId);
+
+            if (groupsResponse != null) {
+                for (CreateChatDTO group : groupsResponse) {
+                    Map<String, Object> processedGroup = new HashMap<>();
+                    processedGroup.put("id", group.getId() != null ? group.getId() : 0L);
+                    processedGroup.put("groupName", group.getGroupName() != null ? group.getGroupName() : "Unknown Group");
+                    processedGroup.put("groupDescription", group.getGroupDescription() != null ? group.getGroupDescription() : "No description");
+                    processedGroup.put("memberCount", group.getMemberCount() != null ? group.getMemberCount() : 0);
+                    processedGroups.add(processedGroup);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error getting groups: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        model.addAttribute("community", community);
+        model.addAttribute("groups", processedGroups);
+        model.addAttribute("communityMembers", communityMembers);
+        model.addAttribute("availableMembers", communityMembers);
+        model.addAttribute("availableUsersToInvite", availableUsersToInvite);
+        model.addAttribute("communityId", communityId);
+        model.addAttribute("isAdmin", isAdmin);
+
+        boolean isCreator = communityMembershipRepository.isUserCommunityCreator(currentUserId, communityId);
+        model.addAttribute("isCreator", isCreator);
+
+        Map<String, Object> suspensionInfo = communityService.getCurrentUserSuspension(currentUserId, communityId);
+        model.addAttribute("isSuspended", suspensionInfo != null);
+        model.addAttribute("suspensionInfo", suspensionInfo);
+
+        boolean hasActiveSubscription = false;
+        try {
+            hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, communityId);
+        } catch (Exception e) {
+            System.out.println("Error checking subscription status: " + e.getMessage());
+        }
+        model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+        SubscriptionPlan activeSubscriptionPlan = null;
+        try {
+            activeSubscriptionPlan = communityService.getActiveSubscriptionPlan(communityId).orElse(null);
+        } catch (Exception e) {
+            System.out.println("Error loading active subscription plan: " + e.getMessage());
+        }
+        model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
+
+        List<NetworkDTO> communityNetworks = new ArrayList<>();
+        try {
+            communityNetworks = isAdmin
+                    ? networkNewService.getAllNetworksInCommunity(communityId, currentUserId)
+                    : networkNewService.getUserNetworksInCommunity(currentUserId, communityId);
+        } catch (Exception e) {
+            System.out.println("Error loading networks: " + e.getMessage());
+        }
+        model.addAttribute("communityNetworks", communityNetworks);
+        model.addAttribute("communityEvents", eventService.getCommunityDonationEvents(communityId));
     }
     @PostMapping("assignAdmin/{userId}/{communityId}")
     public String assignAdmin(

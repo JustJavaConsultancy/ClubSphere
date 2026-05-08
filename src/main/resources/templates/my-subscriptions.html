@@ -91,6 +91,9 @@
                                 <span class="status-badge"
                                       th:classappend="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? ' status-active' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? ' status-cancelled' : ' status-expired')"
                                       th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>
+                                <span class="status-badge"
+                                      th:classappend="${sub['hasPaidInvoice'] == true} ? ' status-active' : ' bg-amber-100 text-amber-700'"
+                                      th:text="${sub['hasPaidInvoice'] == true} ? 'INVOICE PAID' : 'INVOICE PENDING'">INVOICE PENDING</span>
                             </div>
                             <div class="flex flex-wrap gap-6 text-sm text-gray-500">
                                 <span class="flex items-center gap-1">
@@ -109,6 +112,9 @@
                         </div>
                         <!-- Actions -->
                         <div class="flex items-center gap-2">
+                            <a href="/subscription/my-invoices" class="px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 text-sm font-semibold hover:bg-purple-100 transition-colors">
+                                View Invoices
+                            </a>
                             <!-- Cancel button for active subscriptions -->
                             <button th:if="${sub['status'] != null && sub['status'] == 'ACTIVE'}"
                                     type="button"

@@ -613,10 +613,8 @@
             <h3 style="font-size:18px; font-weight:700; color:#1f2937; margin-bottom:4px;">Donate to Event</h3>
             <p id="mobileDonateModalEventName" style="font-size:13px; color:#ec4899; font-weight:600; margin-bottom:12px;"></p>
             <p style="font-size:14px; color:#6b7280; margin-bottom:20px;">Enter the amount you'd like to donate to this event. You can also include an optional message.</p>
-            <form hx-post="/donation/donate"
-                  hx-target="#mobileHomeDonationFeedback"
-                  hx-swap="innerHTML"
-                  hx-on::after-request="handleDonationResponse(event, 'closeMobileDonateModal')">
+            <form method="post"
+                  action="/donation/promise">
                 <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
                 <input type="hidden" name="eventId" id="mobileDonateModalEventId">
                 <input type="hidden" name="source" value="mobile">
@@ -631,10 +629,20 @@
                     <textarea name="message" rows="2" placeholder="Leave a message..."
                               style="width:100%; padding:10px 14px; border:2px solid #e5e7eb; border-radius:14px; font-size:14px; resize:vertical; outline:none;"></textarea>
                 </div>
-                <button type="submit"
-                        style="width:100%; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:12px; border:none; border-radius:14px; font-weight:600; font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(219,39,119,0.25);">
-                    Confirm Donation
-                </button>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit"
+                            hx-post="/donation/donate"
+                            hx-target="#mobileHomeDonationFeedback"
+                            hx-swap="innerHTML"
+                            hx-on::after-request="handleDonationResponse(event, 'closeMobileDonateModal')"
+                            style="flex:1; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:12px; border:none; border-radius:14px; font-weight:600; font-size:15px; cursor:pointer; box-shadow:0 4px 12px rgba(219,39,119,0.25);">
+                        Pay Now
+                    </button>
+                    <button type="submit"
+                            style="flex:1; background:#fff; color:#db2777; padding:12px; border:1px solid #f9a8d4; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer;">
+                        Promise
+                    </button>
+                </div>
                 <button type="button" onclick="closeMobileDonateModal()"
                         style="width:100%; padding:12px; margin-top:10px; background:#f3f4f6; border:none; border-radius:14px; font-size:15px; font-weight:500; color:#6b7280; cursor:pointer;">
                     Cancel

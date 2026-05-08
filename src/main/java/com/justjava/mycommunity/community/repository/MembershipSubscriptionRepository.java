@@ -16,6 +16,7 @@ public interface MembershipSubscriptionRepository extends JpaRepository<Membersh
     List<MembershipSubscription> findByStatus(SubscriptionStatus status);
 
     List<MembershipSubscription> findByNextBillingDateBefore(LocalDateTime date);
+    List<MembershipSubscription> findByStatusAndNextBillingDateLessThanEqual(SubscriptionStatus status, LocalDateTime date);
 
     boolean existsByUserIdAndCommunityIdAndStatus(
             String userId,
@@ -26,4 +27,8 @@ public interface MembershipSubscriptionRepository extends JpaRepository<Membersh
     List<MembershipSubscription> findByCommunityId(Long communityId);
 
     List<MembershipSubscription> findByUserId(String userId);
+
+    List<MembershipSubscription> findByUserIdAndStatus(String userId, SubscriptionStatus status);
+
+    List<MembershipSubscription> findByCommunityIdAndStatus(Long communityId, SubscriptionStatus status);
 }

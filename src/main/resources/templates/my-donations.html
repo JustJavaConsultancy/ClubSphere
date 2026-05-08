@@ -58,7 +58,9 @@
                             <div class="flex items-center gap-3 mb-2">
                                 <h3 class="text-lg font-bold text-gray-800"
                                     th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Club Name</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase bg-pink-100 text-pink-700">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase"
+                                      th:classappend="${don['status'] == 'PENDING'} ? ' bg-amber-100 text-amber-700' : ' bg-pink-100 text-pink-700'"
+                                      th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Donation'">
                                     Donation
                                 </span>
                             </div>

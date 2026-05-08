@@ -10,18 +10,24 @@ import com.justjava.mycommunity.chat.repository.CommunityInvitationRepository;
 import com.justjava.mycommunity.chat.repository.OrganizationRepository;
 import com.justjava.mycommunity.community.dto.PaymentStatus;
 import com.justjava.mycommunity.community.dto.PaymentType;
+import com.justjava.mycommunity.community.dto.BillingCycle;
 import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.mapper.CommunityMapper;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
 import com.justjava.mycommunity.community.repository.PaymentTransactionRepository;
+import com.justjava.mycommunity.community.repository.SubscriptionPlanRepository;
+import com.justjava.mycommunity.community.services.SubscriptionBillingService;
 import com.justjava.mycommunity.event.Event;
 import com.justjava.mycommunity.chat.repository.EventRepository;
 import com.justjava.mycommunity.organization.Channel;
 import com.justjava.mycommunity.organization.Organization;
 import com.justjava.mycommunity.organization.TownHall;
 import com.justjava.mycommunity.organization.TownHallChannelService;
+import com.justjava.mycommunity.invoice.Invoice;
+import com.justjava.mycommunity.invoice.InvoiceRepository;
+import com.justjava.mycommunity.invoice.Status;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
@@ -59,6 +65,9 @@ public class CommunityService {
     private final DonationRepository donationRepository;
     private final EventRepository eventRepository;
     private final ResendService resendService;
+    private final SubscriptionPlanRepository subscriptionPlanRepository;
+    private final SubscriptionBillingService subscriptionBillingService;
+    private final InvoiceRepository invoiceRepository;
 
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
@@ -1230,6 +1239,40 @@ public class CommunityService {
     }
 
     @Transactional
+    public SubscriptionPlan upsertSubscriptionPlan(Long communityId, BillingCycle billingCycle, BigDecimal amount) {
+        if (billingCycle == null) {
+            throw new IllegalArgumentException("Billing cycle is required");
+        }
+        if (billingCycle == BillingCycle.ANNUALLY) {
+            billingCycle = BillingCycle.YEARLY;
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException("Subscription amount must be at least N1");
+        }
+
+        List<SubscriptionPlan> activePlans = subscriptionPlanRepository.findByCommunityIdAndActiveTrue(communityId);
+        for (SubscriptionPlan activePlan : activePlans) {
+            activePlan.setActive(false);
+        }
+        subscriptionPlanRepository.saveAll(activePlans);
+
+        SubscriptionPlan plan = new SubscriptionPlan();
+        plan.setCommunityId(communityId);
+        plan.setName("Community Subscription");
+        plan.setAmount(amount);
+        plan.setBillingCycle(billingCycle);
+        plan.setActive(true);
+        return subscriptionPlanRepository.save(plan);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SubscriptionPlan> getActiveSubscriptionPlan(Long communityId) {
+        return subscriptionPlanRepository.findByCommunityIdAndActiveTrue(communityId)
+                .stream()
+                .findFirst();
+    }
+
+    @Transactional
     public void startSubscription(String userId, Long communityId, BigDecimal amount) {
         startSubscription(userId, communityId, amount, null);
     }
@@ -1251,29 +1294,40 @@ public class CommunityService {
             throw new IllegalStateException("User already has an active subscription for this community");
         }
 
-        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
-            throw new IllegalArgumentException("Subscription amount must be at least ₦1");
+        SubscriptionPlan plan = getActiveSubscriptionPlan(communityId)
+                .orElseThrow(() -> new IllegalStateException("No active subscription plan configured for this community"));
+        BigDecimal subscriptionAmount = plan.getAmount();
+        if (subscriptionAmount == null || subscriptionAmount.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalStateException("Active subscription plan amount is invalid");
         }
 
-        // Create subscription
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
         MembershipSubscription sub = new MembershipSubscription();
         sub.setUserId(userId);
         sub.setCommunityId(communityId);
-        sub.setAmount(amount);
+        sub.setPlanId(plan.getId());
+        sub.setAmount(subscriptionAmount);
         sub.setStatus(SubscriptionStatus.ACTIVE);
-        sub.setStartDate(java.time.LocalDateTime.now());
-        sub.setNextBillingDate(java.time.LocalDateTime.now().plusMonths(1));
+        sub.setStartDate(now);
+        sub.setNextBillingDate(now);
+        membershipSubscriptionRepository.save(sub);
+        Optional<Invoice> initialInvoiceOpt = subscriptionBillingService.generateInitialInvoice(sub);
+        if (paystackRef != null && !paystackRef.isBlank() && initialInvoiceOpt.isPresent()) {
+            Invoice initialInvoice = initialInvoiceOpt.get();
+            initialInvoice.setStatus(Status.PAID);
+            invoiceRepository.save(initialInvoice);
+        }
+        sub.setNextBillingDate(subscriptionBillingService.calculateNextBillingDate(now, plan.getBillingCycle()));
         membershipSubscriptionRepository.save(sub);
 
-        // Record payment transaction
         PaymentTransaction tx = new PaymentTransaction();
         tx.setUserId(userId);
         tx.setCommunityId(communityId);
-        tx.setAmount(amount);
+        tx.setAmount(subscriptionAmount);
         tx.setType(PaymentType.SUBSCRIPTION);
-        tx.setStatus(PaymentStatus.SUCCESS);
+        tx.setStatus(PaymentStatus.PENDING);
         tx.setProviderRef(paystackRef != null ? paystackRef : "SUB-" + sub.getId());
-        tx.setCreatedAt(java.time.LocalDateTime.now());
+        tx.setCreatedAt(now);
         paymentTransactionRepository.save(tx);
     }
 
@@ -1344,14 +1398,99 @@ public class CommunityService {
     }
 
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getUserSubscriptions(String userId) {
+    public List<Map<String, Object>> getUserActiveSubscriptions(String userId) {
+        List<MembershipSubscription> subscriptions =
+                membershipSubscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE);
+        return mapSubscriptionsForUser(subscriptions);
+    }
 
-        List<Map<String, Object>> result = new ArrayList<>();
-
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserPaidSubscriptions(String userId) {
         List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByUserId(userId);
+        if (subscriptions.isEmpty()) return new ArrayList<>();
+
+        List<MembershipSubscription> paidSubscriptions = subscriptions.stream()
+                .filter(this::hasPaidInvoiceForSubscription)
+                .toList();
+        return mapSubscriptionsForUser(paidSubscriptions);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCommunityActiveSubscriptions(Long communityId) {
+        List<MembershipSubscription> subscriptions =
+                membershipSubscriptionRepository.findByCommunityIdAndStatus(communityId, SubscriptionStatus.ACTIVE);
+        return mapSubscriptionsForCommunity(subscriptions);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCommunityPaidActiveSubscriptions(Long communityId) {
+        List<MembershipSubscription> activeSubscriptions =
+                membershipSubscriptionRepository.findByCommunityIdAndStatus(communityId, SubscriptionStatus.ACTIVE);
+        if (activeSubscriptions.isEmpty()) return new ArrayList<>();
+
+        List<MembershipSubscription> paidActiveSubscriptions = activeSubscriptions.stream()
+                .filter(this::hasPaidInvoiceForSubscription)
+                .toList();
+        return mapSubscriptionsForCommunity(paidActiveSubscriptions);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasPaidSubscription(String userId, Long communityId) {
+        return membershipSubscriptionRepository.findByUserIdAndCommunityId(userId, communityId)
+                .filter(sub -> sub.getStatus() == SubscriptionStatus.ACTIVE)
+                .map(this::hasPaidInvoiceForSubscription)
+                .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserSubscriptionsByStatus(String userId, SubscriptionStatus status) {
+        return mapSubscriptionsForUser(membershipSubscriptionRepository.findByUserIdAndStatus(userId, status));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCommunitySubscriptionsByStatus(Long communityId, SubscriptionStatus status) {
+        return mapSubscriptionsForCommunity(membershipSubscriptionRepository.findByCommunityIdAndStatus(communityId, status));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Invoice> getSubscriptionInvoices(Long subscriptionId) {
+        return invoiceRepository.findByMerchantIdStartingWith("SUB-" + subscriptionId + "-");
+    }
+
+    @Transactional(readOnly = true)
+    public List<Invoice> getPaidSubscriptionInvoices(Long subscriptionId) {
+        return invoiceRepository.findByMerchantIdStartingWithAndStatus("SUB-" + subscriptionId + "-", Status.PAID);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Invoice> getUserSubscriptionInvoices(String userId) {
+        List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByUserId(userId);
+        if (subscriptions.isEmpty()) return new ArrayList<>();
+
+        List<Invoice> invoices = new ArrayList<>();
+        for (MembershipSubscription sub : subscriptions) {
+            invoices.addAll(invoiceRepository.findByMerchantIdStartingWith("SUB-" + sub.getId() + "-"));
+        }
+
+        invoices.sort((a, b) -> {
+            if (a.getDueDate() == null && b.getDueDate() == null) return 0;
+            if (a.getDueDate() == null) return 1;
+            if (b.getDueDate() == null) return -1;
+            return b.getDueDate().compareTo(a.getDueDate());
+        });
+        return invoices;
+    }
+
+    private boolean hasPaidInvoiceForSubscription(MembershipSubscription subscription) {
+        return !invoiceRepository.findByMerchantIdStartingWithAndStatus(
+                "SUB-" + subscription.getId() + "-", Status.PAID
+        ).isEmpty();
+    }
+
+    private List<Map<String, Object>> mapSubscriptionsForUser(List<MembershipSubscription> subscriptions) {
+        List<Map<String, Object>> result = new ArrayList<>();
         if (subscriptions.isEmpty()) return result;
 
-        // Fetch community names in batch
         List<Long> communityIds = subscriptions.stream()
                 .map(MembershipSubscription::getCommunityId)
                 .distinct()
@@ -1359,11 +1498,7 @@ public class CommunityService {
 
         Map<Long, String> communityNameMap = new HashMap<>();
         for (Long cId : communityIds) {
-            try {
-                communityRepository.findById(cId).ifPresent(c -> communityNameMap.put(cId, c.getName()));
-            } catch (Exception e) {
-                communityNameMap.put(cId, "Unknown Community");
-            }
+            communityRepository.findById(cId).ifPresent(c -> communityNameMap.put(cId, c.getName()));
         }
 
         for (MembershipSubscription sub : subscriptions) {
@@ -1375,10 +1510,10 @@ public class CommunityService {
             entry.put("status", sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN");
             entry.put("startDate", sub.getStartDate());
             entry.put("nextBillingDate", sub.getNextBillingDate());
+            entry.put("hasPaidInvoice", hasPaidInvoiceForSubscription(sub));
             result.add(entry);
         }
 
-        // Sort newest first
         result.sort((a, b) -> {
             Comparable da = (Comparable) b.get("startDate");
             Comparable db = (Comparable) a.get("startDate");
@@ -1389,6 +1524,53 @@ public class CommunityService {
         });
 
         return result;
+    }
+
+    private List<Map<String, Object>> mapSubscriptionsForCommunity(List<MembershipSubscription> subscriptions) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (subscriptions.isEmpty()) return result;
+
+        List<String> userIds = subscriptions.stream()
+                .map(MembershipSubscription::getUserId)
+                .distinct()
+                .toList();
+
+        Map<String, User> userMap = userRepository.findByUserIdIn(userIds)
+                .stream()
+                .collect(Collectors.toMap(User::getUserId, u -> u, (a, b) -> a));
+
+        for (MembershipSubscription sub : subscriptions) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("subscriptionId", sub.getId());
+            entry.put("userId", sub.getUserId());
+            User user = userMap.get(sub.getUserId());
+            entry.put("firstName", user != null ? user.getFirstName() : "Unknown");
+            entry.put("lastName", user != null ? user.getLastName() : "");
+            entry.put("email", user != null ? user.getEmail() : "");
+            entry.put("amount", sub.getAmount());
+            entry.put("status", sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN");
+            entry.put("startDate", sub.getStartDate());
+            entry.put("nextBillingDate", sub.getNextBillingDate());
+            entry.put("hasPaidInvoice", hasPaidInvoiceForSubscription(sub));
+            result.add(entry);
+        }
+
+        result.sort((a, b) -> {
+            Comparable da = (Comparable) b.get("startDate");
+            Comparable db = (Comparable) a.get("startDate");
+            if (da == null && db == null) return 0;
+            if (da == null) return 1;
+            if (db == null) return -1;
+            return da.compareTo(db);
+        });
+
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserSubscriptions(String userId) {
+        List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByUserId(userId);
+        return mapSubscriptionsForUser(subscriptions);
     }
 
     // ══════════════════ DONATIONS ══════════════════

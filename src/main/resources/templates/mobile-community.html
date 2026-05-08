@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Club - Clubknit</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         /* Mobile-optimized styles with violet theme */
         .mobile-card {
@@ -1714,7 +1713,8 @@
                 </svg>
                 Active Subscription
             </div>
-            <p style="font-size: 14px; color: #374151;">You have an active subscription to this community. Thank you for your support!</p>
+            <p style="font-size: 14px; color: #374151;">You are subscribed. Subscription payments are made through generated invoices each cycle.</p>
+            <a href="/subscription/mobile/my-invoices" style="display:inline-block; margin-top:10px; font-size:13px; font-weight:600; color:#6d28d9;">View My Invoices</a>
         </div>
 
         <div th:if="${!hasActiveSubscription}" style="padding: 12px;">
@@ -1724,8 +1724,20 @@
                 </svg>
                 Not Subscribed
             </div>
-            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">Support this community with a recurring monthly subscription. You choose the amount.</p>
-            <button type="button" onclick="openMobileSubscribeModal()" class="mobile-subscribe-btn">
+            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;"
+               th:if="${activeSubscriptionPlan != null}">
+                Subscribe and pay by invoice:
+                <strong th:text="${'₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2)}">₦0.00</strong>
+                /
+                <strong th:text="${activeSubscriptionPlan.billingCycle}">MONTHLY</strong>.
+            </p>
+            <p style="font-size: 14px; color: #92400e; margin-bottom: 16px;"
+               th:if="${activeSubscriptionPlan == null}">
+                Subscription plan is not configured yet.
+            </p>
+            <button type="button" onclick="openMobileSubscribeModal()" class="mobile-subscribe-btn"
+                    th:disabled="${activeSubscriptionPlan == null}"
+                    th:styleappend="${activeSubscriptionPlan == null} ? 'opacity:.6;cursor:not-allowed;' : ''">
                 <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -1740,16 +1752,20 @@
         <div class="mobile-sub-modal-content">
             <div style="width: 40px; height: 4px; background: #d1d5db; border-radius: 4px; margin: 0 auto 16px;"></div>
             <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Subscribe to Club</h3>
-            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Enter the amount you'd like to pay monthly. You can choose any amount.</p>
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Your first invoice is generated immediately on subscription, and future invoices are generated automatically each cycle.</p>
             <form hx-post="/subscription/subscribe"
                   hx-target="#mobileSubscriptionFeedback"
                   hx-swap="innerHTML"
                   onsubmit="closeMobileSubscribeModal()">
                 <input type="hidden" name="communityId" th:value="${communityId}">
+                <input type="hidden" name="source" value="mobile">
+                <input type="hidden" name="amount"
+                       th:value="${activeSubscriptionPlan != null ? activeSubscriptionPlan.amount : 0}">
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Monthly Amount</label>
-                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
-                           class="mobile-sub-amount-input" required>
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Plan Amount</label>
+                    <input type="text"
+                           th:value="${activeSubscriptionPlan != null ? ('₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2) + ' / ' + activeSubscriptionPlan.billingCycle) : 'Plan not configured'}"
+                           class="mobile-sub-amount-input" readonly>
                 </div>
                 <button type="submit" class="mobile-subscribe-btn">
                     Confirm Subscription
@@ -1773,12 +1789,12 @@
             <h2 class="mobile-section-title">Donate</h2>
         </div>
         <div style="padding: 12px;">
-            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">Show your appreciation with a one-time donation. You choose the amount.</p>
+            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">Donate toward an event either immediately or by promise.</p>
             <button type="button" onclick="openMobileDonateModal()" class="mobile-subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
                 <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
-                Donate Now
+                Donate Now or Promise
             </button>
         </div>
         <div id="mobileDonationFeedback" style="margin-top: 8px; padding: 0 12px;"></div>
@@ -1789,11 +1805,8 @@
         <div class="mobile-sub-modal-content">
             <div style="width: 40px; height: 4px; background: #d1d5db; border-radius: 4px; margin: 0 auto 16px;"></div>
             <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Donate to Club</h3>
-            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Enter the amount you'd like to donate. You can also include an optional message.</p>
-            <form hx-post="/donation/donate"
-                  hx-target="#mobileDonationFeedback"
-                  hx-swap="innerHTML"
-                  hx-on::after-request="handleMobileCommunityDonationResponse(event)">
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Enter the amount for this event donation. You can pay now or promise and fulfill later.</p>
+            <form method="post" action="/donation/promise">
                 <input type="hidden" name="communityId" th:value="${communityId}">
                 <input type="hidden" name="source" value="mobile">
                 <div style="margin-bottom: 16px;">
@@ -1813,9 +1826,22 @@
                     <textarea name="message" rows="2" placeholder="Leave a message..."
                               style="width:100%; border:1px solid #d1d5db; border-radius:14px; padding:12px; font-size:15px; resize:vertical;"></textarea>
                 </div>
-                <button type="submit" class="mobile-subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-                    Confirm Donation
-                </button>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit"
+                            class="mobile-subscribe-btn"
+                            style="flex:1; background: linear-gradient(135deg, #ec4899, #db2777);"
+                            hx-post="/donation/donate"
+                            hx-target="#mobileDonationFeedback"
+                            hx-swap="innerHTML"
+                            hx-on::after-request="handleMobileCommunityDonationResponse(event)">
+                        Pay Now
+                    </button>
+                    <button type="submit"
+                            class="mobile-subscribe-btn"
+                            style="flex:1; background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                        Promise
+                    </button>
+                </div>
                 <button type="button" onclick="closeMobileDonateModal()"
                         style="width: 100%; padding: 12px; margin-top: 10px; background: #f3f4f6; border: none; border-radius: 14px; font-size: 15px; font-weight: 500; color: #6b7280; cursor: pointer;">
                     Cancel

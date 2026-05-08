@@ -35,6 +35,21 @@ public class OrganizationController {
     @GetMapping("/organizations")
     public String organizationsPage(HttpServletRequest request, Model model,
                                     @RequestParam(value = "tab", required = false) String tab) {
+        String activeTab = tab != null ? tab : "my-communities";
+        populateOrganizationsPageModel(request, model, activeTab);
+        return "organizations";
+    }
+
+    @GetMapping("/organizations/tab")
+    public String organizationsTabContent(HttpServletRequest request, Model model,
+                                          @RequestParam(value = "tab", required = false) String tab) {
+        String activeTab = tab != null ? tab : "my-communities";
+        populateOrganizationsPageModel(request, model, activeTab);
+        model.addAttribute("requestedTab", activeTab);
+        return "organizations :: organizations-tab-panel-host";
+    }
+
+    private void populateOrganizationsPageModel(HttpServletRequest request, Model model, String activeTab) {
         String currentUserId = (String) authenticationManager.get("sub");
         boolean isAdmin = authenticationManager.isAdmin();
 
@@ -76,7 +91,8 @@ public class OrganizationController {
         model.addAttribute("userId", authenticationManager.get("sub"));
         model.addAttribute("usersName", authenticationManager.get("name"));
         model.addAttribute("currentPath", "/organizations");
-        model.addAttribute("activeTab", tab != null ? tab : "my-communities");
+        model.addAttribute("activeTab", activeTab);
+        model.addAttribute("requestedTab", activeTab);
 
         // Check for success message
         String successMessage = (String) request.getSession().getAttribute("successMessage");
@@ -85,7 +101,6 @@ public class OrganizationController {
             request.getSession().removeAttribute("successMessage");
         }
 
-        return "organizations";
     }
 
     @GetMapping("/add-community")

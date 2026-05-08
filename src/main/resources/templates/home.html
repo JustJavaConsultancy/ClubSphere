@@ -741,14 +741,26 @@
                                 </svg>
                                 <span style="font-weight:700; font-size:15px; color:#1f2937;">Support this Club</span>
                             </div>
-                            <p style="font-size:13px; color:#6b7280; margin:0;">Subscribe with a monthly amount of your choice to help keep this club going.</p>
+                            <p style="font-size:13px; color:#6b7280; margin:0;"
+                               th:if="${activeSubscriptionPlan != null}">
+                                Subscribe to the configured plan and pay through generated invoices each cycle:
+                                <strong th:text="${'₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2)}">₦0.00</strong>
+                                /
+                                <strong th:text="${activeSubscriptionPlan.billingCycle}">MONTHLY</strong>.
+                            </p>
+                            <p style="font-size:13px; color:#92400e; margin:0;"
+                               th:if="${activeSubscriptionPlan == null}">
+                                Subscription plan is not configured yet.
+                            </p>
                         </div>
                         <button type="button" onclick="openSubscribeModal()"
+                                th:disabled="${activeSubscriptionPlan == null}"
+                                th:styleappend="${activeSubscriptionPlan == null} ? 'opacity:.6;cursor:not-allowed;' : ''"
                                 style="background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; padding:10px 22px; border:none; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; box-shadow:0 4px 12px rgba(109,40,217,0.25);">
                             <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            Subscribe Now
+                            Subscribe
                         </button>
                     </div>
                     <div th:if="${hasActiveSubscription}" style="display:flex; align-items:center; gap:10px;">
@@ -776,19 +788,20 @@
                             </svg>
                         </button>
                     </div>
-                    <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Enter the amount you'd like to pay monthly. You choose any amount.</p>
+                    <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Your first invoice is generated immediately on subscription, and future invoices are generated automatically each cycle.</p>
                     <form hx-post="/subscription/subscribe"
                           hx-target="#homeSubscriptionFeedback"
                           hx-swap="innerHTML"
                           onsubmit="closeSubscribeModal()">
                         <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
                         <input type="hidden" name="source" value="web">
+                        <input type="hidden" name="amount" th:value="${activeSubscriptionPlan != null ? activeSubscriptionPlan.amount : 0}">
                         <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Monthly Amount</label>
-                            <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount"
+                            <label style="display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px;">Plan Amount</label>
+                            <input type="text"
+                                   th:value="${activeSubscriptionPlan != null ? ('₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2) + ' / ' + activeSubscriptionPlan.billingCycle) : 'Plan not configured'}"
                                    style="width:100%; padding:12px 16px; border:2px solid #e5e7eb; border-radius:10px; font-size:1.1rem; font-weight:600; text-align:center; outline:none;"
-                                   onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'"
-                                   required>
+                                   readonly>
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button type="submit"
@@ -818,10 +831,8 @@
                     </div>
                     <p id="donateModalEventName" style="font-size:13px; color:#ec4899; font-weight:600; margin-bottom:12px;"></p>
                     <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">Enter the amount you'd like to donate to this event. You can also include an optional message.</p>
-                    <form hx-post="/donation/donate"
-                          hx-target="#homeDonationFeedback"
-                          hx-swap="innerHTML"
-                          hx-on::after-request="handleDonationResponse(event, 'closeDonateModal')">
+                    <form method="post"
+                          action="/donation/promise">
                         <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
                         <input type="hidden" name="eventId" id="donateModalEventId">
                         <input type="hidden" name="source" value="web">
@@ -840,8 +851,16 @@
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button type="submit"
+                                    hx-post="/donation/donate"
+                                    hx-target="#homeDonationFeedback"
+                                    hx-swap="innerHTML"
+                                    hx-on::after-request="handleDonationResponse(event, 'closeDonateModal')"
                                     style="flex:1; background:linear-gradient(135deg,#ec4899,#db2777); color:white; padding:10px 24px; border:none; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer;">
-                                Confirm Donation
+                                Pay Now
+                            </button>
+                            <button type="submit"
+                                    style="flex:1; background:#fff; color:#db2777; padding:10px 24px; border:1px solid #f9a8d4; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer;">
+                                Promise
                             </button>
                             <button type="button" onclick="closeDonateModal()"
                                     style="padding:10px 20px; background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-weight:500; cursor:pointer;">

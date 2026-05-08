@@ -8,6 +8,7 @@ import com.justjava.mycommunity.chat.dto.SessionDTO;
 import com.justjava.mycommunity.chat.model.PostMessage;
 import com.justjava.mycommunity.community.CommunityGroupService;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.SubscriptionPlan;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.network.NetworkService;
@@ -519,14 +520,17 @@ public class HomeController {
 
         // Subscription status for the current user
         boolean hasActiveSubscription = false;
+        SubscriptionPlan activeSubscriptionPlan = null;
         if (selectedCommunityId != null) {
             try {
                 hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, selectedCommunityId);
+                activeSubscriptionPlan = communityService.getActiveSubscriptionPlan(selectedCommunityId).orElse(null);
             } catch (Exception e) {
                 System.out.println("Error checking subscription status: " + e.getMessage());
             }
         }
         model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+        model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
 
         System.out.println("=== END HOME CONTROLLER DEBUG ===");
         return "home";

@@ -9,6 +9,7 @@ import com.justjava.mycommunity.community.CommunityService;
 import com.justjava.mycommunity.community.Donation;
 import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.community.MembershipSubscription;
+import com.justjava.mycommunity.community.SubscriptionPlan;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
 import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
@@ -177,6 +178,13 @@ public class MobileCommunityController {
                 System.out.println("Mobile - Error checking subscription status: " + e.getMessage());
             }
             model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+            SubscriptionPlan activeSubscriptionPlan = null;
+            try {
+                activeSubscriptionPlan = communityService.getActiveSubscriptionPlan(communityId).orElse(null);
+            } catch (Exception e) {
+                System.out.println("Mobile - Error loading active subscription plan: " + e.getMessage());
+            }
+            model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
 
             // Events for donation selector
             try {

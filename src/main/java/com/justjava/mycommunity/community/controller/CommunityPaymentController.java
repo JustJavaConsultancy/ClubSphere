@@ -3,6 +3,10 @@ package com.justjava.mycommunity.community.controller;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.SubscriptionPlan;
+import com.justjava.mycommunity.community.dto.BillingCycle;
+import com.justjava.mycommunity.invoice.Invoice;
+import com.justjava.mycommunity.invoice.Status;
 import com.justjava.mycommunity.invoice.PaystackService;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import jakarta.annotation.PostConstruct;
@@ -159,6 +163,23 @@ public class CommunityPaymentController {
         return communityService.getCommunitySubscriptions(communityId);
     }
 
+    @PostMapping("/subscription/plan/configure")
+    public ResponseEntity<String> configureSubscriptionPlan(@RequestParam("communityId") Long communityId,
+                                                            @RequestParam("billingCycle") BillingCycle billingCycle,
+                                                            @RequestParam("amount") BigDecimal amount) {
+        try {
+            if (!authenticationManager.isAdmin()) {
+                return ResponseEntity.ok("<div class='text-red-600 font-medium'>Only admins can configure subscription plans.</div>");
+            }
+            SubscriptionPlan plan = communityService.upsertSubscriptionPlan(communityId, billingCycle, amount);
+            return ResponseEntity.ok("<div class='text-green-600 font-medium'>Plan updated: " + plan.getBillingCycle() + " / ₦" + plan.getAmount() + "</div>");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.ok("<div class='text-amber-600 font-medium'>" + e.getMessage() + "</div>");
+        } catch (Exception e) {
+            return ResponseEntity.ok("<div class='text-red-600 font-medium'>Failed to update plan: " + e.getMessage() + "</div>");
+        }
+    }
+
     // 🔹 User: My Subscriptions page (all communities)
     @GetMapping("/subscription/my-subscriptions")
     public String mySubscriptionsPage(Model model) {
@@ -174,6 +195,28 @@ public class CommunityPaymentController {
         model.addAttribute("usersName", authenticationManager.get("name"));
 
         return "my-subscriptions";
+    }
+
+    @GetMapping("/subscription/my-invoices")
+    public String mySubscriptionInvoicesPage(Model model) {
+        String userId = (String) authenticationManager.get("sub");
+        List<Invoice> invoices = communityService.getUserSubscriptionInvoices(userId);
+        long paidCount = invoices.stream().filter(i -> i.getStatus() == Status.PAID).count();
+        long pendingCount = invoices.stream().filter(i -> i.getStatus() == Status.NEW).count();
+        BigDecimal paidTotal = invoices.stream()
+                .filter(i -> i.getStatus() == Status.PAID)
+                .map(Invoice::getAmount)
+                .filter(a -> a != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("subscriptionInvoices", invoices);
+        model.addAttribute("paidInvoiceCount", paidCount);
+        model.addAttribute("pendingInvoiceCount", pendingCount);
+        model.addAttribute("totalAmountPaid", paidTotal);
+        model.addAttribute("currentPath", "/subscription/my-invoices");
+        model.addAttribute("userId", userId);
+        model.addAttribute("usersName", authenticationManager.get("name"));
+        return "my-subscription-invoices";
     }
 
     // 🔹 User: My Subscriptions JSON (for HTMX)
@@ -206,6 +249,28 @@ public class CommunityPaymentController {
         model.addAttribute("usersName", authenticationManager.get("name"));
 
         return "mobile-my-subscriptions";
+    }
+
+    @GetMapping("/subscription/mobile/my-invoices")
+    public String mobileMySubscriptionInvoicesPage(Model model) {
+        String userId = (String) authenticationManager.get("sub");
+        List<Invoice> invoices = communityService.getUserSubscriptionInvoices(userId);
+        long paidCount = invoices.stream().filter(i -> i.getStatus() == Status.PAID).count();
+        long pendingCount = invoices.stream().filter(i -> i.getStatus() == Status.NEW).count();
+        BigDecimal paidTotal = invoices.stream()
+                .filter(i -> i.getStatus() == Status.PAID)
+                .map(Invoice::getAmount)
+                .filter(a -> a != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("subscriptionInvoices", invoices);
+        model.addAttribute("paidInvoiceCount", paidCount);
+        model.addAttribute("pendingInvoiceCount", pendingCount);
+        model.addAttribute("totalAmountPaid", paidTotal);
+        model.addAttribute("currentPath", "/subscription/mobile/my-invoices");
+        model.addAttribute("userId", userId);
+        model.addAttribute("usersName", authenticationManager.get("name"));
+        return "mobile-my-subscription-invoices";
     }
 
     // ══════════════════ DONATIONS ══════════════════
