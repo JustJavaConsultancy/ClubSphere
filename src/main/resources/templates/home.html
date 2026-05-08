@@ -853,38 +853,7 @@
                 </div>
             </div>
 
-            <!-- Suspension Banner -->
-            <div th:if="${isSuspended}" style="background:linear-gradient(135deg,#fef2f2,#fff7ed);border:1.5px solid #fca5a5;border-radius:16px;padding:20px 24px;margin-bottom:20px;display:flex;flex-direction:column;gap:12px;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <div style="width:40px;height:40px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="fas fa-ban" style="color:#dc2626;font-size:18px;"></i>
-                    </div>
-                    <div>
-                        <p style="font-weight:700;color:#b91c1c;font-size:15px;margin:0;">Your account has been suspended from this club</p>
-                        <p th:if="${suspensionInfo != null and suspensionInfo['suspendedUntil'] != null}"
-                           style="font-size:13px;color:#6b7280;margin:2px 0 0 0;">
-                            Suspension lifts on
-                            <strong th:text="${#temporals.format(suspensionInfo['suspendedUntil'], 'MMMM d, yyyy \'at\' h:mm a')}"></strong>
-                        </p>
-                        <p th:if="${suspensionInfo == null or suspensionInfo['suspendedUntil'] == null}"
-                           style="font-size:13px;color:#6b7280;margin:2px 0 0 0;">
-                            This suspension is indefinite.
-                        </p>
-                    </div>
-                </div>
-                <div th:if="${suspensionInfo != null and suspensionInfo['suspensionReason'] != null}"
-                     style="background:#fff;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;">
-                    <p style="font-size:12px;font-weight:600;color:#9ca3af;margin:0 0 2px 0;text-transform:uppercase;letter-spacing:.05em;">Reason</p>
-                    <p th:text="${suspensionInfo['suspensionReason']}" style="font-size:13px;color:#374151;margin:0;"></p>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-                    <i class="fas fa-info-circle" style="color:#f59e0b;font-size:13px;"></i>
-                    <span style="font-size:13px;color:#6b7280;">You can still read posts, but cannot interact while suspended.</span>
-                    <button type="button" onclick="openSuspensionSupportModal()" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:#2A2494;color:white;padding:7px 16px;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;">
-                        <i class="fas fa-headset"></i> Contact Support
-                    </button>
-                </div>
-            </div>
+
 
             <!-- Message for users who cannot post -->
             <div class="card create-post" th:if="${!canUserPost and !isSuspended}">
@@ -1981,6 +1950,128 @@
             }
         }
     </script>
-</div>
+
+    <!-- Suspension flag — only rendered when isSuspended is true; script below reads it -->
+<div th:if="${isSuspended}"
+     id="__suspension_flag__"
+     th:attr="data-cid=${selectedCommunityId},
+              data-reason=${suspensionInfo != null and suspensionInfo['suspensionReason'] != null ? suspensionInfo['suspensionReason'] : ''},
+              data-until=${suspensionInfo != null and suspensionInfo['suspendedUntil'] != null ? #temporals.format(suspensionInfo['suspendedUntil'], 'MMMM d, yyyy') : ''}"
+     style="display:none;"></div>
+
+<script>
+(function () {
+    var flag = document.getElementById('__suspension_flag__');
+    if (!flag) return;
+
+    var cid    = flag.getAttribute('data-cid')    || '';
+    var reason = flag.getAttribute('data-reason') || '';
+    var until  = flag.getAttribute('data-until')  || '';
+
+    function esc(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    var untilHtml = until
+        ? '<p style="font-size:13px;color:#6b7280;margin:4px 0 0;">Suspension lifts on <strong>' + esc(until) + '</strong>.</p>'
+        : '<p style="font-size:13px;color:#6b7280;margin:4px 0 0;">This suspension is indefinite.</p>';
+
+    var reasonHtml = reason
+        ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;margin-bottom:20px;">'
+          + '<p style="font-size:11px;font-weight:700;color:#9ca3af;margin:0 0 3px;text-transform:uppercase;letter-spacing:.05em;">Reason</p>'
+          + '<p style="font-size:13px;color:#374151;margin:0;">' + esc(reason) + '</p></div>'
+        : '';
+
+    /* ── backdrop ── */
+    var bd = document.createElement('div');
+    bd.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;'
+        + 'background:rgba(0,0,0,0.72);z-index:2147483646;backdrop-filter:blur(3px);';
+    bd.addEventListener('click',      function(e){ e.stopPropagation(); e.preventDefault(); });
+    bd.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
+
+    /* ── modal panel ── */
+    var panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);'
+        + 'z-index:2147483647;width:min(520px,94vw);max-height:90vh;overflow-y:auto;'
+        + 'background:#fff;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.4);'
+        + 'padding:32px 32px 28px;box-sizing:border-box;font-family:inherit;';
+
+    panel.innerHTML =
+        '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;">'
+      +   '<div style="min-width:48px;height:48px;background:#fee2e2;border-radius:50%;'
+      +        'display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+      +     '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">'
+      +       '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>'
+      +   '<div>'
+      +     '<h2 style="font-size:18px;font-weight:700;color:#b91c1c;margin:0 0 2px;">You have been suspended from this club</h2>'
+      +     untilHtml
+      +   '</div>'
+      + '</div>'
+      + reasonHtml
+      + '<hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:20px;">'
+      + '<div id="__sus_ticket_area__">'
+      +   '<p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 4px;">Reach out to Support</p>'
+      +   '<p style="font-size:13px;color:#6b7280;margin:0 0 16px;">If you believe this is incorrect, submit a ticket and our team will review it.</p>'
+      +   '<form id="__sus_form__">'
+      +     '<input type="hidden" name="communityId" value="' + esc(cid) + '">'
+      +     '<input type="hidden" name="communityGroupId" value="">'
+      +     '<input type="hidden" name="attachmentUrl" value="">'
+      +     '<div style="margin-bottom:12px;">'
+      +       '<label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;">Subject</label>'
+      +       '<input type="text" name="subject" value="Club Suspension Appeal" readonly '
+      +            'style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;background:#f9fafb;box-sizing:border-box;"></div>'
+      +     '<div style="margin-bottom:12px;">'
+      +       '<label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;">Category</label>'
+      +       '<select name="category" style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;background:#fff;box-sizing:border-box;">'
+      +         '<option value="Account">Account</option>'
+      +         '<option value="Membership" selected>Membership</option>'
+      +         '<option value="Technical">Technical</option>'
+      +         '<option value="Other">Other</option></select></div>'
+      +     '<div style="margin-bottom:18px;">'
+      +       '<label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px;">Message</label>'
+      +       '<textarea name="description" rows="4" required '
+      +           'placeholder="Please explain why you believe this suspension should be reviewed..." '
+      +           'style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea></div>'
+      +     '<button type="submit" id="__sus_btn__" '
+      +          'style="width:100%;background:linear-gradient(135deg,#2A2494,#4f46e5);color:#fff;'
+      +          'padding:12px 24px;border:none;border-radius:11px;font-weight:600;font-size:15px;cursor:pointer;">'
+      +       'Submit Support Ticket</button>'
+      +   '</form>'
+      + '</div>';
+
+    document.body.appendChild(bd);
+    document.body.appendChild(panel);
+    document.body.style.overflow = 'hidden';
+
+    document.getElementById('__sus_form__').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('__sus_btn__');
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        fetch('/support/submit-request-ajax', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams(new FormData(e.target)).toString()
+        })
+        .then(function (r) { return r.text(); })
+        .then(function () {
+            document.getElementById('__sus_ticket_area__').innerHTML =
+                '<div style="display:flex;flex-direction:column;align-items:center;padding:28px 16px;text-align:center;">'
+              + '<div style="width:60px;height:60px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">'
+              + '<svg fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24" width="30" height="30"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>'
+              + '<h3 style="font-size:1.1rem;font-weight:700;color:#1f2937;margin:0 0 8px;">Ticket Submitted!</h3>'
+              + '<p style="font-size:14px;color:#6b7280;margin:0;">Our support team will review your suspension appeal and get back to you soon.</p>'
+              + '</div>';
+        })
+        .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Submit Support Ticket';
+        });
+    });
+})();
+</script>
+
+</div><!-- end layout:fragment="content" -->
+
 </body>
 </html>

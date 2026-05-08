@@ -176,6 +176,39 @@ public class SupportController {
         }
     }
 
+    /** HTMX-friendly variant — returns an HTML snippet instead of a redirect.
+     *  Used by the suspension modal so the modal stays open after submission. */
+    @PostMapping("/submit-request-ajax")
+    @ResponseBody
+    public ResponseEntity<String> submitRequestAjax(@RequestParam Map<String, Object> formData) {
+        try {
+            supportService.createTicket(formData);
+            String html = "<div style='display:flex;flex-direction:column;align-items:center;padding:28px 16px;text-align:center;'>" +
+                "<div style='width:60px;height:60px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;'>" +
+                "<svg style='width:30px;height:30px;color:#16a34a;' fill='none' stroke='currentColor' viewBox='0 0 24 24'>" +
+                "<path stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M5 13l4 4L19 7'/></svg>" +
+                "</div>" +
+                "<h3 style='font-size:1.1rem;font-weight:700;color:#1f2937;margin:0 0 8px;'>Ticket Submitted!</h3>" +
+                "<p style='font-size:14px;color:#6b7280;margin:0 0 18px;'>Your suspension appeal has been created. Our support team will review it and get back to you soon.</p>" +
+                "<a href='/support/my-submitted-tickets' style='display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;'>View My Tickets</a>" +
+                "</div>";
+            return ResponseEntity.ok(html);
+        } catch (IllegalArgumentException | SecurityException e) {
+            String html = "<div style='display:flex;flex-direction:column;align-items:center;padding:24px 16px;text-align:center;'>" +
+                "<div style='width:56px;height:56px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px;'>" +
+                "<svg style='width:28px;height:28px;color:#ef4444;' fill='none' stroke='currentColor' viewBox='0 0 24 24'>" +
+                "<path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>" +
+                "</div>" +
+                "<h3 style='font-size:1rem;font-weight:700;color:#dc2626;margin:0 0 6px;'>Could Not Submit</h3>" +
+                "<p style='font-size:13px;color:#6b7280;margin:0;'>" + e.getMessage() + "</p>" +
+                "</div>";
+            return ResponseEntity.ok(html);
+        } catch (Exception e) {
+            String html = "<div style='padding:16px;text-align:center;color:#dc2626;font-size:14px;'>Something went wrong. Please try again.</div>";
+            return ResponseEntity.ok(html);
+        }
+    }
+
     @PostMapping("/submit-claim/{id}")
     public ResponseEntity<Void> submitClaim(@PathVariable Long id){
         String loginUser = (String) authenticationManager.get("sub");

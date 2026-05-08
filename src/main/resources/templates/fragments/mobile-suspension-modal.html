@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="mobile-suspension-modal">
+<div th:if="${isSuspended != null and isSuspended}">
+
+    <!-- Backdrop -->
+    <div id="mob-suspension-backdrop"
+         style="position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9998;backdrop-filter:blur(4px);">
+    </div>
+
+    <!-- Bottom-sheet panel -->
+    <div id="mob-suspension-panel"
+         style="position:fixed;bottom:0;left:0;right:0;z-index:9999;
+                background:#fff;border-radius:24px 24px 0 0;
+                box-shadow:0 -8px 40px rgba(0,0,0,0.25);
+                max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+                padding:0 0 env(safe-area-inset-bottom);">
+
+        <!-- Decorative handle -->
+        <div style="padding:14px 0 0;display:flex;justify-content:center;">
+            <div style="width:40px;height:4px;background:#e5e7eb;border-radius:2px;"></div>
+        </div>
+
+        <div style="padding:20px 20px 28px;">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;">
+                <div style="min-width:44px;height:44px;background:#fee2e2;border-radius:50%;
+                            display:flex;align-items:center;justify-content:center;">
+                    <span class="material-icons" style="color:#dc2626;font-size:22px;">block</span>
+                </div>
+                <div>
+                    <h2 style="font-size:16px;font-weight:700;color:#b91c1c;margin:0 0 3px;">
+                        You have been suspended from this club
+                    </h2>
+                    <p th:if="${suspensionInfo != null and suspensionInfo['suspendedUntil'] != null}"
+                       style="font-size:12px;color:#6b7280;margin:0;">
+                        Lifts on <strong th:text="${#temporals.format(suspensionInfo['suspendedUntil'], 'MMM d, yyyy \'at\' h:mm a')}"></strong>.
+                    </p>
+                    <p th:if="${suspensionInfo == null or suspensionInfo['suspendedUntil'] == null}"
+                       style="font-size:12px;color:#6b7280;margin:0;">This suspension is indefinite.</p>
+                </div>
+            </div>
+
+            <!-- Reason -->
+            <div th:if="${suspensionInfo != null and suspensionInfo['suspensionReason'] != null}"
+                 style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;
+                        padding:10px 14px;margin-bottom:16px;">
+                <p style="font-size:11px;font-weight:700;color:#9ca3af;margin:0 0 2px;text-transform:uppercase;">Reason</p>
+                <p th:text="${suspensionInfo['suspensionReason']}" style="font-size:13px;color:#374151;margin:0;"></p>
+            </div>
+
+            <div style="border-top:1px solid #f3f4f6;margin-bottom:16px;"></div>
+
+            <!-- Ticket Form Area — HTMX replaces this on success -->
+            <div id="mob-suspension-ticket-area">
+                <p style="font-size:14px;font-weight:600;color:#1f2937;margin:0 0 3px;">Contact Support</p>
+                <p style="font-size:12px;color:#6b7280;margin:0 0 14px;">
+                    Submit a ticket if you believe this suspension should be reviewed.
+                </p>
+
+                <form hx-post="/mobile/support/submit-request"
+                      hx-target="#mob-suspension-ticket-area"
+                      hx-swap="innerHTML"
+                      id="mob-suspension-ticket-form">
+                    <input type="hidden" name="communityId" th:value="${selectedCommunityId}">
+                    <input type="hidden" name="communityGroupId" value="">
+                    <input type="hidden" name="attachmentUrl" value="">
+
+                    <div style="margin-bottom:11px;">
+                        <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">Subject</label>
+                        <input type="text" name="subject" value="Club Suspension Appeal" readonly
+                               style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;
+                                      font-size:14px;background:#f9fafb;box-sizing:border-box;color:#374151;">
+                    </div>
+
+                    <div style="margin-bottom:11px;">
+                        <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">Category</label>
+                        <select name="category"
+                                style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;
+                                       font-size:14px;background:#fff;box-sizing:border-box;color:#374151;">
+                            <option value="Account">Account</option>
+                            <option value="Membership" selected>Membership</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px;">Message</label>
+                        <textarea name="description" rows="4" required
+                                  placeholder="Explain why you believe this suspension should be reviewed or lifted..."
+                                  style="width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;
+                                         font-size:13px;resize:none;box-sizing:border-box;color:#374151;"></textarea>
+                    </div>
+
+                    <button type="submit"
+                            style="width:100%;background:linear-gradient(135deg,#2A2494,#4f46e5);color:#fff;
+                                   padding:13px 24px;border:none;border-radius:12px;font-weight:600;
+                                   font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                        <span class="material-icons" style="font-size:18px;">send</span> Submit Ticket
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function lockScroll() {
+                document.body.style.overflow = 'hidden';
+                document.body.style.touchAction = 'none';
+                var backdrop = document.getElementById('mob-suspension-backdrop');
+                if (backdrop) {
+                    backdrop.addEventListener('click', function(e) { e.stopPropagation(); e.preventDefault(); });
+                    backdrop.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', lockScroll);
+            } else {
+                lockScroll();
+            }
+        })();
+    </script>
+</div>
+</th:block>
+
+</body>
+</html>
+

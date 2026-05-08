@@ -91,10 +91,11 @@ public class SupportService {
             }
 
             if (communityId != null) {
+                // Allow both APPROVED and SUSPENDED members — suspended users need to be able to appeal
                 boolean isMember = communityMembershipRepository
-                        .existsByUserIdAndCommunityIdAndStatus(loginUser, communityId, MembershipStatus.APPROVED);
+                        .existsByUserIdAndCommunityId(loginUser, communityId);
                 if (!isMember) {
-                    throw new SecurityException("You must be an approved member of the community to create a ticket.");
+                    throw new SecurityException("You must be a member of the community to create a ticket.");
                 }
                 // If the user is admin of THIS specific community, route to system support
                 if (communityMembershipRepository.isUserCommunityAdmin(loginUser, communityId)) {
