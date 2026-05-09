@@ -3,8 +3,11 @@ package com.justjava.mycommunity.community.controller;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.Donation;
 import com.justjava.mycommunity.community.SubscriptionPlan;
 import com.justjava.mycommunity.community.dto.BillingCycle;
+import com.justjava.mycommunity.community.dto.PaymentStatus;
+import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.invoice.Invoice;
 import com.justjava.mycommunity.invoice.Status;
 import com.justjava.mycommunity.invoice.PaystackService;
@@ -37,6 +40,7 @@ public class CommunityPaymentController {
     private final AuthenticationManager authenticationManager;
     private final PaystackService paystackService;
     private final UserRepository userRepository;
+    private final DonationRepository donationRepository;
 
     @Value("${app.base.url}")
     private String baseUrl;
@@ -433,6 +437,78 @@ public class CommunityPaymentController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Donation fulfillment could not be completed: " + e.getMessage());
         }
+        if ("mobile".equals(source)) {
+            return "redirect:/donation/mobile/my-donations";
+        }
+        return "redirect:/donation/my-donations";
+    }
+
+    @PostMapping("/donation/fulfill/initiate")
+    public ResponseEntity<String> initiateDonationPromiseFulfillment(@RequestParam("donationId") Long donationId,
+                                                                     @RequestParam(value = "source", defaultValue = "web") String source) {
+        try {
+            String userId = (String) authenticationManager.get("sub");
+            Donation donation = donationRepository.findByIdAndUserId(donationId, userId)
+                    .orElseThrow(() -> new IllegalArgumentException("Donation promise not found."));
+
+            if (donation.getStatus() != PaymentStatus.PENDING) {
+                return ResponseEntity.ok("<div class='text-amber-600 font-medium'>This donation promise has already been fulfilled.</div>");
+            }
+
+            User user = userRepository.findByUserId(userId);
+            String email = (user != null && user.getEmail() != null)
+                    ? user.getEmail()
+                    : userId + "@clubsphere.app";
+
+            String reference = "DON-FUL-" + donationId + "-" + System.currentTimeMillis();
+            String callbackUrl = baseUrl + "/donation/fulfill/callback?donationId=" + donationId + "&source=" + source;
+
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("type", "DONATION_FULFILLMENT");
+            metadata.put("userId", userId);
+            metadata.put("donationId", donationId);
+            metadata.put("communityId", donation.getCommunityId());
+            metadata.put("eventId", donation.getEventId());
+
+            Map<String, Object> paymentData = paystackService.initializePayment(email, donation.getAmount(), reference, callbackUrl, metadata);
+            String authUrl = (String) paymentData.get("authorization_url");
+
+            return ResponseEntity.ok().header("HX-Redirect", authUrl).body("");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.ok("<div class='text-amber-600 font-medium'>⚠️ " + e.getMessage() + "</div>");
+        } catch (Exception e) {
+            return ResponseEntity.ok("<div class='text-red-600 font-medium'>❌ Error: " + e.getMessage() + "</div>");
+        }
+    }
+
+    @GetMapping("/donation/fulfill/callback")
+    public String donationFulfillCallback(@RequestParam(required = false) String reference,
+                                          @RequestParam Long donationId,
+                                          @RequestParam(defaultValue = "web") String source,
+                                          RedirectAttributes redirectAttributes) {
+        try {
+            String userId = (String) authenticationManager.get("sub");
+            Donation donation = donationRepository.findByIdAndUserId(donationId, userId)
+                    .orElseThrow(() -> new IllegalArgumentException("Donation promise not found."));
+
+            if (donation.getStatus() != PaymentStatus.PENDING) {
+                redirectAttributes.addFlashAttribute("successMessage", "Donation promise is already fulfilled.");
+            } else if (reference == null || reference.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment reference missing.");
+            } else {
+                Map<String, Object> paymentData = paystackService.verifyPayment(reference);
+                String status = (String) paymentData.get("status");
+                if ("success".equals(status)) {
+                    communityService.fulfillDonationPromise(donationId, reference);
+                    redirectAttributes.addFlashAttribute("successMessage", "✅ Donation fulfilled! Thank you for keeping your promise.");
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
+                }
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Donation fulfillment could not be completed: " + e.getMessage());
+        }
+
         if ("mobile".equals(source)) {
             return "redirect:/donation/mobile/my-donations";
         }
