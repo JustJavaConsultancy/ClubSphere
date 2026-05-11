@@ -714,13 +714,31 @@
             </div>
         </div>
 
-        <div class="card stat-card card-hover">
+        <!-- Donations Card (only when inside a community) -->
+        <div th:if="${insideCommunity}" class="card stat-card card-hover">
             <div class="stat-info">
-                <p class="text-gray-500 text-sm">Network</p>
-                <h3 th:text="${myNetwork}">47</h3>
+                <p class="text-gray-500 text-sm">Donations</p>
+                <h3>₦<span th:text="${#numbers.formatDecimal(totalDonations,1,'COMMA',0,'POINT')}">0</span></h3>
             </div>
-            <div class="stat-icon bg-yellow-100 text-yellow-600">
-                <i class="fas fa-user-friends text-xl"></i>
+            <div class="stat-icon bg-pink-100 text-pink-600">
+                <i class="fas fa-hands-helping text-xl"></i>
+            </div>
+            <div class="stat-sub" style="margin-top: 4px; font-size: 11px; text-gray-500; opacity: 0.85;">
+                <span th:text="${'Promised: ₦' + #numbers.formatDecimal(totalPromisedDonations,1,'COMMA',0,'POINT')}">Promised: ₦0</span>
+            </div>
+        </div>
+
+        <!-- Subscriptions Card (only when inside a community) -->
+        <div th:if="${insideCommunity}" class="card stat-card card-hover">
+            <div class="stat-info">
+                <p class="text-gray-500 text-sm">Subscriptions</p>
+                <h3>₦<span th:text="${#numbers.formatDecimal(totalSubscriptions,1,'COMMA',0,'POINT')}">0</span></h3>
+            </div>
+            <div class="stat-icon bg-orange-100 text-orange-600">
+                <i class="fas fa-credit-card text-xl"></i>
+            </div>
+            <div class="stat-sub" style="margin-top: 4px; font-size: 11px; text-gray-500; opacity: 0.85;">
+                <span th:text="${'Pending: ₦' + #numbers.formatDecimal(totalPendingSubscriptionInvoices,1,'COMMA',0,'POINT')}">Pending: ₦0</span>
             </div>
         </div>
     </section>

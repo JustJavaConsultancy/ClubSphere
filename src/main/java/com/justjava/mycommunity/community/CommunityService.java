@@ -141,8 +141,8 @@ public class CommunityService {
 
     public CommunityDTO getCommunityById(Long id) {
         return communityRepository.findById(id)
-            .map(community -> communityMapper.toDto(community, communityMembershipRepository))
-            .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+                .map(community -> communityMapper.toDto(community, communityMembershipRepository))
+                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
     }
 
 
@@ -190,37 +190,37 @@ public class CommunityService {
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new EntityNotFoundException("Community does not exist"));
 
-    Optional<CommunityMembership> existingMembershipOpt =
-            communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
+        Optional<CommunityMembership> existingMembershipOpt =
+                communityMembershipRepository.findByUserIdAndCommunityId(userId, communityId);
 
-    if (existingMembershipOpt.isPresent()) {
-        CommunityMembership existingMembership = existingMembershipOpt.get();
+        if (existingMembershipOpt.isPresent()) {
+            CommunityMembership existingMembership = existingMembershipOpt.get();
 
-        if (isSuspensionActive(existingMembership)) {
-            throw new IllegalStateException("User is currently suspended in this community");
+            if (isSuspensionActive(existingMembership)) {
+                throw new IllegalStateException("User is currently suspended in this community");
+            }
+
+            if (existingMembership.getStatus() != MembershipStatus.APPROVED) {
+                existingMembership.setStatus(MembershipStatus.APPROVED);
+            }
+
+            if (existingMembership.getRole() == null) {
+                existingMembership.setRole(Role.MEMBER);
+            }
+            clearSuspension(existingMembership);
+
+            communityMembershipRepository.save(existingMembership);
+            return;
         }
 
-        if (existingMembership.getStatus() != MembershipStatus.APPROVED) {
-            existingMembership.setStatus(MembershipStatus.APPROVED);
-        }
+        CommunityMembership membership = new CommunityMembership();
+        membership.setUserId(user.getUserId());
+        membership.setCommunityId(community.getId());
+        membership.setRole(Role.MEMBER);
+        membership.setStatus(MembershipStatus.APPROVED);
 
-        if (existingMembership.getRole() == null) {
-            existingMembership.setRole(Role.MEMBER);
-        }
-        clearSuspension(existingMembership);
-
-        communityMembershipRepository.save(existingMembership);
-        return;
+        communityMembershipRepository.save(membership);
     }
-
-    CommunityMembership membership = new CommunityMembership();
-    membership.setUserId(user.getUserId());
-    membership.setCommunityId(community.getId());
-    membership.setRole(Role.MEMBER);
-    membership.setStatus(MembershipStatus.APPROVED);
-
-    communityMembershipRepository.save(membership);
-}
 
     public Object getAllCommunityUsers(Long communityId) {
         communityRepository.findById(communityId)
@@ -776,17 +776,17 @@ public class CommunityService {
             String communityName = community.getName();
 
             String htmlContent = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f9fafb;padding:20px;'>" +
-                "<div style='max-width:520px;margin:auto;background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,0.08);'>" +
-                "<h2 style='color:#2A2494;margin-bottom:8px;'>You've Been Invited!</h2>" +
-                "<p style='color:#374151;'>Hi " + invitedName.trim() + ",</p>" +
-                "<p style='color:#374151;'>You have been invited to join the club <strong>" + communityName + "</strong> on <strong>Clubknit</strong>.</p>" +
-                "<p style='color:#374151;'>Log in to your Clubknit account and go to the <strong>Invitations</strong> tab in Clubs to accept or decline.</p>" +
-                "<div style='margin:24px 0;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;'>" +
-                "<a href='https://clubknit.app/organizations?tab=invitations' style='background:#2A2494;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;'>View on Web</a>" +
-                "<a href='https://clubknit.app/mobile/organizations?tab=invitations' style='background:#3730a3;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;'>View on Mobile</a>" +
-                "</div>" +
-                "<p style='color:#9ca3af;font-size:12px;margin-top:24px;'>If you did not expect this invitation, you can safely ignore this email.</p>" +
-                "</div></body></html>";
+                    "<div style='max-width:520px;margin:auto;background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,0.08);'>" +
+                    "<h2 style='color:#2A2494;margin-bottom:8px;'>You've Been Invited!</h2>" +
+                    "<p style='color:#374151;'>Hi " + invitedName.trim() + ",</p>" +
+                    "<p style='color:#374151;'>You have been invited to join the club <strong>" + communityName + "</strong> on <strong>Clubknit</strong>.</p>" +
+                    "<p style='color:#374151;'>Log in to your Clubknit account and go to the <strong>Invitations</strong> tab in Clubs to accept or decline.</p>" +
+                    "<div style='margin:24px 0;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;'>" +
+                    "<a href='https://clubknit.app/organizations?tab=invitations' style='background:#2A2494;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;'>View on Web</a>" +
+                    "<a href='https://clubknit.app/mobile/organizations?tab=invitations' style='background:#3730a3;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;'>View on Mobile</a>" +
+                    "</div>" +
+                    "<p style='color:#9ca3af;font-size:12px;margin-top:24px;'>If you did not expect this invitation, you can safely ignore this email.</p>" +
+                    "</div></body></html>";
 
             resendService.sendHtmlEmail(invitedEmail, "You've been invited to join " + communityName + " on Clubknit", htmlContent);
         } catch (Exception e) {
@@ -1771,7 +1771,6 @@ public class CommunityService {
             if (da == null || db == null) return 0;
             return db.compareTo(da);
         });
-
         return result;
     }
 
@@ -1854,5 +1853,56 @@ public class CommunityService {
         });
 
         return result;
+    }
+
+    // ══════════════════ DASHBOARD STATS HELPERS ══════════════════
+
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalDonationAmountForUserInCommunity(String userId, Long communityId) {
+        List<Donation> donations = donationRepository.findByUserId(userId);
+        return donations.stream()
+                .filter(d -> d.getCommunityId().equals(communityId) && d.getStatus() == PaymentStatus.SUCCESS)
+                .map(Donation::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalPromisedDonationAmountForUserInCommunity(String userId, Long communityId) {
+        List<Donation> donations = donationRepository.findByUserId(userId);
+        return donations.stream()
+                .filter(d -> d.getCommunityId().equals(communityId) && d.getStatus() == PaymentStatus.PENDING)
+                .map(Donation::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalSubscriptionAmountForUserInCommunity(String userId, Long communityId) {
+        List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByUserId(userId);
+        return subscriptions.stream()
+                .filter(s -> s.getCommunityId().equals(communityId) && s.getStatus() == SubscriptionStatus.ACTIVE)
+                .map(MembershipSubscription::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalPendingSubscriptionInvoiceAmountForUserInCommunity(String userId, Long communityId) {
+        List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByUserId(userId);
+        BigDecimal totalPending = BigDecimal.ZERO;
+        
+        for (MembershipSubscription sub : subscriptions) {
+            if (sub.getCommunityId().equals(communityId) && sub.getStatus() == SubscriptionStatus.ACTIVE) {
+                // Get all unpaid invoices for this subscription
+                List<Invoice> pendingInvoices = invoiceRepository.findByMerchantIdStartingWithAndStatus(
+                        "SUB-" + sub.getId() + "-", Status.NEW
+                );
+                totalPending = totalPending.add(
+                        pendingInvoices.stream()
+                                .map(Invoice::getAmount)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                );
+            }
+        }
+        
+        return totalPending;
     }
 }

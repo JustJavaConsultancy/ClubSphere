@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
 
 @Controller
 public class HomeController {
@@ -460,13 +461,23 @@ public class HomeController {
         // Add attributes to the model - community-scoped when inside a specific community
         if (selectedCommunityId != null) {
             // Community-specific stats
-            model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId, selectedCommunityId).size());
             model.addAttribute("community", null); // Hide communities card when inside a community
             model.addAttribute("groups", processedGroups.size());
             model.addAttribute("insideCommunity", true);
+            
+            // Donations stats
+            BigDecimal totalDonations = communityService.getTotalDonationAmountForUserInCommunity(currentUserId, selectedCommunityId);
+            BigDecimal totalPromisedDonations = communityService.getTotalPromisedDonationAmountForUserInCommunity(currentUserId, selectedCommunityId);
+            model.addAttribute("totalDonations", totalDonations);
+            model.addAttribute("totalPromisedDonations", totalPromisedDonations);
+            
+            // Subscriptions stats
+            BigDecimal totalSubscriptions = communityService.getTotalSubscriptionAmountForUserInCommunity(currentUserId, selectedCommunityId);
+            BigDecimal totalPendingSubscriptionInvoices = communityService.getTotalPendingSubscriptionInvoiceAmountForUserInCommunity(currentUserId, selectedCommunityId);
+            model.addAttribute("totalSubscriptions", totalSubscriptions);
+            model.addAttribute("totalPendingSubscriptionInvoices", totalPendingSubscriptionInvoices);
         } else {
             // Aggregated stats across all communities
-            model.addAttribute("myNetwork", networkService.getChatGroupUsers(currentUserId).size());
             model.addAttribute("community", userCommunities.size());
             model.addAttribute("groups", processedGroups.size());
             model.addAttribute("insideCommunity", false);
