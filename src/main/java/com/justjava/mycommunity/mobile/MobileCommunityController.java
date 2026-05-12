@@ -11,10 +11,13 @@ import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.community.MembershipSubscription;
 import com.justjava.mycommunity.community.SubscriptionPlan;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.community.dto.PaymentStatus;
 import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
+import com.justjava.mycommunity.invoice.InvoiceRepository;
+import com.justjava.mycommunity.invoice.Status;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.network.NetworkService;
 import com.justjava.mycommunity.posts.PostService;
@@ -36,6 +39,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/mobile/my-community")
@@ -51,6 +55,7 @@ public class MobileCommunityController {
     private final DonationRepository donationRepository;
     private final MembershipSubscriptionRepository membershipSubscriptionRepository;
     private final CommunityMembershipRepository communityMembershipRepository;
+    private final InvoiceRepository invoiceRepository;
 
     @GetMapping
     public String mobileCommunityPage(HttpServletRequest request, Model model) {
@@ -697,14 +702,27 @@ public class MobileCommunityController {
             int totalMembers = communityMembershipRepository
                     .findByCommunityIdAndStatus(communityId, MembershipStatus.APPROVED).size();
 
-            List<Donation> donations = donationRepository.findByCommunityId(communityId);
-            BigDecimal totalDonations = donations.stream()
+            // Fetch all donations and separate by status
+            List<Donation> allDonations = donationRepository.findByCommunityId(communityId);
+            List<Donation> completedDonations = allDonations.stream()
+                    .filter(d -> d.getStatus() == PaymentStatus.SUCCESS)
+                    .collect(Collectors.toList());
+            
+            BigDecimal totalDonations = completedDonations.stream()
                     .map(Donation::getAmount).filter(java.util.Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByCommunityId(communityId);
             long activeSubscriptions = subscriptions.stream()
                     .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE).count();
+            
+            // Calculate pending subscriptions (those without paid invoices)
+            long pendingSubscriptions = subscriptions.stream()
+                    .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE)
+                    .filter(s -> invoiceRepository.findByMerchantIdStartingWithAndStatus(
+                            "SUB-" + s.getId() + "-", Status.PAID).isEmpty())
+                    .count();
+            
             BigDecimal totalSubscriptionRevenue = subscriptions.stream()
                     .map(MembershipSubscription::getAmount).filter(java.util.Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -716,8 +734,9 @@ public class MobileCommunityController {
             model.addAttribute("isAdmin", isAdmin);
             model.addAttribute("totalMembers", totalMembers);
             model.addAttribute("totalDonations", totalDonations);
-            model.addAttribute("donationCount", donations.size());
+            model.addAttribute("donationCount", completedDonations.size());
             model.addAttribute("activeSubscriptions", activeSubscriptions);
+            model.addAttribute("pendingSubscriptions", pendingSubscriptions);
             model.addAttribute("totalSubscriptions", subscriptions.size());
             model.addAttribute("totalRevenue", totalRevenue);
 
