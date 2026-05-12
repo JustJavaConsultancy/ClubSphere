@@ -6,10 +6,13 @@ import com.justjava.mycommunity.community.Donation;
 import com.justjava.mycommunity.community.MembershipSubscription;
 import com.justjava.mycommunity.community.MembershipStatus;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
+import com.justjava.mycommunity.community.dto.PaymentStatus;
 import com.justjava.mycommunity.community.dto.SubscriptionStatus;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.community.repository.DonationRepository;
 import com.justjava.mycommunity.community.repository.MembershipSubscriptionRepository;
+import com.justjava.mycommunity.invoice.InvoiceRepository;
+import com.justjava.mycommunity.invoice.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,6 +35,7 @@ public class CommunityDashboardController {
     private final DonationRepository donationRepository;
     private final MembershipSubscriptionRepository membershipSubscriptionRepository;
     private final CommunityMembershipRepository communityMembershipRepository;
+    private final InvoiceRepository invoiceRepository;
 
     @GetMapping
     public String dashboard(@RequestParam("communityId") Long communityId, Model model,
@@ -96,13 +100,28 @@ public class CommunityDashboardController {
     public Map<String, Object> getChartData(@RequestParam("communityId") Long communityId) {
         Map<String, Object> data = new HashMap<>();
 
-        // Monthly donations for last 12 months
-        List<Donation> donations = donationRepository.findByCommunityId(communityId);
+        // Fetch donations and subscriptions
+        List<Donation> allDonations = donationRepository.findByCommunityId(communityId);
+        List<Donation> completedDonations = allDonations.stream()
+                .filter(d -> d.getStatus() == PaymentStatus.SUCCESS)
+                .collect(Collectors.toList());
+        List<Donation> promisedDonations = allDonations.stream()
+                .filter(d -> d.getStatus() == PaymentStatus.PENDING)
+                .collect(Collectors.toList());
+        
         List<MembershipSubscription> subscriptions = membershipSubscriptionRepository.findByCommunityId(communityId);
+        
+        // Calculate pending subscriptions (those without paid invoices)
+        long pendingSubscriptions = subscriptions.stream()
+                .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE)
+                .filter(s -> invoiceRepository.findByMerchantIdStartingWithAndStatus(
+                        "SUB-" + s.getId() + "-", Status.PAID).isEmpty())
+                .count();
 
         LocalDateTime now = LocalDateTime.now();
         List<String> months = new ArrayList<>();
-        List<BigDecimal> donationsByMonth = new ArrayList<>();
+        List<BigDecimal> completedDonationsByMonth = new ArrayList<>();
+        List<BigDecimal> promisedDonationsByMonth = new ArrayList<>();
         List<BigDecimal> subscriptionsByMonth = new ArrayList<>();
 
         for (int i = 11; i >= 0; i--) {
@@ -113,15 +132,27 @@ public class CommunityDashboardController {
                     + " " + monthStart.getYear();
             months.add(label);
 
-            BigDecimal monthDonations = donations.stream()
+            // Completed donations for the month
+            BigDecimal monthCompletedDonations = completedDonations.stream()
                     .filter(d -> d.getDonatedAt() != null
                             && !d.getDonatedAt().isBefore(monthStart)
                             && d.getDonatedAt().isBefore(monthEnd))
                     .map(Donation::getAmount)
                     .filter(java.util.Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            donationsByMonth.add(monthDonations);
+            completedDonationsByMonth.add(monthCompletedDonations);
 
+            // Promised donations for the month
+            BigDecimal monthPromisedDonations = promisedDonations.stream()
+                    .filter(d -> d.getDonatedAt() != null
+                            && !d.getDonatedAt().isBefore(monthStart)
+                            && d.getDonatedAt().isBefore(monthEnd))
+                    .map(Donation::getAmount)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            promisedDonationsByMonth.add(monthPromisedDonations);
+
+            // Subscriptions for the month
             BigDecimal monthSubs = subscriptions.stream()
                     .filter(s -> s.getStartDate() != null
                             && !s.getStartDate().isBefore(monthStart)
@@ -133,19 +164,30 @@ public class CommunityDashboardController {
         }
 
         data.put("months", months);
-        data.put("donations", donationsByMonth);
+        data.put("donations", completedDonationsByMonth);
+        data.put("promisedDonations", promisedDonationsByMonth);
         data.put("subscriptions", subscriptionsByMonth);
 
         // Donation vs Subscription split
-        BigDecimal totalDon = donations.stream().map(Donation::getAmount).filter(java.util.Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCompletedDon = completedDonations.stream().map(Donation::getAmount).filter(java.util.Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPromisedDon = promisedDonations.stream().map(Donation::getAmount).filter(java.util.Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal totalSub = subscriptions.stream().map(MembershipSubscription::getAmount).filter(java.util.Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-        data.put("revenueSplit", Map.of("donations", totalDon, "subscriptions", totalSub));
+        data.put("revenueSplit", Map.of(
+                "completedDonations", totalCompletedDon,
+                "promisedDonations", totalPromisedDon,
+                "subscriptions", totalSub
+        ));
 
-        // Subscription status breakdown
+        // Subscription status breakdown (including pending subscriptions)
         long active = subscriptions.stream().filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE).count();
         long cancelled = subscriptions.stream().filter(s -> s.getStatus() == SubscriptionStatus.CANCELLED).count();
         long expired = subscriptions.stream().filter(s -> s.getStatus() == SubscriptionStatus.EXPIRED).count();
-        data.put("subscriptionStatus", Map.of("active", active, "cancelled", cancelled, "expired", expired));
+        data.put("subscriptionStatus", Map.of(
+                "active", active,
+                "cancelled", cancelled,
+                "expired", expired,
+                "pending", pendingSubscriptions
+        ));
 
         // Recent donations (top 5)
         List<Map<String, Object>> recentDonations = communityService.getCommunityDonations(communityId);
