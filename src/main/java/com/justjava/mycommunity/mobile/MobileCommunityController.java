@@ -200,7 +200,7 @@ public class MobileCommunityController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("errorMessage", "Error loading community data: " + e.getMessage());
+            model.addAttribute("errorMessage", "Error loading club data: " + e.getMessage());
             model.addAttribute("community", new HashMap<>());
             model.addAttribute("groups", new ArrayList<>());
             model.addAttribute("availableMembers", new ArrayList<>());
@@ -551,7 +551,7 @@ public class MobileCommunityController {
 
             CommunityDTO currentResponse = communityService.getCommunityById(communityId);
             if (currentResponse == null) {
-                return "❌ Community not found";
+                return "❌ Club not found";
             }
 
             boolean isPrivate = "private".equalsIgnoreCase(status);

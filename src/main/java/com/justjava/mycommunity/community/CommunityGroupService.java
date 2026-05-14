@@ -225,7 +225,7 @@ public class CommunityGroupService {
         } else {
             CommunityDTO communityDTO = communityService.getCommunity();
             community = communityRepository.findById(communityDTO.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Community not found with ID: " + communityDTO.getId()));
+                    .orElseThrow(() -> new EntityNotFoundException("Club not found with ID: " + communityDTO.getId()));
         }
 
         CommunityGroup communityGroup = CommunityGroup.builder()

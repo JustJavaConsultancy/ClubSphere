@@ -525,7 +525,7 @@
                 <span th:text="${#strings.arraySplit(usersName, ' ')[#strings.arraySplit(usersName, ' ').length - 1]}">Alex</span>!
             </h1>
             <p th:if="${!#lists.isEmpty(upcomingEvents) or !#lists.isEmpty(upcomingMeetings)}" class="opacity-90 text-sm mb-4">
-                You have <span th:text="${upcomingEventNum + upcomingMeetingNum}">2</span> upcoming sessions. Stay connected with your community.
+                You have <span th:text="${upcomingEventNum + upcomingMeetingNum}">2</span> upcoming sessions. Stay connected with your club.
             </p>
             <p th:if="${#lists.isEmpty(upcomingEvents) and #lists.isEmpty(upcomingMeetings)}" class="opacity-90 text-sm mb-4">
                 You currently have no upcoming sessions. Stay tuned for new updates.
@@ -697,7 +697,7 @@
                 <div class="flex-1">
                     <textarea
                             name="content"
-                            th:placeholder="${selectedCommunityName != null ? 'Share an update with ' + selectedCommunityName + '...' : 'Share an update with the community...'}"
+                            th:placeholder="${selectedCommunityName != null ? 'Share an update with ' + selectedCommunityName + '...' : 'Share an update with the club...'}"
                             class="post-input"
                             rows="3"
                             required
@@ -742,7 +742,7 @@
                 <span class="material-icons text-violet-950 text-2xl">dynamic_feed</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">No posts yet</h3>
-            <p class="text-gray-600" th:text="${selectedCommunityName != null ? 'Be the first one to share something with ' + selectedCommunityName + '!' : 'Be the first one to share something with the community!'}">Be the first one to share something with the community!</p>
+            <p class="text-gray-600" th:text="${selectedCommunityName != null ? 'Be the first one to share something with ' + selectedCommunityName + '!' : 'Be the first one to share something with the club!'}">Be the first one to share something with the club!</p>
         </div>
 
         <!-- Posts -->
@@ -951,7 +951,7 @@
             <h2 class="section-title">Need Help?</h2>
         </div>
         <p style="font-size:14px; color:#6b7280; margin-bottom:16px;">
-            Having an issue with <strong th:text="${selectedCommunityName}">this community</strong>? Create a support ticket.
+            Having an issue with <strong th:text="${selectedCommunityName}">this club</strong>? Create a support ticket.
         </p>
         <button id="support-card-btn"
                 class="brand-btn w-full touch-feedback"

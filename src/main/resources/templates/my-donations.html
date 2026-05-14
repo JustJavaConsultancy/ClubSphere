@@ -58,7 +58,7 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
                 <tr>
-                    <th class="px-4 py-3 text-left font-semibold">Community</th>
+                    <th class="px-4 py-3 text-left font-semibold">Club</th>
                     <th class="px-4 py-3 text-left font-semibold">Event</th>
                     <th class="px-4 py-3 text-left font-semibold">Amount</th>
                     <th class="px-4 py-3 text-left font-semibold">Status</th>
@@ -69,7 +69,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                 <tr th:each="don : ${donations}" class="hover:bg-gray-50 transition-colors">
-                    <td class="px-4 py-3 font-semibold text-gray-800" th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Community</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800" th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Club'}">Club</td>
                     <td class="px-4 py-3 text-gray-600" th:text="${don['eventTitle'] != null ? don['eventTitle'] : 'Unknown Event'}">Event</td>
                     <td class="px-4 py-3 font-semibold text-pink-600"
                         th:text="${don['amount'] != null ? '₦' + #numbers.formatDecimal(don['amount'], 1, 2) : '₦0.00'}">₦100.00</td>

@@ -1515,7 +1515,7 @@
             </div>
         </div>
 
-        <h1 class="mobile-header-title" th:text="${isAdmin ? 'Club Management' : 'Club Overview'}">Community Management</h1>
+        <h1 class="mobile-header-title" th:text="${isAdmin ? 'Club Management' : 'Club Overview'}">Club Management</h1>
         <p class="mobile-header-subtitle" th:text="${isAdmin ? 'Manage your club settings, groups, and members all in one place.' : 'View your club information and participate in groups.'}">Manage your club settings, groups, and members all in one place.</p>
     </div>
 
@@ -1633,7 +1633,7 @@
             <div class="mobile-form-group">
                 <label class="mobile-form-label">Club Name</label>
                 <input type="text"
-                       th:value="${community != null && community.communityName != null ? community.communityName : 'Unknown Community'}"
+                       th:value="${community != null && community.communityName != null ? community.communityName : 'Unknown Club'}"
                        class="mobile-input read-only-field"
                        readonly>
             </div>
@@ -1950,9 +1950,9 @@
                     <span th:if="${!isAdmin}">No groups joined</span>
                 </h3>
                 <p style="margin-bottom: 20px;">
-                    <span th:if="${isAdmin && community != null && community.communityName != null}" th:text="'Create the first group for ' + ${community.communityName} + '!'">Create the first group for this community!</span>
+                    <span th:if="${isAdmin && community != null && community.communityName != null}" th:text="'Create the first group for ' + ${community.communityName} + '!'">Create the first group for this club!</span>
                     <span th:if="${isAdmin && (community == null || community.communityName == null)}">Create your first group to get started!</span>
-                    <span th:if="${!isAdmin}">You haven't joined any groups in this community yet.</span>
+                    <span th:if="${!isAdmin}">You haven't joined any groups in this club yet.</span>
                 </p>
             </div>
 
@@ -2313,7 +2313,7 @@
                 <div style="flex: 1;">
                     <textarea
                             name="content"
-                            th:placeholder="${community != null and community.communityName != null ? 'Share an update with ' + community.communityName + '...' : 'Share an update with the community...'}"
+                            th:placeholder="${community != null and community.communityName != null ? 'Share an update with ' + community.communityName + '...' : 'Share an update with the club...'}"
                             class="mobile-post-input"
                             rows="3"
                             required></textarea>

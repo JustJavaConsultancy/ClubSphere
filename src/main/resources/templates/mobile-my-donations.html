@@ -69,7 +69,7 @@
         <div class="flex items-start justify-between mb-2">
             <div class="flex-1">
                 <h3 class="font-bold text-gray-800"
-                    th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Club</h3>
+                    th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Club'}">Club</h3>
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold uppercase mt-1"
                       th:classappend="${don['status'] == 'PENDING'} ? ' bg-amber-100 text-amber-700' : ' bg-pink-100 text-pink-700'"
                       th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Donation'">

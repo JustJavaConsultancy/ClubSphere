@@ -60,7 +60,7 @@ public class NetworkNewService {
 
         User admin = resolveUser(adminUserId);
         Community community = communityRepository.findById(request.getCommunityId())
-                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Club not found"));
 
         Network network = new Network();
         network.setName(request.getName());

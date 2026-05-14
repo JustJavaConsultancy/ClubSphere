@@ -136,7 +136,7 @@ public class CommunityService {
         }
 
         return communityMapper.toDto(Optional.ofNullable(communities.getFirst())
-                .orElseThrow(() -> new EntityNotFoundException("Community not found")),communityMembershipRepository);
+                .orElseThrow(() -> new EntityNotFoundException("Club not found")),communityMembershipRepository);
     }
 
     public CommunityDTO getCommunityById(Long id) {
@@ -1174,7 +1174,7 @@ public class CommunityService {
 
         // 🔹 Step 2: Validate community exists
         Community community = communityRepository.findById(communityId)
-                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Club not found"));
 
         // 🔹 Step 3: Validate target user exists
         User targetUser = userRepository.findByUserId(targetUserId);
