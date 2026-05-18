@@ -1841,6 +1841,9 @@
                                 <th class="text-left py-3 px-4 rounded-tl-lg">Member</th>
                                 <th class="text-left py-3 px-4">Email</th>
                                 <th class="text-left py-3 px-4">Role</th>
+                                <th class="text-left py-3 px-4">Donation Paid</th>
+                                <th class="text-left py-3 px-4">Subscription Paid</th>
+                                <th class="text-left py-3 px-4">Total Paid</th>
                                 <th th:if="${isAdmin}" class="text-left py-3 px-4 rounded-tr-lg">Actions</th>
                             </tr>
                             </thead>
@@ -1849,7 +1852,7 @@
                             <!-- Empty State -->
                             <tr th:if="${communityMembers == null or #lists.isEmpty(communityMembers)}"
                                 id="membersEmptyState">
-                                <td th:colspan="${isAdmin} ? 6 : 5" class="py-14 text-center">
+                                <td th:colspan="${isAdmin} ? 7 : 6" class="py-14 text-center">
                                     <div class="flex flex-col items-center gap-3">
                                         <div class="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1864,7 +1867,7 @@
 
                             <!-- No-results row shown by JS when search yields nothing -->
                             <tr id="membersNoResults" style="display:none;">
-                                <td th:colspan="${isAdmin} ? 6 : 5" class="py-10 text-center text-gray-400 text-sm">
+                                <td th:colspan="${isAdmin} ? 7 : 6" class="py-10 text-center text-gray-400 text-sm">
                                     No members match your search criteria.
                                 </td>
                             </tr>
@@ -1950,6 +1953,24 @@
                                 </svg>
                                 Member
                             </span>
+                                </td>
+
+                                <!-- Donation Paid -->
+                                <td class="py-3 px-4 text-sm font-semibold text-emerald-700"
+                                    th:text="${member.totalDonationPaid != null ? '₦' + #numbers.formatDecimal(member.totalDonationPaid, 1, 'COMMA', 2, 'POINT') : '₦0.00'}">
+                                    ₦0.00
+                                </td>
+
+                                <!-- Subscription Paid -->
+                                <td class="py-3 px-4 text-sm font-semibold text-blue-700"
+                                    th:text="${member.totalSubscriptionPaid != null ? '₦' + #numbers.formatDecimal(member.totalSubscriptionPaid, 1, 'COMMA', 2, 'POINT') : '₦0.00'}">
+                                    ₦0.00
+                                </td>
+
+                                <!-- Total Paid -->
+                                <td class="py-3 px-4 text-sm font-bold text-gray-800"
+                                    th:text="${member.totalPaymentToDate != null ? '₦' + #numbers.formatDecimal(member.totalPaymentToDate, 1, 'COMMA', 2, 'POINT') : '₦0.00'}">
+                                    ₦0.00
                                 </td>
 
                                 <!-- Actions (Admin only) -->

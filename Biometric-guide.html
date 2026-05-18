@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VoltBuilder + Spring Boot Biometric MVP Guide</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f6f8fb; color: #1f2937; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    h1, h2, h3 { margin-top: 0; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; font-family: Consolas, monospace; }
+    pre { background: #111827; color: #e5e7eb; border-radius: 8px; padding: 12px; overflow: auto; }
+    ul, ol { line-height: 1.6; }
+    .small { color: #6b7280; font-size: 14px; }
+    .step { display: inline-block; min-width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 999px; background: #1d4ed8; color: white; font-size: 12px; margin-right: 8px; }
+    .ok { color: #065f46; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #e5e7eb; text-align: left; padding: 8px; vertical-align: top; }
+    th { font-size: 13px; color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>VoltBuilder + Spring Boot Biometric MVP Guide</h1>
+      <p class="small">Reusable playbook for hybrid mobile apps (VoltBuilder/Cordova wrapper + Spring Boot backend + OAuth2/OpenID Connect provider).</p>
+      <p><strong>Objective:</strong> Enable this user journey with minimal backend change:</p>
+      <ol>
+        <li>First sign-in uses normal OAuth login (username/password).</li>
+        <li>Later launches use local biometric check + refresh token flow.</li>
+        <li>If refresh succeeds, app opens without username/password prompt.</li>
+        <li>If refresh fails, app falls back to normal OAuth login.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>1) Generic Architecture</h2>
+      <ul>
+        <li><strong>Wrapper layer (VoltBuilder/Cordova):</strong> local biometric prompt, secure storage, startup auth orchestration.</li>
+        <li><strong>Backend layer (Spring Boot):</strong> token utility endpoints and session bootstrap endpoint.</li>
+        <li><strong>Identity Provider:</strong> any OIDC provider supporting authorization code and refresh token grant.</li>
+      </ul>
+      <p><strong>Important:</strong> biometrics here are a local gate and convenience re-auth trigger. Backend trust still comes from OIDC tokens.</p>
+    </div>
+
+    <div class="card">
+      <h2>2) Required Mobile Plugins</h2>
+      <ul>
+        <li><code>cordova-plugin-fingerprint-aio</code> (or equivalent biometric plugin)</li>
+        <li><code>cordova-plugin-secure-storage-echo</code> (or equivalent secure storage plugin)</li>
+      </ul>
+      <p class="small">Also include platform biometric permissions in the wrapper config.</p>
+    </div>
+
+    <div class="card">
+      <h2>3) VoltBuilder Wrapper Folder Convention (Required)</h2>
+      <p>If wrapper files do not exist yet, create them under:</p>
+      <p><code>src/main/resources/static/&lt;application-name&gt;-mobile/</code></p>
+      <p><strong>Naming rule:</strong> folder must follow exactly <code>application name-mobile</code> (kebab-case recommended), for example:</p>
+      <ul>
+        <li><code>hr-mobile-v1</code> (current project convention)</li>
+        <li><code>payroll-mobile</code></li>
+        <li><code>attendance-mobile</code></li>
+      </ul>
+      <p class="small">Use one wrapper folder per application to keep build artifacts isolated and repeatable.</p>
+    </div>
+
+    <div class="card">
+      <h2>4) Steps to Generate VoltBuilder Files (If Missing)</h2>
+      <ol>
+        <li>Create wrapper root folder:
+          <pre><code>src/main/resources/static/&lt;application-name&gt;-mobile/</code></pre>
+        </li>
+        <li>Create minimum required files inside wrapper folder:
+          <ul>
+            <li><code>config.xml</code> (Cordova/VoltBuilder app config)</li>
+            <li><code>index.html</code> (bootstrap page + biometric startup script)</li>
+            <li><code>res/icon/android/icon.png</code> (app icon)</li>
+          </ul>
+        </li>
+        <li>In <code>config.xml</code> include:
+          <ul>
+            <li><code>&lt;content src="index.html" /&gt;</code></li>
+            <li>plugins:
+              <code>cordova-plugin-fingerprint-aio</code>,
+              <code>cordova-plugin-secure-storage-echo</code>
+            </li>
+            <li>Android biometric permissions (<code>USE_BIOMETRIC</code>, <code>USE_FINGERPRINT</code>)</li>
+            <li>navigation/access rules for your backend host</li>
+          </ul>
+        </li>
+        <li>In <code>index.html</code>:
+          <ul>
+            <li>load <code>cordova.js</code></li>
+            <li>on <code>deviceready</code>, run biometric check</li>
+            <li>execute refresh-first flow, then fallback to OAuth bootstrap</li>
+          </ul>
+        </li>
+        <li>Set <code>BACKEND_BASE_URL</code> to your deployed Spring Boot domain.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>5) Backend Endpoints (Minimal Set)</h2>
+      <table>
+        <thead>
+          <tr><th>Endpoint</th><th>Purpose</th><th>Auth Requirement</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /mobile/biometric/bootstrap</code></td>
+            <td>If server session exists, redirect to app dashboard; otherwise redirect to OIDC login endpoint.</td>
+            <td>Public</td>
+          </tr>
+          <tr>
+            <td><code>GET /mobile/auth/tokens</code></td>
+            <td>Expose current authenticated session tokens so wrapper can store refresh token after first login.</td>
+            <td>Authenticated session</td>
+          </tr>
+          <tr>
+            <td><code>POST /mobile/auth/refresh</code></td>
+            <td>Accept refresh token, call IdP token endpoint, return new access/refresh tokens.</td>
+            <td>Public (MVP) or protected (later)</td>
+          </tr>
+          <tr>
+            <td><code>POST /mobile/auth/session/login</code></td>
+            <td>Accept access token, validate with IdP userinfo/introspection, create server session.</td>
+            <td>Public (MVP) or protected (later)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>6) Step-by-Step Implementation</h2>
+
+      <h3><span class="step">1</span> Wrapper startup sequence</h3>
+      <ol>
+        <li>On <code>deviceready</code>, run biometric availability check.</li>
+        <li>If available, show biometric prompt.</li>
+        <li>On biometric success, call <code>attemptRefreshLogin()</code>.</li>
+        <li>If biometric unavailable/fails policy, fallback to <code>bootstrap</code> route.</li>
+      </ol>
+
+      <h3><span class="step">2</span> Implement refresh-first logic in wrapper</h3>
+      <ol>
+        <li>Read <code>refresh_token</code> from secure storage.</li>
+        <li>If missing, open <code>/mobile/biometric/bootstrap</code>.</li>
+        <li>If present, call <code>POST /mobile/auth/refresh</code>.</li>
+        <li>On success, save new tokens to secure storage.</li>
+        <li>Call <code>POST /mobile/auth/session/login</code> with new access token.</li>
+        <li>On success, redirect to dashboard; on failure, fallback to bootstrap route.</li>
+      </ol>
+
+      <h3><span class="step">3</span> Capture tokens after first OAuth login</h3>
+      <ol>
+        <li>After app session loads, call <code>GET /mobile/auth/tokens</code> with session credentials.</li>
+        <li>Persist returned <code>refresh_token</code> and <code>access_token</code> in secure storage.</li>
+      </ol>
+
+      <h3><span class="step">4</span> Backend bootstrap route</h3>
+      <p>In the controller:</p>
+      <ul>
+        <li>If <code>Authentication</code> exists and is authenticated → redirect to dashboard.</li>
+        <li>Else → redirect to provider-specific OAuth authorization entry route.</li>
+      </ul>
+
+      <h3><span class="step">5</span> Backend refresh route</h3>
+      <ul>
+        <li>Receive refresh token.</li>
+        <li>Call OIDC provider token endpoint with <code>grant_type=refresh_token</code>, <code>client_id</code>, <code>client_secret</code>.</li>
+        <li>Return token response payload (access token, refresh token, expiry).</li>
+      </ul>
+
+      <h3><span class="step">6</span> Backend session-login route</h3>
+      <ul>
+        <li>Receive access token.</li>
+        <li>Validate token using provider userinfo or introspection endpoint.</li>
+        <li>Create Spring <code>SecurityContext</code>, attach to HTTP session.</li>
+        <li>Return JSON with redirect target.</li>
+      </ul>
+
+      <h3><span class="step">7</span> Security configuration update (minimal)</h3>
+      <p>Allow only the small bootstrap/refresh/session-login routes that must be reachable before session restoration.</p>
+    </div>
+
+    <div class="card">
+      <h2>7) Generic Wrapper Pseudocode</h2>
+      <pre><code>onDeviceReady():
+  biometricCheck()
+    .then(showBiometricPrompt)
+    .then(attemptRefreshLogin)
+    .catch(fallbackToBootstrap)
+
+attemptRefreshLogin():
+  refreshToken = secureStorage.get("refresh_token")
+  if !refreshToken: return fallbackToBootstrap()
+
+  refreshed = POST /mobile/auth/refresh { refreshToken }
+  secureStorage.set("access_token", refreshed.accessToken)
+  secureStorage.set("refresh_token", refreshed.refreshToken)
+
+  session = POST /mobile/auth/session/login { accessToken: refreshed.accessToken }
+  if session.authenticated:
+      redirect(session.redirectUrl)
+  else:
+      fallbackToBootstrap()</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>8) Generic Spring Boot Mapping (Where to Put Things)</h2>
+      <ul>
+        <li><strong>Controller package:</strong> create a mobile auth controller (for token endpoints + bootstrap).</li>
+        <li><strong>Security config:</strong> permit bootstrap/refresh/session-login routes only as needed.</li>
+        <li><strong>OAuth settings:</strong> in <code>application.yml</code>, keep provider URLs and mobile client credentials configurable.</li>
+        <li><strong>Wrapper assets:</strong> in static wrapper folder, centralize <code>BACKEND_BASE_URL</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>9) Configuration Template</h2>
+      <p>Keep these as environment-driven values in every app:</p>
+      <ul>
+        <li><code>BACKEND_BASE_URL</code> (wrapper)</li>
+        <li><code>OIDC_ISSUER_URL</code> / provider realm URL</li>
+        <li><code>MOBILE_CLIENT_ID</code></li>
+        <li><code>MOBILE_CLIENT_SECRET</code></li>
+        <li>OAuth redirect URI for mobile registration</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>10) Test Matrix (Reusable)</h2>
+      <ol>
+        <li>First launch, no stored token → biometric → OAuth login shown.</li>
+        <li>Post-login token capture successful.</li>
+        <li>Second launch, valid refresh token → biometric → no credential prompt.</li>
+        <li>Expired/invalid refresh token → biometric → fallback OAuth login.</li>
+        <li>No biometric hardware or plugin unavailable → fallback bootstrap/OAuth path works.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>11) Known MVP Limits</h2>
+      <ul>
+        <li>This guide is for functional MVP reuse across apps, not full production hardening.</li>
+        <li>Later phases can add stronger route protection, device binding, and advanced threat controls.</li>
+      </ul>
+      <p class="ok"><strong>Result:</strong> With this pattern, all VoltBuilder + Spring Boot apps can implement consistent biometric-assisted re-login with minimal backend impact.</p>
+    </div>
+  </div>
+</body>
+</html>

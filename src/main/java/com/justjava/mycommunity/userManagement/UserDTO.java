@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
@@ -30,6 +31,9 @@ public class UserDTO {
     private Boolean suspended;
     private LocalDateTime suspendedUntil;
     private String suspensionReason;
+    private BigDecimal totalDonationPaid;
+    private BigDecimal totalSubscriptionPaid;
+    private BigDecimal totalPaymentToDate;
 
     public String getName() {
         return firstName+" "+lastName;

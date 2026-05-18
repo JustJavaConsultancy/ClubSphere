@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClubSphere Mobile</title>
+    <style>
+        html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; background: #0f172a; color: #fff; }
+        .wrap { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+        .card { max-width: 420px; width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 20px; }
+        .status { margin-top: 10px; color: #cbd5e1; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <h1>ClubSphere</h1>
+        <p class="status" id="status">Starting secure sign-in...</p>
+    </div>
+</div>
+
+<script src="cordova.js"></script>
+<script>
+    const BACKEND_BASE_URL = "clubsphere-production-a44b.up.railway.app";
+    const statusEl = document.getElementById("status");
+
+    function setStatus(value) {
+        if (statusEl) statusEl.textContent = value;
+    }
+
+    function openBootstrap() {
+        window.location.href = `${BACKEND_BASE_URL}/mobile/biometric/bootstrap`;
+    }
+
+    function request(url, method, body) {
+        return fetch(url, {
+            method,
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: body ? JSON.stringify(body) : undefined
+        });
+    }
+
+    function createSecureStorage() {
+        return new Promise((resolve, reject) => {
+            const secureStorage = new cordova.plugins.SecureStorage(
+                () => resolve(secureStorage),
+                (error) => reject(error),
+                "clubsphere-secure-auth"
+            );
+        });
+    }
+
+    function secureGet(storage, key) {
+        return new Promise(resolve => {
+            storage.get(resolve, () => resolve(null), key);
+        });
+    }
+
+    function secureSet(storage, key, value) {
+        return new Promise((resolve, reject) => {
+            storage.set(resolve, reject, key, value);
+        });
+    }
+
+    async function persistSessionTokens(storage) {
+        const tokenResponse = await request(`${BACKEND_BASE_URL}/mobile/auth/tokens`, "GET");
+        if (!tokenResponse.ok) return;
+        const tokenPayload = await tokenResponse.json();
+        if (tokenPayload.access_token) await secureSet(storage, "access_token", tokenPayload.access_token);
+        if (tokenPayload.refresh_token) await secureSet(storage, "refresh_token", tokenPayload.refresh_token);
+    }
+
+    async function refreshFirstSignIn(storage) {
+        const refreshToken = await secureGet(storage, "refresh_token");
+        if (!refreshToken) {
+            setStatus("No saved session. Redirecting to login...");
+            openBootstrap();
+            return;
+        }
+
+        setStatus("Refreshing secure session...");
+        const refreshResponse = await request(`${BACKEND_BASE_URL}/mobile/auth/refresh`, "POST", { refreshToken });
+        if (!refreshResponse.ok) {
+            openBootstrap();
+            return;
+        }
+        const refreshPayload = await refreshResponse.json();
+        const accessToken = refreshPayload.access_token;
+        const nextRefreshToken = refreshPayload.refresh_token || refreshToken;
+        if (!accessToken) {
+            openBootstrap();
+            return;
+        }
+        await secureSet(storage, "access_token", accessToken);
+        await secureSet(storage, "refresh_token", nextRefreshToken);
+
+        const sessionResponse = await request(`${BACKEND_BASE_URL}/mobile/auth/session/login`, "POST", {
+            accessToken,
+            refreshToken: nextRefreshToken
+        });
+        if (!sessionResponse.ok) {
+            openBootstrap();
+            return;
+        }
+        const sessionPayload = await sessionResponse.json();
+        window.location.href = `${BACKEND_BASE_URL}${sessionPayload.redirectUrl || "/mobile/channel"}`;
+    }
+
+    async function runBiometricFlow() {
+        try {
+            const storage = await createSecureStorage();
+            await persistSessionTokens(storage);
+
+            if (!window.Fingerprint) {
+                setStatus("Biometric plugin unavailable. Redirecting...");
+                openBootstrap();
+                return;
+            }
+
+            setStatus("Confirm biometric to continue...");
+            window.Fingerprint.show({
+                title: "ClubSphere Sign In",
+                subtitle: "Use biometrics to unlock your session",
+                description: "Biometric verification required",
+                disableBackup: false
+            }, () => refreshFirstSignIn(storage), () => openBootstrap());
+        } catch (e) {
+            openBootstrap();
+        }
+    }
+
+    document.addEventListener("deviceready", runBiometricFlow, false);
+</script>
+</body>
+</html>

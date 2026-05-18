@@ -2171,6 +2171,20 @@
                               style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:700;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;margin-left:4px;">
                             ⛔ Suspended<span th:if="${member.suspendedUntil != null}" th:text="' · ' + ${#temporals.format(member.suspendedUntil,'MMM d')}"></span>
                         </span>
+                        <div style="margin-top:8px;display:flex;flex-direction:column;gap:3px;">
+                            <div style="font-size:11px;color:#065f46;font-weight:600;"
+                                 th:text="${'Donation Paid: ₦' + #numbers.formatDecimal(member.totalDonationPaid != null ? member.totalDonationPaid : 0, 1, 'COMMA', 2, 'POINT')}">
+                                Donation Paid: ₦0.00
+                            </div>
+                            <div style="font-size:11px;color:#1d4ed8;font-weight:600;"
+                                 th:text="${'Subscription Paid: ₦' + #numbers.formatDecimal(member.totalSubscriptionPaid != null ? member.totalSubscriptionPaid : 0, 1, 'COMMA', 2, 'POINT')}">
+                                Subscription Paid: ₦0.00
+                            </div>
+                            <div style="font-size:11px;color:#111827;font-weight:700;"
+                                 th:text="${'Total Paid: ₦' + #numbers.formatDecimal(member.totalPaymentToDate != null ? member.totalPaymentToDate : 0, 1, 'COMMA', 2, 'POINT')}">
+                                Total Paid: ₦0.00
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- Admin Actions -->

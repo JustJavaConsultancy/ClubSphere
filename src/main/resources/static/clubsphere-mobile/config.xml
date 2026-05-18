@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.justjava.clubsphere.mobile" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>ClubSphere Mobile</name>
+    <description>ClubSphere hybrid mobile wrapper powered by VoltBuilder.</description>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-navigation href="*" />
+    <allow-intent href="*" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="android-minSdkVersion" value="24" />
+    <preference name="AndroidLaunchMode" value="singleTask" />
+
+    <platform name="android">
+        <icon src="res/icon/android/icon.png" density="mdpi" />
+        <icon src="res/icon/android/icon.png" density="hdpi" />
+        <icon src="res/icon/android/icon.png" density="xhdpi" />
+        <icon src="res/icon/android/icon.png" density="xxhdpi" />
+        <icon src="res/icon/android/icon.png" density="xxxhdpi" />
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+            <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+        </config-file>
+    </platform>
+
+    <plugin name="cordova-plugin-fingerprint-aio" spec="^6.0.0" />
+    <plugin name="cordova-plugin-secure-storage-echo" spec="^5.2.1" />
+</widget>

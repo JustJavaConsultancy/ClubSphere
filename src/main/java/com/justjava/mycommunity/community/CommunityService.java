@@ -279,6 +279,7 @@ public class CommunityService {
                 dto.setStatus(statusMap.get(user.getUserId()).name());
                 communityMembers.add(dto);
             }
+            applyMemberPaymentTotals(communityId, communityMembers);
 
         } catch (Exception e) {
             System.err.println("Error getting community members: " + e.getMessage());
@@ -324,11 +325,48 @@ public class CommunityService {
                 dto.setSuspensionReason(m.getSuspensionReason());
                 communityMembers.add(dto);
             }
+            applyMemberPaymentTotals(communityId, communityMembers);
         } catch (Exception e) {
             System.err.println("Error getting all community members: " + e.getMessage());
             e.printStackTrace();
         }
         return communityMembers;
+    }
+
+    private void applyMemberPaymentTotals(Long communityId, List<UserDTO> communityMembers) {
+        if (communityMembers == null || communityMembers.isEmpty()) return;
+
+        List<PaymentTransaction> successfulTransactions =
+                paymentTransactionRepository.findByCommunityIdAndStatus(communityId, PaymentStatus.SUCCESS);
+
+        if (successfulTransactions.isEmpty()) {
+            for (UserDTO member : communityMembers) {
+                member.setTotalDonationPaid(BigDecimal.ZERO);
+                member.setTotalSubscriptionPaid(BigDecimal.ZERO);
+                member.setTotalPaymentToDate(BigDecimal.ZERO);
+            }
+            return;
+        }
+
+        Map<String, BigDecimal> donationTotalsByUser = new HashMap<>();
+        Map<String, BigDecimal> subscriptionTotalsByUser = new HashMap<>();
+
+        for (PaymentTransaction tx : successfulTransactions) {
+            if (tx.getUserId() == null || tx.getAmount() == null || tx.getType() == null) continue;
+            if (tx.getType() == PaymentType.DONATION) {
+                donationTotalsByUser.merge(tx.getUserId(), tx.getAmount(), BigDecimal::add);
+            } else if (tx.getType() == PaymentType.SUBSCRIPTION) {
+                subscriptionTotalsByUser.merge(tx.getUserId(), tx.getAmount(), BigDecimal::add);
+            }
+        }
+
+        for (UserDTO member : communityMembers) {
+            BigDecimal donationTotal = donationTotalsByUser.getOrDefault(member.getUserId(), BigDecimal.ZERO);
+            BigDecimal subscriptionTotal = subscriptionTotalsByUser.getOrDefault(member.getUserId(), BigDecimal.ZERO);
+            member.setTotalDonationPaid(donationTotal);
+            member.setTotalSubscriptionPaid(subscriptionTotal);
+            member.setTotalPaymentToDate(donationTotal.add(subscriptionTotal));
+        }
     }
 
     /**
