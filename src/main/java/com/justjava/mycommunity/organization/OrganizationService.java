@@ -115,7 +115,7 @@ public class OrganizationService {
         }
         if (!communityRepository.existsByOrganization_Id(user.getOrganization().getId())) {
             communityService.createCommunity(CreateCommunityVO.builder()
-                    .communityName("Default Community")
+                    .communityName("Default Club")
                     .communityDescription("Default Description")
                     .channelName("Default Channel Description")
                     .channelDescription("Default Channel Description")

@@ -482,7 +482,7 @@
     <!-- Success Message -->
     <div th:if="${successMessage}" class="success-message">
         <i class="fas fa-check-circle"></i>
-        <span th:text="${successMessage}">Community created successfully!</span>
+        <span th:text="${successMessage}">Club created successfully!</span>
     </div>
 
     <!-- Organizations Header -->
@@ -556,7 +556,7 @@
                             <span th:text="${#strings.substring(community.communityName != null ? community.communityName : 'C', 0, 2)}">CO</span>
                         </div>
 
-                        <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Community'}">
+                        <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Club'}">
                             Club Name
                         </h3>
 
@@ -616,7 +616,7 @@
                         <span th:text="${#strings.substring(community.communityName != null ? community.communityName : 'C', 0, 2)}">CO</span>
                     </div>
 
-                    <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Community'}">
+                    <h3 class="community-title" th:text="${community.communityName != null ? community.communityName : 'Unknown Club'}">
                         Club Name
                     </h3>
 
@@ -664,7 +664,7 @@
                         <i class="fas fa-envelope text-3xl" style="color: var(--primary);"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-3">No Invitations</h3>
-                    <p class="text-gray-600 mb-6">You don't have any pending community invitations.</p>
+                    <p class="text-gray-600 mb-6">You don't have any pending club invitations.</p>
                 </div>
 
                 <!-- Invitation Cards -->
@@ -784,7 +784,7 @@
                                 <div style="flex: 1;">
                                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
                                         <h4 style="font-size: 1.05rem; font-weight: 700; color: #1f2937; margin: 0;"
-                                            th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Club Name</h4>
+                                            th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Club'}">Club Name</h4>
                                         <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
                                               th:style="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? 'background-color: #d1fae5; color: #065f46; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? 'background-color: #fee2e2; color: #991b1b; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;' : 'background-color: #f3f4f6; color: #6b7280; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;')"
                                               th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>
@@ -902,7 +902,7 @@
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
                                     <h4 style="font-size: 1.05rem; font-weight: 700; color: #1f2937; margin: 0;"
-                                        th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Community'}">Club Name</h4>
+                                        th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Club'}">Club Name</h4>
                                     <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
                                           th:style="${don['status'] == 'PENDING'} ? 'display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fef3c7; color: #92400e;' : 'display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fce7f3; color: #be185d;'"
                                           th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Donation'">

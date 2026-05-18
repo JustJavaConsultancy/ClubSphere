@@ -337,7 +337,7 @@ public class CommunityController {
         try {
             // Check if user is admin
             if (!authenticationManager.isAdmin()) {
-                String errorMessage = "Only administrators can update mycommunity settings";
+                String errorMessage = "Only administrators can update club settings";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
                     return "fragments/message :: error";
@@ -348,7 +348,7 @@ public class CommunityController {
             }
 
             if (name == null || name.trim().isEmpty()) {
-                String errorMessage = "Community name cannot be empty";
+                String errorMessage = "Club name cannot be empty";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
                     return "fragments/message :: error";
@@ -384,7 +384,7 @@ public class CommunityController {
 
             communityService.updateCommunity(dto, communityId);
 
-            String successMessage = "Community name updated successfully!";
+            String successMessage = "Club name updated successfully!";
             if (isHtmxRequest(hxRequest)) {
                 model.addAttribute("successMessage", successMessage);
                 return "fragments/message :: success";
@@ -417,7 +417,7 @@ public class CommunityController {
         try {
             // Check if user is admin
             if (!authenticationManager.isAdmin()) {
-                String errorMessage = "Only administrators can update mycommunity settings";
+                String errorMessage = "Only administrators can update club settings";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
                     return "fragments/message :: error";
@@ -428,7 +428,7 @@ public class CommunityController {
             }
 
             if (description == null || description.trim().isEmpty()) {
-                String errorMessage = "Community description cannot be empty";
+                String errorMessage = "Club description cannot be empty";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
                     return "fragments/message :: error";
@@ -464,7 +464,7 @@ public class CommunityController {
 
             communityService.updateCommunity(dto, communityId);
 
-            String successMessage = "Community description updated successfully!";
+            String successMessage = "Club description updated successfully!";
             if (isHtmxRequest(hxRequest)) {
                 model.addAttribute("successMessage", successMessage);
                 return "fragments/message :: success";
@@ -524,7 +524,7 @@ public class CommunityController {
             // Verify mycommunity exists and user has access
             Object communityResponse = communityService.getCommunityById(communityId);
             if (communityResponse == null) {
-                String errorMessage = "Community not found or access denied";
+                String errorMessage = "Club not found or access denied";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
                     return "fragments/message :: error";
@@ -891,7 +891,7 @@ public class CommunityController {
 
             CommunityDTO currentResponse = communityService.getCommunityById(communityId);
             if (currentResponse == null) {
-                return "❌ Community not found";
+                return "❌ Club not found";
             }
 
             boolean isPrivate = "private".equalsIgnoreCase(status);
@@ -905,9 +905,9 @@ public class CommunityController {
             communityService.updateCommunity(dto, communityId);
 
             if (isPrivate) {
-                return "🔒 Community is now Private";
+                return "🔒 Club is now Private";
             } else {
-                return "✅ Community is now Public";
+                return "✅ Club is now Public";
             }
 
         } catch (Exception e) {

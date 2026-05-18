@@ -1246,7 +1246,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold mb-2">
-                    <span th:text="${community != null && community.name != null ? community.name : 'Community Management'}">Community Management</span>
+                    <span th:text="${community != null && community.name != null ? community.name : 'Club Management'}">Club Management</span>
                 </h1>
                 <p class="opacity-90">
                     <span th:if="${isAdmin}">Manage your club settings, groups, and members all in one place.</span>
@@ -1378,7 +1378,7 @@
                             <div th:if="${!isAdmin}" class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
                                 <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-700"
-                                     th:text="${community != null && community.name != null ? community.name : 'Unknown Community'}">
+                                     th:text="${community != null && community.name != null ? community.name : 'Unknown Club'}">
                                     Club Name
                                 </div>
                             </div>
@@ -1418,7 +1418,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Club Description</label>
                                 <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 min-h-[100px]"
                                      th:text="${community != null && community.description != null ? community.description : 'No description available'}">
-                                    Community Description
+                                    Club Description
                                 </div>
                             </div>
                         </div>
@@ -1431,7 +1431,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
-                        Community Privacy
+                        Club Privacy
                     </h2>
                     <div class="privacy-toggle-wrapper">
                         <div>
@@ -1478,7 +1478,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        Community Subscription
+                        Club Subscription
                     </h2>
                     <div th:if="${isAdmin}" class="mb-4 p-4 rounded-lg border border-purple-100 bg-purple-50">
                         <p class="text-sm font-semibold text-purple-900 mb-3">Subscription Plan Setup</p>
@@ -1527,7 +1527,7 @@
                         </div>
                         <p class="text-sm text-gray-600 mb-4"
                            th:if="${activeSubscriptionPlan != null}">
-                            Subscribe to this community plan and pay by invoice each cycle:
+                            Subscribe to this club plan and pay by invoice each cycle:
                             <strong th:text="${'₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2)}">₦0.00</strong>
                             /
                             <strong th:text="${activeSubscriptionPlan.billingCycle}">MONTHLY</strong>.
@@ -1788,7 +1788,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
-                            Community Members
+                            Club Members
                         </h2>
                         <span class="members-badge">
                 <svg class="members-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -2158,7 +2158,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                             </svg>
-                            Community Subscriptions
+                            Club Subscriptions
                         </h2>
                         <button type="button"
                                 class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
@@ -2212,7 +2212,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
-                            Community Donations
+                            Club Donations
                         </h2>
                         <button type="button"
                                 class="text-sm text-pink-600 hover:text-pink-800 font-medium flex items-center gap-1"
@@ -3139,7 +3139,7 @@
                 .then(function(r) { return r.json(); })
                 .then(function(subs) {
                     if (!Array.isArray(subs) || subs.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">No subscriptions found for this community.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">No subscriptions found for this club.</td></tr>';
                         return;
                     }
 
@@ -3185,7 +3185,7 @@
                 .then(function(r) { return r.json(); })
                 .then(function(donations) {
                     if (!Array.isArray(donations) || donations.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">No donations found for this community.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">No donations found for this club.</td></tr>';
                         return;
                     }
 

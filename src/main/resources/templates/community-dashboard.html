@@ -4,7 +4,7 @@
       layout:decorate="~{layout}">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${community.name} + ' — Dashboard'">Community Dashboard</title>
+    <title th:text="${community.name} + ' — Dashboard'">Club Dashboard</title>
     <style>
         .dashboard-card {
             background: white;
@@ -195,12 +195,23 @@
                 labels: data.months,
                 datasets: [
                     {
-                        label: 'Donations',
+                        label: 'Completed Donations',
                         data: data.donations,
                         borderColor: '#f59e0b',
                         backgroundColor: 'rgba(245,158,11,.12)',
                         fill: true,
                         tension: .4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Promised Donations',
+                        data: data.promisedDonations,
+                        borderColor: '#fbbf24',
+                        backgroundColor: 'rgba(251,191,36,.12)',
+                        fill: true,
+                        tension: .4,
+                        borderDash: [5, 5],
                         pointRadius: 4,
                         pointHoverRadius: 6
                     },
@@ -243,10 +254,10 @@
         new Chart(document.getElementById('revenueSplitChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Donations', 'Subscriptions'],
+                labels: ['Completed Donations', 'Promised Donations', 'Subscriptions'],
                 datasets: [{
-                    data: [split.donations, split.subscriptions],
-                    backgroundColor: ['#f59e0b', '#8b5cf6'],
+                    data: [split.completedDonations, split.promisedDonations, split.subscriptions],
+                    backgroundColor: ['#f59e0b', '#fbbf24', '#8b5cf6'],
                     borderWidth: 0,
                     hoverOffset: 10
                 }]
@@ -272,22 +283,31 @@
             type: 'bar',
             data: {
                 labels: data.months,
-                datasets: [{
-                    label: 'Donations',
-                    data: data.donations,
-                    backgroundColor: 'rgba(245,158,11,.7)',
-                    borderRadius: 6,
-                    maxBarThickness: 40
-                }]
+                datasets: [
+                    {
+                        label: 'Completed Donations',
+                        data: data.donations,
+                        backgroundColor: 'rgba(245,158,11,.7)',
+                        borderRadius: 6,
+                        maxBarThickness: 40
+                    },
+                    {
+                        label: 'Promised Donations',
+                        data: data.promisedDonations,
+                        backgroundColor: 'rgba(251,191,36,.7)',
+                        borderRadius: 6,
+                        maxBarThickness: 40
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: { display: true },
                     tooltip: {
                         callbacks: {
-                            label: ctx => `₦${Number(ctx.raw).toLocaleString()}`
+                            label: ctx => `${ctx.dataset.label}: ₦${Number(ctx.raw).toLocaleString()}`
                         }
                     }
                 },
@@ -306,10 +326,10 @@
         new Chart(document.getElementById('subscriptionStatusChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Active', 'Cancelled', 'Expired'],
+                labels: ['Active', 'Pending Renewal', 'Cancelled', 'Expired'],
                 datasets: [{
-                    data: [status.active, status.cancelled, status.expired],
-                    backgroundColor: ['#10b981', '#ef4444', '#6b7280'],
+                    data: [status.active, status.pending, status.cancelled, status.expired],
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6b7280'],
                     borderWidth: 0,
                     hoverOffset: 10
                 }]

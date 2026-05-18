@@ -100,7 +100,7 @@
         <div class="flex items-start justify-between mb-3">
             <div class="flex-1">
                 <h3 class="font-bold text-gray-800"
-                    th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Community'}">Club</h3>
+                    th:text="${sub['communityName'] != null ? sub['communityName'] : 'Unknown Club'}">Club</h3>
                 <span class="mobile-status-badge mt-1"
                       th:classappend="${sub['status'] != null && sub['status'] == 'ACTIVE'} ? ' mobile-status-active' : (${sub['status'] != null && sub['status'] == 'CANCELLED'} ? ' mobile-status-cancelled' : ' mobile-status-expired')"
                       th:text="${sub['status'] != null ? sub['status'] : 'UNKNOWN'}">ACTIVE</span>

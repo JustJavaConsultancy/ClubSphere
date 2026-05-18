@@ -91,7 +91,7 @@ public class UserService {
         String userId = (String) authenticationManager.get("sub");
 
         Community community = communityRepository.findById(communityId)
-                .orElseThrow(() -> new EntityNotFoundException("Community not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Club not found"));
 
         boolean isAdmin = authenticationManager.isAdmin();
         boolean isMember = isAdmin || communityMembershipRepository.existsByUserIdAndCommunityIdAndStatus(
