@@ -1,136 +1,206 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ClubSphere Mobile</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>ClubSphere</title>
     <style>
-        html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; background: #0f172a; color: #fff; }
-        .wrap { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; }
-        .card { max-width: 420px; width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 20px; }
-        .status { margin-top: 10px; color: #cbd5e1; font-size: 14px; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        #loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="card">
-        <h1>ClubSphere</h1>
-        <p class="status" id="status">Starting secure sign-in...</p>
-    </div>
-</div>
+<div id="loading">Starting ClubSphere...</div>
 
 <script src="cordova.js"></script>
 <script>
-    const BACKEND_BASE_URL = "clubsphere-production-a44b.up.railway.app";
-    const statusEl = document.getElementById("status");
+    const BACKEND_BASE_URL_RAW = "clubsphere-production-a44b.up.railway.app";
+    const BACKEND_BASE_URL = normalizeBaseUrl(BACKEND_BASE_URL_RAW);
+    const STORAGE_NAMESPACE = "clubsphere_mobile_auth";
 
-    function setStatus(value) {
-        if (statusEl) statusEl.textContent = value;
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    function normalizeBaseUrl(value) {
+        if (!value) return "";
+        const trimmed = String(value).trim().replace(/\/+$/, "");
+        if (/^https?:\/\//i.test(trimmed)) return trimmed;
+        return `https://${trimmed}`;
     }
 
-    function openBootstrap() {
-        window.location.href = `${BACKEND_BASE_URL}/mobile/biometric/bootstrap`;
+    function onDeviceReady() {
+        const loader = document.getElementById("loading");
+        loader.innerText = "Checking biometric authentication...";
+        startBiometricCheck();
     }
 
-    function request(url, method, body) {
-        return fetch(url, {
-            method,
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: body ? JSON.stringify(body) : undefined
-        });
+    function startBiometricCheck() {
+        if (!window.Fingerprint) {
+            launchKeycloakLogin();
+            return;
+        }
+
+        Fingerprint.isAvailable(
+            function () {
+                showBiometricPrompt();
+            },
+            function () {
+                launchKeycloakLogin();
+            }
+        );
     }
 
-    function createSecureStorage() {
+    function showBiometricPrompt() {
+        Fingerprint.show(
+            {
+                title: "ClubSphere",
+                subtitle: "Member Authentication",
+                description: "Use fingerprint or face to unlock",
+                cancelButtonTitle: "Cancel"
+            },
+            function () {
+                attemptRefreshLogin();
+            },
+            function () {
+                launchKeycloakLogin();
+            }
+        );
+    }
+
+    function getSecureStorage() {
         return new Promise((resolve, reject) => {
-            const secureStorage = new cordova.plugins.SecureStorage(
-                () => resolve(secureStorage),
-                (error) => reject(error),
-                "clubsphere-secure-auth"
+            if (!window.SecureStorage) {
+                reject(new Error("SecureStorage plugin not available"));
+                return;
+            }
+            const storage = new SecureStorage(
+                () => resolve(storage),
+                err => reject(err),
+                STORAGE_NAMESPACE
             );
         });
     }
 
     function secureGet(storage, key) {
-        return new Promise(resolve => {
-            storage.get(resolve, () => resolve(null), key);
+        return new Promise((resolve, reject) => {
+            storage.get(
+                value => resolve(value),
+                err => reject(err),
+                key
+            );
         });
     }
 
     function secureSet(storage, key, value) {
         return new Promise((resolve, reject) => {
-            storage.set(resolve, reject, key, value);
+            storage.set(
+                () => resolve(),
+                err => reject(err),
+                key,
+                value
+            );
         });
     }
 
-    async function persistSessionTokens(storage) {
-        const tokenResponse = await request(`${BACKEND_BASE_URL}/mobile/auth/tokens`, "GET");
-        if (!tokenResponse.ok) return;
-        const tokenPayload = await tokenResponse.json();
-        if (tokenPayload.access_token) await secureSet(storage, "access_token", tokenPayload.access_token);
-        if (tokenPayload.refresh_token) await secureSet(storage, "refresh_token", tokenPayload.refresh_token);
-    }
+    async function attemptRefreshLogin() {
+        const loader = document.getElementById("loading");
+        loader.innerText = "Verifying saved session...";
 
-    async function refreshFirstSignIn(storage) {
-        const refreshToken = await secureGet(storage, "refresh_token");
-        if (!refreshToken) {
-            setStatus("No saved session. Redirecting to login...");
-            openBootstrap();
-            return;
-        }
-
-        setStatus("Refreshing secure session...");
-        const refreshResponse = await request(`${BACKEND_BASE_URL}/mobile/auth/refresh`, "POST", { refreshToken });
-        if (!refreshResponse.ok) {
-            openBootstrap();
-            return;
-        }
-        const refreshPayload = await refreshResponse.json();
-        const accessToken = refreshPayload.access_token;
-        const nextRefreshToken = refreshPayload.refresh_token || refreshToken;
-        if (!accessToken) {
-            openBootstrap();
-            return;
-        }
-        await secureSet(storage, "access_token", accessToken);
-        await secureSet(storage, "refresh_token", nextRefreshToken);
-
-        const sessionResponse = await request(`${BACKEND_BASE_URL}/mobile/auth/session/login`, "POST", {
-            accessToken,
-            refreshToken: nextRefreshToken
-        });
-        if (!sessionResponse.ok) {
-            openBootstrap();
-            return;
-        }
-        const sessionPayload = await sessionResponse.json();
-        window.location.href = `${BACKEND_BASE_URL}${sessionPayload.redirectUrl || "/mobile/channel"}`;
-    }
-
-    async function runBiometricFlow() {
         try {
-            const storage = await createSecureStorage();
-            await persistSessionTokens(storage);
+            const storage = await getSecureStorage();
+            const refreshToken = await secureGet(storage, "refresh_token");
 
-            if (!window.Fingerprint) {
-                setStatus("Biometric plugin unavailable. Redirecting...");
-                openBootstrap();
+            if (!refreshToken) {
+                launchKeycloakLogin();
                 return;
             }
 
-            setStatus("Confirm biometric to continue...");
-            window.Fingerprint.show({
-                title: "ClubSphere Sign In",
-                subtitle: "Use biometrics to unlock your session",
-                description: "Biometric verification required",
-                disableBackup: false
-            }, () => refreshFirstSignIn(storage), () => openBootstrap());
+            loader.innerText = "Refreshing secure session...";
+            const refreshResponse = await fetch(BACKEND_BASE_URL + "/mobile/auth/refresh", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refreshToken })
+            });
+
+            if (!refreshResponse.ok) {
+                launchKeycloakLogin();
+                return;
+            }
+
+            const refreshed = await refreshResponse.json();
+            const accessToken = refreshed.accessToken || refreshed.access_token;
+            const nextRefreshToken = refreshed.refreshToken || refreshed.refresh_token || refreshToken;
+            if (!accessToken) {
+                launchKeycloakLogin();
+                return;
+            }
+
+            await secureSet(storage, "access_token", accessToken);
+            await secureSet(storage, "refresh_token", nextRefreshToken);
+
+            loader.innerText = "Restoring app session...";
+            const sessionResponse = await fetch(BACKEND_BASE_URL + "/mobile/auth/session/login", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ accessToken, refreshToken: nextRefreshToken })
+            });
+
+            if (!sessionResponse.ok) {
+                launchKeycloakLogin();
+                return;
+            }
+
+            const sessionPayload = await sessionResponse.json();
+            window.location.href = BACKEND_BASE_URL + (sessionPayload.redirectUrl || "/mobile/channel");
         } catch (e) {
-            openBootstrap();
+            launchKeycloakLogin();
         }
     }
 
-    document.addEventListener("deviceready", runBiometricFlow, false);
+    function launchKeycloakLogin() {
+        document.getElementById("loading").innerText = "Opening secure login...";
+        window.location.href = BACKEND_BASE_URL + "/mobile/biometric/bootstrap";
+    }
+
+    async function captureSessionTokens() {
+        try {
+            const response = await fetch(BACKEND_BASE_URL + "/mobile/auth/tokens", {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!response.ok) return;
+            const tokens = await response.json();
+            const accessToken = tokens.accessToken || tokens.access_token;
+            const refreshToken = tokens.refreshToken || tokens.refresh_token;
+            if (!refreshToken) return;
+            const storage = await getSecureStorage();
+            if (accessToken) await secureSet(storage, "access_token", accessToken);
+            await secureSet(storage, "refresh_token", refreshToken);
+        } catch (e) {
+            // no-op
+        }
+    }
+
+    captureSessionTokens();
 </script>
 </body>
 </html>

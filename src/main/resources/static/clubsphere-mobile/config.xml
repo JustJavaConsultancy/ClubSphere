@@ -22,6 +22,6 @@
         </config-file>
     </platform>
 
-    <plugin name="cordova-plugin-fingerprint-aio" spec="^6.0.0" />
-    <plugin name="cordova-plugin-secure-storage-echo" spec="^5.2.1" />
+    <plugin name="cordova-plugin-fingerprint-aio" spec="6.0.0" />
+    <plugin name="cordova-plugin-secure-storage-echo" spec="5.1.1" />
 </widget>

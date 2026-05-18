@@ -50,6 +50,7 @@
         <li><code>cordova-plugin-fingerprint-aio</code> (or equivalent biometric plugin)</li>
         <li><code>cordova-plugin-secure-storage-echo</code> (or equivalent secure storage plugin)</li>
       </ul>
+      <p class="small">VoltBuilder expects strict semver plugin specs (for example <code>6.0.0</code>, <code>5.1.1</code>). Do not use <code>^</code>, <code>~</code>, <code>latest</code>, git URLs, or file paths in <code>spec</code>.</p>
       <p class="small">Also include platform biometric permissions in the wrapper config.</p>
     </div>
 
@@ -83,21 +84,23 @@
           <ul>
             <li><code>&lt;content src="index.html" /&gt;</code></li>
             <li>plugins:
-              <code>cordova-plugin-fingerprint-aio</code>,
-              <code>cordova-plugin-secure-storage-echo</code>
+              <code>cordova-plugin-fingerprint-aio</code> and
+              <code>cordova-plugin-secure-storage-echo</code> with strict pinned versions (example: <code>6.0.0</code> and <code>5.1.1</code>)
             </li>
             <li>Android biometric permissions (<code>USE_BIOMETRIC</code>, <code>USE_FINGERPRINT</code>)</li>
             <li>navigation/access rules for your backend host</li>
+            <li>Android icon path: <code>res/icon/android/icon.png</code> (recommended 1024x1024 source image)</li>
           </ul>
         </li>
         <li>In <code>index.html</code>:
           <ul>
             <li>load <code>cordova.js</code></li>
-            <li>on <code>deviceready</code>, run biometric check</li>
+            <li>on <code>deviceready</code>, call <code>Fingerprint.isAvailable(...)</code> first, then <code>Fingerprint.show(...)</code></li>
+            <li>initialize secure storage with <code>new SecureStorage(...)</code> and check <code>window.SecureStorage</code> availability</li>
             <li>execute refresh-first flow, then fallback to OAuth bootstrap</li>
           </ul>
         </li>
-        <li>Set <code>BACKEND_BASE_URL</code> to your deployed Spring Boot domain.</li>
+        <li>Set <code>BACKEND_BASE_URL</code> to your deployed Spring Boot domain, including protocol (<code>https://...</code>).</li>
       </ol>
     </div>
 
@@ -188,8 +191,12 @@
     <div class="card">
       <h2>7) Generic Wrapper Pseudocode</h2>
       <pre><code>onDeviceReady():
-  biometricCheck()
+  Fingerprint.isAvailable()
     .then(showBiometricPrompt)
+    .catch(fallbackToBootstrap)
+
+showBiometricPrompt():
+  Fingerprint.show()
     .then(attemptRefreshLogin)
     .catch(fallbackToBootstrap)
 
@@ -198,10 +205,12 @@ attemptRefreshLogin():
   if !refreshToken: return fallbackToBootstrap()
 
   refreshed = POST /mobile/auth/refresh { refreshToken }
-  secureStorage.set("access_token", refreshed.accessToken)
-  secureStorage.set("refresh_token", refreshed.refreshToken)
+  accessToken = refreshed.accessToken || refreshed.access_token
+  nextRefresh = refreshed.refreshToken || refreshed.refresh_token || refreshToken
+  secureStorage.set("access_token", accessToken)
+  secureStorage.set("refresh_token", nextRefresh)
 
-  session = POST /mobile/auth/session/login { accessToken: refreshed.accessToken }
+  session = POST /mobile/auth/session/login { accessToken, refreshToken: nextRefresh }
   if session.authenticated:
       redirect(session.redirectUrl)
   else:
@@ -222,7 +231,7 @@ attemptRefreshLogin():
       <h2>9) Configuration Template</h2>
       <p>Keep these as environment-driven values in every app:</p>
       <ul>
-        <li><code>BACKEND_BASE_URL</code> (wrapper)</li>
+        <li><code>BACKEND_BASE_URL</code> (wrapper, must include protocol e.g. <code>https://app.example.com</code>)</li>
         <li><code>OIDC_ISSUER_URL</code> / provider realm URL</li>
         <li><code>MOBILE_CLIENT_ID</code></li>
         <li><code>MOBILE_CLIENT_SECRET</code></li>
@@ -238,11 +247,26 @@ attemptRefreshLogin():
         <li>Second launch, valid refresh token → biometric → no credential prompt.</li>
         <li>Expired/invalid refresh token → biometric → fallback OAuth login.</li>
         <li>No biometric hardware or plugin unavailable → fallback bootstrap/OAuth path works.</li>
+        <li>Plugin install check in VoltBuilder: exact versions resolve successfully (no semver range operators).</li>
+        <li>Backend URL check: wrapper navigates to <code>https://your-domain/...</code> and never to <code>https://localhost/...</code>.</li>
       </ol>
     </div>
 
     <div class="card">
-      <h2>11) Known MVP Limits</h2>
+      <h2>11) Implementation Corrections (From First Run)</h2>
+      <ul>
+        <li><strong>Plugin spec format:</strong> VoltBuilder rejected <code>^6.0.0</code> and <code>latest</code>; use strict versions only.</li>
+        <li><strong>Working plugin versions:</strong> <code>cordova-plugin-fingerprint-aio@6.0.0</code> and <code>cordova-plugin-secure-storage-echo@5.1.1</code>.</li>
+        <li><strong>Biometric startup:</strong> trigger biometric flow only after <code>deviceready</code> and successful <code>Fingerprint.isAvailable</code>.</li>
+        <li><strong>Secure storage API shape:</strong> use <code>new SecureStorage(...)</code> and <code>window.SecureStorage</code> guard for compatibility.</li>
+        <li><strong>Backend URL safety:</strong> always use fully qualified URL with protocol; optionally normalize by prepending <code>https://</code> when omitted.</li>
+        <li><strong>Token JSON compatibility:</strong> wrapper should accept both camelCase (<code>accessToken</code>) and snake_case (<code>access_token</code>) payloads.</li>
+        <li><strong>Icon setup:</strong> provide <code>res/icon/android/icon.png</code> and reference it under Android densities in <code>config.xml</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>12) Known MVP Limits</h2>
       <ul>
         <li>This guide is for functional MVP reuse across apps, not full production hardening.</li>
         <li>Later phases can add stronger route protection, device binding, and advanced threat controls.</li>
