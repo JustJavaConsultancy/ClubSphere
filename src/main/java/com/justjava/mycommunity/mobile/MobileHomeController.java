@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/mobile")
@@ -146,6 +147,10 @@ public class MobileHomeController {
         model.addAttribute("hasActiveSubscription", hasActiveSubscription);
         model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
         model.addAttribute("activeSubscriptionPlans", communityService.getActiveSubscriptionPlans(selectedCommunityId));
+        List<Map<String, Object>> memberCommunitySubscriptions = communityService.getUserSubscriptions(currentUserId).stream()
+                .filter(sub -> selectedCommunityId.equals(sub.get("communityId")))
+                .collect(Collectors.toList());
+        model.addAttribute("memberCommunitySubscriptions", memberCommunitySubscriptions);
 
         // Standalone community events (eventType = "EVENT") — for the events section & donate buttons
         List<com.justjava.mycommunity.event.Event> communityEvents =

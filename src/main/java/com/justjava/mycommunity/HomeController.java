@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.math.BigDecimal;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
@@ -542,6 +543,12 @@ public class HomeController {
         }
         model.addAttribute("hasActiveSubscription", hasActiveSubscription);
         model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
+        List<Map<String, Object>> memberCommunitySubscriptions = selectedCommunityId != null
+                ? communityService.getUserSubscriptions(currentUserId).stream()
+                .filter(sub -> selectedCommunityId.equals(sub.get("communityId")))
+                .collect(Collectors.toList())
+                : java.util.Collections.emptyList();
+        model.addAttribute("memberCommunitySubscriptions", memberCommunitySubscriptions);
 
         System.out.println("=== END HOME CONTROLLER DEBUG ===");
         return "home";
