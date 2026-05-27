@@ -196,6 +196,11 @@ public class CommunityController {
         }
         model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
         model.addAttribute("activeSubscriptionPlans", communityService.getActiveSubscriptionPlans(communityId));
+        List<Map<String, Object>> memberCommunitySubscriptions = communityService.getUserSubscriptions(currentUserId)
+                .stream()
+                .filter(sub -> sub.get("communityId") != null && communityId.equals(sub.get("communityId")))
+                .toList();
+        model.addAttribute("memberCommunitySubscriptions", memberCommunitySubscriptions);
 
         List<NetworkDTO> communityNetworks = new ArrayList<>();
         try {
