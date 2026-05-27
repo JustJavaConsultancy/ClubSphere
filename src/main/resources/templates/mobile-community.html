@@ -1789,12 +1789,12 @@
             <h2 class="mobile-section-title">Donate</h2>
         </div>
         <div style="padding: 12px;">
-            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">Donate toward an event either immediately or by promise.</p>
+            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">Donate toward an event either immediately or by pledge.</p>
             <button type="button" onclick="openMobileDonateModal()" class="mobile-subscribe-btn" style="background: linear-gradient(135deg, #ec4899, #db2777);">
                 <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
-                Donate Now or Promise
+                Donate Now or Pledge
             </button>
         </div>
         <div id="mobileDonationFeedback" style="margin-top: 8px; padding: 0 12px;"></div>
@@ -1805,7 +1805,7 @@
         <div class="mobile-sub-modal-content">
             <div style="width: 40px; height: 4px; background: #d1d5db; border-radius: 4px; margin: 0 auto 16px;"></div>
             <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">Donate to Club</h3>
-            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Enter the amount for this event donation. You can pay now or promise and fulfill later.</p>
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Enter the amount for this event donation. You can pay now or pledge and fulfill later.</p>
             <form method="post" action="/donation/promise">
                 <input type="hidden" name="communityId" th:value="${communityId}">
                 <input type="hidden" name="source" value="mobile">
@@ -1839,7 +1839,7 @@
                     <button type="submit"
                             class="mobile-subscribe-btn"
                             style="flex:1; background: linear-gradient(135deg, #7c3aed, #6d28d9);">
-                        Promise
+                Pledge
                     </button>
                 </div>
                 <button type="button" onclick="closeMobileDonateModal()"

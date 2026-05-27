@@ -72,7 +72,7 @@
                     th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Club'}">Club</h3>
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold uppercase mt-1"
                       th:classappend="${don['status'] == 'PENDING'} ? ' bg-amber-100 text-amber-700' : ' bg-pink-100 text-pink-700'"
-                      th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Donation'">
+                                th:text="${don['status'] == 'PENDING'} ? 'Pledged' : 'Donation'">
                     Donation
                 </span>
             </div>
@@ -103,7 +103,7 @@
                     hx-target="#mobileDonationActionFeedback"
                     hx-swap="innerHTML"
                     style="width:100%; background:#ec4899; color:#fff; border:none; border-radius:12px; padding:10px 12px; font-size:13px; font-weight:600; cursor:pointer;">
-                Pay Promise
+                                            Pay Pledge
             </button>
         </div>
     </div>

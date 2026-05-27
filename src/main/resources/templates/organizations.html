@@ -905,7 +905,7 @@
                                         th:text="${don['communityName'] != null ? don['communityName'] : 'Unknown Club'}">Club Name</h4>
                                     <span style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
                                           th:style="${don['status'] == 'PENDING'} ? 'display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fef3c7; color: #92400e;' : 'display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background-color: #fce7f3; color: #be185d;'"
-                                          th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Donation'">
+                                th:text="${don['status'] == 'PENDING'} ? 'Pledged' : 'Donation'">
                                         Donation
                                     </span>
                                 </div>

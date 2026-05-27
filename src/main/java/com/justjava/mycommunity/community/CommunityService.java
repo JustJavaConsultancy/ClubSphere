@@ -1666,7 +1666,7 @@ public class CommunityService {
     @Transactional
     public void promiseDonation(String userId, Long communityId, Long eventId, BigDecimal amount, String message) {
 
-        // Validate membership (warn but don't block — promise can be made)
+        // Validate membership (warn but don't block — pledge can be made)
         boolean isMember = communityMembershipRepository
                 .existsActiveMembership(userId, communityId);
         if (!isMember) {
@@ -1685,7 +1685,7 @@ public class CommunityService {
             throw new IllegalArgumentException("Donation amount must be at least ₦1");
         }
 
-        // Save donation promise record
+        // Save donation pledge record
         Donation donation = new Donation();
         donation.setUserId(userId);
         donation.setCommunityId(communityId);
@@ -1815,7 +1815,7 @@ public class CommunityService {
     @Transactional
     public void fulfillDonationPromise(Long donationId, String paystackRef) {
         Donation donation = donationRepository.findById(donationId)
-                .orElseThrow(() -> new EntityNotFoundException("Donation promise not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Donation pledge not found"));
 
         if (donation.getStatus() != PaymentStatus.PENDING) {
             throw new IllegalStateException("Donation is not in pending status");

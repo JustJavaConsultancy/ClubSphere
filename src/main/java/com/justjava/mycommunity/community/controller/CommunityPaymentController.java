@@ -398,7 +398,7 @@ public class CommunityPaymentController {
         return "mobile-my-donations";
     }
 
-    // 🔹 Promise Donation
+// 🔹 Pledge Donation
     @PostMapping("/donation/promise")
     public String promiseDonation(@RequestParam Long communityId,
                                   @RequestParam Long eventId,
@@ -409,9 +409,9 @@ public class CommunityPaymentController {
         try {
             String userId = (String) authenticationManager.get("sub");
             communityService.promiseDonation(userId, communityId, eventId, amount, message);
-            redirectAttributes.addFlashAttribute("successMessage", "✅ Donation promised! You can fulfill it later when ready.");
+        redirectAttributes.addFlashAttribute("successMessage", "✅ Donation pledged! You can fulfill it later when ready.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Donation promise could not be made: " + e.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", "Donation pledge could not be made: " + e.getMessage());
         }
         if ("mobile".equals(source)) {
             return "redirect:/donation/mobile/my-donations";
@@ -419,7 +419,7 @@ public class CommunityPaymentController {
         return "redirect:/donation/my-donations";
     }
 
-    // 🔹 Fulfill Donation Promise
+// 🔹 Fulfill Donation Pledge
     @PostMapping("/donation/fulfill")
     public String fulfillDonationPromise(@RequestParam Long donationId,
                                          @RequestParam String reference,
@@ -430,7 +430,7 @@ public class CommunityPaymentController {
             String status = (String) paymentData.get("status");
             if ("success".equals(status)) {
                 communityService.fulfillDonationPromise(donationId, reference);
-                redirectAttributes.addFlashAttribute("successMessage", "✅ Donation fulfilled! Thank you for keeping your promise.");
+        redirectAttributes.addFlashAttribute("successMessage", "✅ Donation fulfilled! Thank you for keeping your pledge.");
             } else {
                 redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
             }
@@ -449,10 +449,10 @@ public class CommunityPaymentController {
         try {
             String userId = (String) authenticationManager.get("sub");
             Donation donation = donationRepository.findByIdAndUserId(donationId, userId)
-                    .orElseThrow(() -> new IllegalArgumentException("Donation promise not found."));
+                .orElseThrow(() -> new IllegalArgumentException("Donation pledge not found."));
 
             if (donation.getStatus() != PaymentStatus.PENDING) {
-                return ResponseEntity.ok("<div class='text-amber-600 font-medium'>This donation promise has already been fulfilled.</div>");
+            return ResponseEntity.ok("<div class='text-amber-600 font-medium'>This donation pledge has already been fulfilled.</div>");
             }
 
             User user = userRepository.findByUserId(userId);
@@ -489,10 +489,10 @@ public class CommunityPaymentController {
         try {
             String userId = (String) authenticationManager.get("sub");
             Donation donation = donationRepository.findByIdAndUserId(donationId, userId)
-                    .orElseThrow(() -> new IllegalArgumentException("Donation promise not found."));
+                .orElseThrow(() -> new IllegalArgumentException("Donation pledge not found."));
 
             if (donation.getStatus() != PaymentStatus.PENDING) {
-                redirectAttributes.addFlashAttribute("successMessage", "Donation promise is already fulfilled.");
+            redirectAttributes.addFlashAttribute("successMessage", "Donation pledge is already fulfilled.");
             } else if (reference == null || reference.isBlank()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Payment reference missing.");
             } else {
@@ -500,7 +500,7 @@ public class CommunityPaymentController {
                 String status = (String) paymentData.get("status");
                 if ("success".equals(status)) {
                     communityService.fulfillDonationPromise(donationId, reference);
-                    redirectAttributes.addFlashAttribute("successMessage", "✅ Donation fulfilled! Thank you for keeping your promise.");
+            redirectAttributes.addFlashAttribute("successMessage", "✅ Donation fulfilled! Thank you for keeping your pledge.");
                 } else {
                     redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
                 }

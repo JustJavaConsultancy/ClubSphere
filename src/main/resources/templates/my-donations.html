@@ -76,7 +76,7 @@
                     <td class="px-4 py-3">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase"
                               th:classappend="${don['status'] == 'PENDING'} ? ' bg-amber-100 text-amber-700' : ' bg-pink-100 text-pink-700'"
-                              th:text="${don['status'] == 'PENDING'} ? 'Promised' : 'Paid'">Paid</span>
+                              th:text="${don['status'] == 'PENDING'} ? 'Pledged' : 'Paid'">Paid</span>
                     </td>
                     <td class="px-4 py-3 text-gray-500"
                         th:text="${don['donatedAt'] != null ? #temporals.format(don['donatedAt'], 'MMM dd, yyyy HH:mm') : 'N/A'}">Jan 01, 2025</td>
@@ -88,7 +88,7 @@
                                 th:hx-post="@{/donation/fulfill/initiate(donationId=${don['donationId']})}"
                                 hx-target="#donationActionFeedback"
                                 hx-swap="innerHTML">
-                            Pay Promise
+                            Pay Pledge
                         </button>
                         <span th:if="${don['status'] != 'PENDING'}" class="text-xs font-medium text-green-600">Completed</span>
                     </td>
