@@ -1271,13 +1271,16 @@ public class CommunityService {
     // ══════════════════ SUBSCRIPTIONS ══════════════════
 
     public boolean hasActiveSubscription(String userId, Long communityId) {
-        return membershipSubscriptionRepository.existsByUserIdAndCommunityIdAndStatus(
-                userId, communityId, SubscriptionStatus.ACTIVE
-        );
+        return membershipSubscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
+                .stream()
+                .anyMatch(sub -> communityId.equals(sub.getCommunityId()));
     }
 
     @Transactional
-    public SubscriptionPlan upsertSubscriptionPlan(Long communityId, BillingCycle billingCycle, BigDecimal amount) {
+    public SubscriptionPlan upsertSubscriptionPlan(Long communityId, Long planId, String name, BillingCycle billingCycle, BigDecimal amount) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Subscription name is required");
+        }
         if (billingCycle == null) {
             throw new IllegalArgumentException("Billing cycle is required");
         }
@@ -1288,19 +1291,105 @@ public class CommunityService {
             throw new IllegalArgumentException("Subscription amount must be at least N1");
         }
 
-        List<SubscriptionPlan> activePlans = subscriptionPlanRepository.findByCommunityIdAndActiveTrue(communityId);
-        for (SubscriptionPlan activePlan : activePlans) {
-            activePlan.setActive(false);
-        }
-        subscriptionPlanRepository.saveAll(activePlans);
+        String normalizedName = name.trim();
+        Optional<SubscriptionPlan> existingByName =
+                subscriptionPlanRepository.findByCommunityIdAndNameIgnoreCase(communityId, normalizedName);
 
-        SubscriptionPlan plan = new SubscriptionPlan();
-        plan.setCommunityId(communityId);
-        plan.setName("Community Subscription");
+        SubscriptionPlan plan;
+        if (planId != null) {
+            plan = subscriptionPlanRepository.findById(planId)
+                    .orElseThrow(() -> new IllegalArgumentException("Subscription plan not found"));
+            if (!communityId.equals(plan.getCommunityId())) {
+                throw new IllegalArgumentException("Subscription plan does not belong to this community");
+            }
+            if (existingByName.isPresent() && !existingByName.get().getId().equals(planId)) {
+                throw new IllegalArgumentException("Subscription name already exists in this community");
+            }
+        } else {
+            if (existingByName.isPresent()) {
+                throw new IllegalArgumentException("Subscription name already exists in this community");
+            }
+            plan = new SubscriptionPlan();
+            plan.setCommunityId(communityId);
+        }
+
+        plan.setName(normalizedName);
         plan.setAmount(amount);
         plan.setBillingCycle(billingCycle);
         plan.setActive(true);
-        return subscriptionPlanRepository.save(plan);
+        SubscriptionPlan savedPlan = subscriptionPlanRepository.save(plan);
+        autoSubscribeMembersForPlan(communityId, savedPlan);
+        return savedPlan;
+    }
+
+    @Transactional
+    public Map<String, Object> autoSubscribeMembersForPlan(Long communityId, SubscriptionPlan plan) {
+        if (plan == null || plan.getId() == null) {
+            throw new IllegalArgumentException("A valid subscription plan is required");
+        }
+
+        List<CommunityMembership> activeMemberships = communityMembershipRepository.findActiveByCommunityId(communityId);
+        LocalDateTime now = LocalDateTime.now();
+
+        int membersEvaluated = 0;
+        int subscriptionsCreated = 0;
+        int subscriptionsUpdated = 0;
+        int invoicesCreated = 0;
+        int invoicesSkipped = 0;
+        int errors = 0;
+
+        for (CommunityMembership membership : activeMemberships) {
+            membersEvaluated++;
+            try {
+                String userId = membership.getUserId();
+                Optional<MembershipSubscription> existingOpt =
+                        membershipSubscriptionRepository.findByUserIdAndPlanId(userId, plan.getId());
+
+                MembershipSubscription subscription;
+                if (existingOpt.isEmpty()) {
+                    subscription = new MembershipSubscription();
+                    subscription.setUserId(userId);
+                    subscription.setCommunityId(communityId);
+                    subscription.setStartDate(now);
+                    subscriptionsCreated++;
+                } else {
+                    subscription = existingOpt.get();
+                    subscriptionsUpdated++;
+                    if (subscription.getStartDate() == null) {
+                        subscription.setStartDate(now);
+                    }
+                }
+
+                subscription.setPlanId(plan.getId());
+                subscription.setAmount(plan.getAmount());
+                subscription.setStatus(SubscriptionStatus.ACTIVE);
+                subscription.setNextBillingDate(now);
+                membershipSubscriptionRepository.save(subscription);
+
+                if (subscriptionBillingService.generateInvoiceForCycle(subscription, now).isPresent()) {
+                    invoicesCreated++;
+                } else {
+                    invoicesSkipped++;
+                }
+
+                subscription.setNextBillingDate(
+                        subscriptionBillingService.calculateNextBillingDate(now, plan.getBillingCycle())
+                );
+                membershipSubscriptionRepository.save(subscription);
+            } catch (Exception e) {
+                errors++;
+                System.err.println("Failed auto-subscribing member in communityId=" + communityId + ": " + e.getMessage());
+            }
+        }
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("membersEvaluated", membersEvaluated);
+        summary.put("subscriptionsCreated", subscriptionsCreated);
+        summary.put("subscriptionsUpdated", subscriptionsUpdated);
+        summary.put("invoicesCreated", invoicesCreated);
+        summary.put("invoicesSkipped", invoicesSkipped);
+        summary.put("errors", errors);
+        return summary;
     }
 
     @Transactional(readOnly = true)
@@ -1308,6 +1397,11 @@ public class CommunityService {
         return subscriptionPlanRepository.findByCommunityIdAndActiveTrue(communityId)
                 .stream()
                 .findFirst();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubscriptionPlan> getActiveSubscriptionPlans(Long communityId) {
+        return subscriptionPlanRepository.findByCommunityIdAndActiveTrue(communityId);
     }
 
     @Transactional
@@ -1325,11 +1419,12 @@ public class CommunityService {
             System.out.println("WARNING: startSubscription called for non-approved member userId=" + userId + " communityId=" + communityId + " — proceeding anyway since payment was verified.");
         }
 
-        // Check for existing active subscription
-        Optional<MembershipSubscription> existing =
-                membershipSubscriptionRepository.findByUserIdAndCommunityId(userId, communityId);
-        if (existing.isPresent() && existing.get().getStatus() == SubscriptionStatus.ACTIVE) {
-            throw new IllegalStateException("User already has an active subscription for this community");
+        boolean hasActiveInCommunity = membershipSubscriptionRepository
+                .findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
+                .stream()
+                .anyMatch(sub -> communityId.equals(sub.getCommunityId()));
+        if (hasActiveInCommunity) {
+            throw new IllegalStateException("User already has active subscription(s) for this community");
         }
 
         SubscriptionPlan plan = getActiveSubscriptionPlan(communityId)
@@ -1474,10 +1569,10 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public boolean hasPaidSubscription(String userId, Long communityId) {
-        return membershipSubscriptionRepository.findByUserIdAndCommunityId(userId, communityId)
-                .filter(sub -> sub.getStatus() == SubscriptionStatus.ACTIVE)
-                .map(this::hasPaidInvoiceForSubscription)
-                .orElse(false);
+        return membershipSubscriptionRepository.findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
+                .stream()
+                .filter(sub -> communityId.equals(sub.getCommunityId()))
+                .anyMatch(this::hasPaidInvoiceForSubscription);
     }
 
     @Transactional(readOnly = true)
@@ -1519,6 +1614,46 @@ public class CommunityService {
         return invoices;
     }
 
+    @Transactional(readOnly = true)
+    public List<Invoice> getUserSubscriptionInvoices(String userId, Long subscriptionId) {
+        if (subscriptionId == null) {
+            return getUserSubscriptionInvoices(userId);
+        }
+        MembershipSubscription subscription = membershipSubscriptionRepository.findById(subscriptionId)
+                .orElseThrow(() -> new EntityNotFoundException("Subscription not found"));
+        if (!userId.equals(subscription.getUserId())) {
+            throw new SecurityException("You can only view invoices for your own subscription");
+        }
+        List<Invoice> invoices = new ArrayList<>(
+                invoiceRepository.findByMerchantIdStartingWith("SUB-" + subscription.getId() + "-")
+        );
+        invoices.sort((a, b) -> {
+            if (a.getDueDate() == null && b.getDueDate() == null) return 0;
+            if (a.getDueDate() == null) return 1;
+            if (b.getDueDate() == null) return -1;
+            return b.getDueDate().compareTo(a.getDueDate());
+        });
+        return invoices;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Invoice> getUserSubscriptionInvoiceById(String userId, Long invoiceId) {
+        if (invoiceId == null) return Optional.empty();
+        return getUserSubscriptionInvoices(userId).stream()
+                .filter(inv -> invoiceId.equals(inv.getId()))
+                .findFirst();
+    }
+
+    @Transactional
+    public void markUserSubscriptionInvoicePaid(String userId, Long invoiceId) {
+        Invoice invoice = getUserSubscriptionInvoiceById(userId, invoiceId)
+                .orElseThrow(() -> new SecurityException("Invoice not found for this user"));
+        if (invoice.getStatus() != Status.PAID) {
+            invoice.setStatus(Status.PAID);
+            invoiceRepository.save(invoice);
+        }
+    }
+
     private boolean hasPaidInvoiceForSubscription(MembershipSubscription subscription) {
         return !invoiceRepository.findByMerchantIdStartingWithAndStatus(
                 "SUB-" + subscription.getId() + "-", Status.PAID
@@ -1538,12 +1673,21 @@ public class CommunityService {
         for (Long cId : communityIds) {
             communityRepository.findById(cId).ifPresent(c -> communityNameMap.put(cId, c.getName()));
         }
+        Map<Long, String> planNameMap = subscriptionPlanRepository.findAllById(
+                        subscriptions.stream()
+                                .map(MembershipSubscription::getPlanId)
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .toList())
+                .stream()
+                .collect(Collectors.toMap(SubscriptionPlan::getId, SubscriptionPlan::getName, (a, b) -> a));
 
         for (MembershipSubscription sub : subscriptions) {
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("subscriptionId", sub.getId());
             entry.put("communityId", sub.getCommunityId());
             entry.put("communityName", communityNameMap.getOrDefault(sub.getCommunityId(), "Unknown Community"));
+            entry.put("planName", planNameMap.getOrDefault(sub.getPlanId(), "Subscription"));
             entry.put("amount", sub.getAmount());
             entry.put("status", sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN");
             entry.put("startDate", sub.getStartDate());
@@ -1576,6 +1720,14 @@ public class CommunityService {
         Map<String, User> userMap = userRepository.findByUserIdIn(userIds)
                 .stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u, (a, b) -> a));
+        Map<Long, String> planNameMap = subscriptionPlanRepository.findAllById(
+                        subscriptions.stream()
+                                .map(MembershipSubscription::getPlanId)
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .toList())
+                .stream()
+                .collect(Collectors.toMap(SubscriptionPlan::getId, SubscriptionPlan::getName, (a, b) -> a));
 
         for (MembershipSubscription sub : subscriptions) {
             Map<String, Object> entry = new LinkedHashMap<>();
@@ -1585,6 +1737,7 @@ public class CommunityService {
             entry.put("firstName", user != null ? user.getFirstName() : "Unknown");
             entry.put("lastName", user != null ? user.getLastName() : "");
             entry.put("email", user != null ? user.getEmail() : "");
+            entry.put("planName", planNameMap.getOrDefault(sub.getPlanId(), "Subscription"));
             entry.put("amount", sub.getAmount());
             entry.put("status", sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN");
             entry.put("startDate", sub.getStartDate());

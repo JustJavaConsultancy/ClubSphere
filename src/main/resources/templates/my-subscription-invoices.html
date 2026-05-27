@@ -50,6 +50,9 @@
                         <span class="inline-flex mt-1 items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase"
                               th:classappend="${inv.status != null and inv.status.name() == 'PAID'} ? ' bg-green-100 text-green-700' : ' bg-yellow-100 text-yellow-700'"
                               th:text="${inv.status != null ? inv.status.name() : 'NEW'}">NEW</span>
+                        <a th:if="${inv.status == null or inv.status.name() != 'PAID'}"
+                           th:href="@{/subscription/invoice/pay(invoiceId=${inv.id},source='web')}"
+                           class="inline-flex mt-2 items-center px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition-colors">Pay</a>
                     </div>
                 </div>
             </div>

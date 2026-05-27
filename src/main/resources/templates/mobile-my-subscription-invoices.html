@@ -45,6 +45,9 @@
                       th:text="${inv.status != null ? inv.status.name() : 'NEW'}">NEW</span>
             </div>
             <p class="text-base font-bold text-gray-800 mt-2" th:text="${inv.amount != null ? '₦' + #numbers.formatDecimal(inv.amount,1,2) : '₦0.00'}">₦0.00</p>
+            <a th:if="${inv.status == null or inv.status.name() != 'PAID'}"
+               th:href="@{/subscription/invoice/pay(invoiceId=${inv.id},source='mobile')}"
+               class="inline-flex mt-2 items-center px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold">Pay</a>
         </div>
     </div>
 </div>

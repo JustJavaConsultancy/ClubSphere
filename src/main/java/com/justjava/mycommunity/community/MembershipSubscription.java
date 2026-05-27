@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"userId", "planId"})
+})
 public class MembershipSubscription {
 
     @Id

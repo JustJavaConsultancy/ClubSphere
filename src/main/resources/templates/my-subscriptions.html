@@ -95,6 +95,8 @@
                                       th:classappend="${sub['hasPaidInvoice'] == true} ? ' status-active' : ' bg-amber-100 text-amber-700'"
                                       th:text="${sub['hasPaidInvoice'] == true} ? 'INVOICE PAID' : 'INVOICE PENDING'">INVOICE PENDING</span>
                             </div>
+                            <p class="text-sm text-gray-500 mb-2"
+                               th:text="${sub['planName'] != null ? sub['planName'] : 'Subscription'}">Subscription</p>
                             <div class="flex flex-wrap gap-6 text-sm text-gray-500">
                                 <span class="flex items-center gap-1">
                                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,7 +114,7 @@
                         </div>
                         <!-- Actions -->
                         <div class="flex items-center gap-2">
-                            <a href="/subscription/my-invoices" class="px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 text-sm font-semibold hover:bg-purple-100 transition-colors">
+                            <a th:href="@{/subscription/my-invoices(subscriptionId=${sub['subscriptionId']})}" class="px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 text-sm font-semibold hover:bg-purple-100 transition-colors">
                                 View Invoices
                             </a>
                             <!-- Cancel button for active subscriptions -->

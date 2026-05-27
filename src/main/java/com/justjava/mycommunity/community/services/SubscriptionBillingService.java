@@ -102,6 +102,7 @@ public class SubscriptionBillingService {
     public LocalDateTime calculateNextBillingDate(LocalDateTime from, BillingCycle cycle) {
         LocalDateTime effectiveFrom = from == null ? LocalDateTime.now() : from;
         return switch (cycle) {
+            case ONE_OFF -> null;
             case WEEKLY -> effectiveFrom.plusWeeks(1);
             case QUARTERLY -> effectiveFrom.plusMonths(3);
             case YEARLY, ANNUALLY -> effectiveFrom.plusYears(1);
@@ -123,6 +124,7 @@ public class SubscriptionBillingService {
     private String buildInvoiceDescription(MembershipSubscription subscription, LocalDate cycleDate) {
         BillingCycle cycle = resolveBillingCycle(subscription);
         return switch (cycle) {
+            case ONE_OFF -> "One-off subscription payment";
             case MONTHLY -> "Subscription for Month " + cycleDate.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + cycleDate.getYear();
             case QUARTERLY -> "Subscription for " + getQuarterLabel(cycleDate.getMonth()) + " Quarter";
             case YEARLY, ANNUALLY -> "Subscription for Year " + cycleDate.getYear();

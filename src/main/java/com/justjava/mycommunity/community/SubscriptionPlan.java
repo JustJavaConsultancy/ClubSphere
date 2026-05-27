@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 @Entity
 @Getter
 @Setter
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"communityId", "name"})
+})
 public class SubscriptionPlan {
 
     @Id

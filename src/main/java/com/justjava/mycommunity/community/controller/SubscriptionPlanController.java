@@ -24,6 +24,8 @@ public class SubscriptionPlanController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> upsertPlan(@RequestParam Long communityId,
+                                                           @RequestParam(required = false) Long planId,
+                                                           @RequestParam String name,
                                                            @RequestParam BillingCycle billingCycle,
                                                            @RequestParam BigDecimal amount) {
         String userId = (String) authenticationManager.get("sub");
@@ -33,11 +35,12 @@ public class SubscriptionPlanController {
             return ResponseEntity.status(403).body(Map.of("success", false, "message", "Only community admins can set subscription plans"));
         }
 
-        SubscriptionPlan plan = communityService.upsertSubscriptionPlan(communityId, billingCycle, amount);
+        SubscriptionPlan plan = communityService.upsertSubscriptionPlan(communityId, planId, name, billingCycle, amount);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("success", true);
         response.put("planId", plan.getId());
         response.put("communityId", plan.getCommunityId());
+        response.put("name", plan.getName());
         response.put("billingCycle", plan.getBillingCycle());
         response.put("amount", plan.getAmount());
         response.put("active", plan.getActive());

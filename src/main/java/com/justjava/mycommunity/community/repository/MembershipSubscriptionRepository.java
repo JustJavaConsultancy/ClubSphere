@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface MembershipSubscriptionRepository extends JpaRepository<MembershipSubscription, Long> {
 
     Optional<MembershipSubscription> findByUserIdAndCommunityId(String userId, Long communityId);
+    Optional<MembershipSubscription> findByUserIdAndPlanId(String userId, Long planId);
 
     List<MembershipSubscription> findByStatus(SubscriptionStatus status);
 
@@ -31,4 +32,5 @@ public interface MembershipSubscriptionRepository extends JpaRepository<Membersh
     List<MembershipSubscription> findByUserIdAndStatus(String userId, SubscriptionStatus status);
 
     List<MembershipSubscription> findByCommunityIdAndStatus(Long communityId, SubscriptionStatus status);
+    List<MembershipSubscription> findByPlanId(Long planId);
 }

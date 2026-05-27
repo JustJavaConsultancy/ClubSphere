@@ -1485,11 +1485,18 @@
                         <form hx-post="/subscription/plan/configure"
                               hx-target="#subscriptionFeedback"
                               hx-swap="innerHTML"
-                              class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                              class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                             <input type="hidden" name="communityId" th:value="${communityId}">
+                            <input type="hidden" name="planId" id="subscriptionPlanId">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Subscription Name</label>
+                                <input type="text" name="name" id="subscriptionPlanName" required placeholder="e.g. Welfare Fund"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">Billing Cycle</label>
-                                <select name="billingCycle" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                                <select name="billingCycle" id="subscriptionPlanCycle" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required>
+                                    <option value="ONE_OFF" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and activeSubscriptionPlan.billingCycle.name() == 'ONE_OFF'}">One-Off</option>
                                     <option value="MONTHLY" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and activeSubscriptionPlan.billingCycle.name() == 'MONTHLY'}">Monthly</option>
                                     <option value="QUARTERLY" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and activeSubscriptionPlan.billingCycle.name() == 'QUARTERLY'}">Quarterly</option>
                                     <option value="YEARLY" th:selected="${activeSubscriptionPlan != null and activeSubscriptionPlan.billingCycle != null and (activeSubscriptionPlan.billingCycle.name() == 'ANNUALLY' or activeSubscriptionPlan.billingCycle.name() == 'YEARLY')}">Annually</option>
@@ -1497,14 +1504,50 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">Amount (Naira)</label>
-                                <input type="number" name="amount" min="1" step="0.01" required
-                                       th:value="${activeSubscriptionPlan != null ? activeSubscriptionPlan.amount : ''}"
+                                <input type="number" name="amount" id="subscriptionPlanAmount" min="1" step="0.01" required
                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                             </div>
-                            <button type="submit" class="primary-button !py-2 !px-4">
+                            <button type="submit" id="subscriptionPlanSubmitBtn" class="primary-button !py-2 !px-4">
                                 Save Plan
                             </button>
                         </form>
+                        <div class="mt-4 border-t border-purple-200 pt-4">
+                            <p class="text-xs font-semibold text-purple-900 mb-2">Created Subscription Plans</p>
+                            <div th:if="${activeSubscriptionPlans == null or #lists.isEmpty(activeSubscriptionPlans)}" class="text-xs text-gray-500">
+                                No plans created yet.
+                            </div>
+                            <div th:if="${activeSubscriptionPlans != null and !#lists.isEmpty(activeSubscriptionPlans)}" class="overflow-x-auto rounded-lg border border-purple-100 bg-white">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                    <tr class="bg-purple-50 text-left">
+                                        <th class="px-3 py-2 font-semibold text-gray-700">Name</th>
+                                        <th class="px-3 py-2 font-semibold text-gray-700">Cycle</th>
+                                        <th class="px-3 py-2 font-semibold text-gray-700">Amount</th>
+                                        <th class="px-3 py-2 font-semibold text-gray-700">Action</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="plan : ${activeSubscriptionPlans}" class="border-t border-purple-100">
+                                        <td class="px-3 py-2" th:text="${plan.name}">Welfare Fund</td>
+                                        <td class="px-3 py-2" th:text="${plan.billingCycle}">MONTHLY</td>
+                                        <td class="px-3 py-2" th:text="${'₦' + #numbers.formatDecimal(plan.amount,1,2)}">₦0.00</td>
+                                        <td class="px-3 py-2">
+                                            <button type="button"
+                                                    class="text-xs font-semibold text-purple-700 hover:text-purple-900"
+                                                    th:attr="data-plan-id=${plan.id},data-plan-name=${plan.name},data-plan-cycle=${plan.billingCycle},data-plan-amount=${plan.amount}"
+                                                    onclick="editSubscriptionPlan(this)">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="button" id="subscriptionPlanResetBtn" onclick="resetSubscriptionPlanForm()"
+                                    class="mt-2 text-xs font-semibold text-gray-600 hover:text-gray-800 hidden">
+                                Cancel Edit
+                            </button>
+                        </div>
                     </div>
                     <div th:if="${hasActiveSubscription}">
                         <div class="sub-active-badge mb-3">
@@ -2178,6 +2221,7 @@
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Subscriber</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Plan</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Start Date</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Next Billing</th>
                                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Invoice Status</th>
@@ -2187,7 +2231,7 @@
                             <tbody id="subscriptions-table-body"
                                    th:attr="data-community-id=${communityId}">
                             <tr id="subscriptions-loading-row">
-                                <td colspan="6" class="py-8 text-center text-gray-400">
+                                <td colspan="8" class="py-8 text-center text-gray-400">
                                     <div class="flex flex-col items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
@@ -3134,20 +3178,21 @@
             const communityId = tbody.getAttribute('data-community-id');
             if (!communityId) return;
 
-            tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">Loading subscriptions...</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-gray-400 text-sm">Loading subscriptions...</td></tr>';
             fetch('/subscription/subscriptions/list?communityId=' + encodeURIComponent(communityId))
                 .then(function(r) { return r.json(); })
                 .then(function(subs) {
-                    if (!Array.isArray(subs) || subs.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-400 text-sm">No subscriptions found for this club.</td></tr>';
-                        return;
-                    }
+                        if (!Array.isArray(subs) || subs.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-gray-400 text-sm">No subscriptions found for this club.</td></tr>';
+                            return;
+                        }
 
                     let html = '';
                     subs.forEach(function(sub) {
                         const fullName = ((sub.firstName || '') + ' ' + (sub.lastName || '')).trim() || 'Unknown';
                         const email = sub.email || '—';
                         const status = sub.status || 'UNKNOWN';
+                        const planName = sub.planName || 'Subscription';
                         const startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
                         const nextBilling = sub.nextBillingDate ? new Date(sub.nextBillingDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'N/A';
                         const planAmount = sub.amount != null ? ('₦' + Number(sub.amount).toFixed(2)) : '₦0.00';
@@ -3161,6 +3206,7 @@
                         html += '<td class="py-3 px-4"><div class="font-medium text-gray-800">' + fullName + '</div></td>';
                         html += '<td class="py-3 px-4 text-gray-600 text-sm">' + email + '</td>';
                         html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + statusClass + '">' + status + '</span></td>';
+                        html += '<td class="py-3 px-4 text-sm text-gray-700">' + planName + '</td>';
                         html += '<td class="py-3 px-4 text-sm text-gray-600">' + startDate + '</td>';
                         html += '<td class="py-3 px-4 text-sm text-gray-600">' + nextBilling + '</td>';
                         html += '<td class="py-3 px-4"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ' + (hasPaidInvoice ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700') + '">' + (hasPaidInvoice ? 'PAID' : 'PENDING') + '</span></td>';
@@ -3170,8 +3216,43 @@
                     tbody.innerHTML = html;
                 })
                 .catch(function() {
-                    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-400 text-sm">Error loading subscriptions.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-red-400 text-sm">Error loading subscriptions.</td></tr>';
                 });
+        }
+
+        function editSubscriptionPlan(button) {
+            const planIdInput = document.getElementById('subscriptionPlanId');
+            const nameInput = document.getElementById('subscriptionPlanName');
+            const cycleInput = document.getElementById('subscriptionPlanCycle');
+            const amountInput = document.getElementById('subscriptionPlanAmount');
+            const submitBtn = document.getElementById('subscriptionPlanSubmitBtn');
+            const resetBtn = document.getElementById('subscriptionPlanResetBtn');
+            if (!planIdInput || !nameInput || !cycleInput || !amountInput || !submitBtn || !resetBtn) return;
+
+            planIdInput.value = button.getAttribute('data-plan-id') || '';
+            nameInput.value = button.getAttribute('data-plan-name') || '';
+            cycleInput.value = button.getAttribute('data-plan-cycle') || 'MONTHLY';
+            amountInput.value = button.getAttribute('data-plan-amount') || '';
+            submitBtn.textContent = 'Update Plan';
+            resetBtn.classList.remove('hidden');
+            nameInput.focus();
+        }
+
+        function resetSubscriptionPlanForm() {
+            const planIdInput = document.getElementById('subscriptionPlanId');
+            const nameInput = document.getElementById('subscriptionPlanName');
+            const cycleInput = document.getElementById('subscriptionPlanCycle');
+            const amountInput = document.getElementById('subscriptionPlanAmount');
+            const submitBtn = document.getElementById('subscriptionPlanSubmitBtn');
+            const resetBtn = document.getElementById('subscriptionPlanResetBtn');
+            if (!planIdInput || !nameInput || !cycleInput || !amountInput || !submitBtn || !resetBtn) return;
+
+            planIdInput.value = '';
+            nameInput.value = '';
+            cycleInput.value = 'MONTHLY';
+            amountInput.value = '';
+            submitBtn.textContent = 'Save Plan';
+            resetBtn.classList.add('hidden');
         }
 
         function loadCommunityDonations() {

@@ -195,6 +195,7 @@ public class CommunityController {
             System.out.println("Error loading active subscription plan: " + e.getMessage());
         }
         model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
+        model.addAttribute("activeSubscriptionPlans", communityService.getActiveSubscriptionPlans(communityId));
 
         List<NetworkDTO> communityNetworks = new ArrayList<>();
         try {

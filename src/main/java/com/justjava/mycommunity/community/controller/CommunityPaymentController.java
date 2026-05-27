@@ -169,13 +169,15 @@ public class CommunityPaymentController {
 
     @PostMapping("/subscription/plan/configure")
     public ResponseEntity<String> configureSubscriptionPlan(@RequestParam("communityId") Long communityId,
+                                                            @RequestParam(value = "planId", required = false) Long planId,
+                                                            @RequestParam("name") String name,
                                                             @RequestParam("billingCycle") BillingCycle billingCycle,
                                                             @RequestParam("amount") BigDecimal amount) {
         try {
             if (!authenticationManager.isAdmin()) {
                 return ResponseEntity.ok("<div class='text-red-600 font-medium'>Only admins can configure subscription plans.</div>");
             }
-            SubscriptionPlan plan = communityService.upsertSubscriptionPlan(communityId, billingCycle, amount);
+            SubscriptionPlan plan = communityService.upsertSubscriptionPlan(communityId, planId, name, billingCycle, amount);
             return ResponseEntity.ok("<div class='text-green-600 font-medium'>Plan updated: " + plan.getBillingCycle() + " / ₦" + plan.getAmount() + "</div>");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok("<div class='text-amber-600 font-medium'>" + e.getMessage() + "</div>");
@@ -202,9 +204,10 @@ public class CommunityPaymentController {
     }
 
     @GetMapping("/subscription/my-invoices")
-    public String mySubscriptionInvoicesPage(Model model) {
+    public String mySubscriptionInvoicesPage(@RequestParam(value = "subscriptionId", required = false) Long subscriptionId,
+                                             Model model) {
         String userId = (String) authenticationManager.get("sub");
-        List<Invoice> invoices = communityService.getUserSubscriptionInvoices(userId);
+        List<Invoice> invoices = communityService.getUserSubscriptionInvoices(userId, subscriptionId);
         long paidCount = invoices.stream().filter(i -> i.getStatus() == Status.PAID).count();
         long pendingCount = invoices.stream().filter(i -> i.getStatus() == Status.NEW).count();
         BigDecimal paidTotal = invoices.stream()
@@ -217,6 +220,7 @@ public class CommunityPaymentController {
         model.addAttribute("paidInvoiceCount", paidCount);
         model.addAttribute("pendingInvoiceCount", pendingCount);
         model.addAttribute("totalAmountPaid", paidTotal);
+        model.addAttribute("selectedSubscriptionId", subscriptionId);
         model.addAttribute("currentPath", "/subscription/my-invoices");
         model.addAttribute("userId", userId);
         model.addAttribute("usersName", authenticationManager.get("name"));
@@ -256,9 +260,10 @@ public class CommunityPaymentController {
     }
 
     @GetMapping("/subscription/mobile/my-invoices")
-    public String mobileMySubscriptionInvoicesPage(Model model) {
+    public String mobileMySubscriptionInvoicesPage(@RequestParam(value = "subscriptionId", required = false) Long subscriptionId,
+                                                   Model model) {
         String userId = (String) authenticationManager.get("sub");
-        List<Invoice> invoices = communityService.getUserSubscriptionInvoices(userId);
+        List<Invoice> invoices = communityService.getUserSubscriptionInvoices(userId, subscriptionId);
         long paidCount = invoices.stream().filter(i -> i.getStatus() == Status.PAID).count();
         long pendingCount = invoices.stream().filter(i -> i.getStatus() == Status.NEW).count();
         BigDecimal paidTotal = invoices.stream()
@@ -271,10 +276,74 @@ public class CommunityPaymentController {
         model.addAttribute("paidInvoiceCount", paidCount);
         model.addAttribute("pendingInvoiceCount", pendingCount);
         model.addAttribute("totalAmountPaid", paidTotal);
+        model.addAttribute("selectedSubscriptionId", subscriptionId);
         model.addAttribute("currentPath", "/subscription/mobile/my-invoices");
         model.addAttribute("userId", userId);
         model.addAttribute("usersName", authenticationManager.get("name"));
         return "mobile-my-subscription-invoices";
+    }
+
+    @GetMapping("/subscription/invoice/pay")
+    public String paySubscriptionInvoice(@RequestParam("invoiceId") Long invoiceId,
+                                         @RequestParam(value = "source", defaultValue = "web") String source,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            String userId = (String) authenticationManager.get("sub");
+            Invoice invoice = communityService.getUserSubscriptionInvoiceById(userId, invoiceId)
+                    .orElseThrow(() -> new IllegalArgumentException("Subscription invoice not found."));
+
+            if (invoice.getStatus() == Status.PAID) {
+                redirectAttributes.addFlashAttribute("successMessage", "Subscription invoice is already paid.");
+                return "mobile".equals(source) ? "redirect:/subscription/mobile/my-invoices" : "redirect:/subscription/my-invoices";
+            }
+
+            User user = userRepository.findByUserId(userId);
+            String email = (invoice.getCustomerEmail() != null && !invoice.getCustomerEmail().isBlank())
+                    ? invoice.getCustomerEmail()
+                    : (user != null && user.getEmail() != null ? user.getEmail() : userId + "@clubsphere.app");
+
+            String reference = "SUBINV-" + invoiceId + "-" + System.currentTimeMillis();
+            String callbackUrl = baseUrl + "/subscription/invoice/payment-callback?invoiceId=" + invoiceId + "&source=" + source;
+
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("type", "SUBSCRIPTION_INVOICE");
+            metadata.put("invoiceId", invoiceId);
+            metadata.put("userId", userId);
+
+            Map<String, Object> paymentData =
+                    paystackService.initializePayment(email, invoice.getAmount(), reference, callbackUrl, metadata);
+            String authUrl = (String) paymentData.get("authorization_url");
+            return "redirect:" + authUrl;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to start invoice payment: " + e.getMessage());
+            return "mobile".equals(source) ? "redirect:/subscription/mobile/my-invoices" : "redirect:/subscription/my-invoices";
+        }
+    }
+
+    @GetMapping("/subscription/invoice/payment-callback")
+    public String subscriptionInvoicePaymentCallback(@RequestParam(required = false) String reference,
+                                                     @RequestParam("invoiceId") Long invoiceId,
+                                                     @RequestParam(value = "source", defaultValue = "web") String source,
+                                                     RedirectAttributes redirectAttributes) {
+        try {
+            if (reference == null || reference.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Missing payment reference.");
+                return "mobile".equals(source) ? "redirect:/subscription/mobile/my-invoices" : "redirect:/subscription/my-invoices";
+            }
+
+            Map<String, Object> paymentData = paystackService.verifyPayment(reference);
+            String status = (String) paymentData.get("status");
+            if ("success".equalsIgnoreCase(status)) {
+                String userId = (String) authenticationManager.get("sub");
+                communityService.markUserSubscriptionInvoicePaid(userId, invoiceId);
+                redirectAttributes.addFlashAttribute("successMessage", "Subscription invoice paid successfully.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment was not successful. Please try again.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invoice payment could not be completed: " + e.getMessage());
+        }
+        return "mobile".equals(source) ? "redirect:/subscription/mobile/my-invoices" : "redirect:/subscription/my-invoices";
     }
 
     // ══════════════════ DONATIONS ══════════════════
