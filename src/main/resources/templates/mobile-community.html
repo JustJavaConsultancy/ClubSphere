@@ -1706,6 +1706,72 @@
             <h2 class="mobile-section-title">Subscription</h2>
         </div>
 
+        <div th:if="${isAdmin}" style="padding: 12px; margin: 0 12px 10px; border: 1px solid #e9d5ff; border-radius: 12px; background: #faf5ff;">
+            <p style="font-size: 13px; font-weight: 700; color: #581c87; margin: 0 0 10px 0;">Subscription Plan Setup</p>
+            <form hx-post="/subscription/plan/configure"
+                  hx-target="#mobileSubscriptionFeedback"
+                  hx-swap="innerHTML">
+                <input type="hidden" name="communityId" th:value="${communityId}">
+                <input type="hidden" name="planId" id="mobileSubscriptionPlanId">
+                <div style="margin-bottom:10px;">
+                    <label style="display:block; font-size:12px; color:#374151; font-weight:600; margin-bottom:6px;">Subscription Name</label>
+                    <input type="text" name="name" id="mobileSubscriptionPlanName" required placeholder="e.g. Welfare Fund"
+                           style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; font-size:13px;">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:#374151; font-weight:600; margin-bottom:6px;">Billing Cycle</label>
+                        <select name="billingCycle" id="mobileSubscriptionPlanCycle" required
+                                style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; font-size:13px; background:white;">
+                            <option value="ONE_OFF">One-Off</option>
+                            <option value="MONTHLY">Monthly</option>
+                            <option value="QUARTERLY">Quarterly</option>
+                            <option value="YEARLY">Annually</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:#374151; font-weight:600; margin-bottom:6px;">Amount (₦)</label>
+                        <input type="number" name="amount" id="mobileSubscriptionPlanAmount" min="1" step="0.01" required
+                               style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; font-size:13px;">
+                    </div>
+                </div>
+                <button type="submit" id="mobileSubscriptionPlanSubmitBtn"
+                        style="width:100%; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border:none; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:700; cursor:pointer;">
+                    Save Plan
+                </button>
+                <button type="button" id="mobileSubscriptionPlanResetBtn" onclick="resetMobileSubscriptionPlanForm()"
+                        style="display:none; width:100%; margin-top:8px; background:#f3f4f6; color:#4b5563; border:none; border-radius:10px; padding:9px 12px; font-size:13px; font-weight:600; cursor:pointer;">
+                    Cancel Edit
+                </button>
+            </form>
+
+            <div style="margin-top:12px; border-top:1px solid #e9d5ff; padding-top:10px;">
+                <p style="font-size:12px; font-weight:700; color:#581c87; margin:0 0 8px 0;">Created Subscription Plans</p>
+                <div th:if="${activeSubscriptionPlans == null or #lists.isEmpty(activeSubscriptionPlans)}"
+                     style="font-size:12px; color:#6b7280;">
+                    No plans created yet.
+                </div>
+                <div th:if="${activeSubscriptionPlans != null and !#lists.isEmpty(activeSubscriptionPlans)}" style="display:flex; flex-direction:column; gap:8px;">
+                    <div th:each="plan : ${activeSubscriptionPlans}"
+                         style="background:white; border:1px solid #e5e7eb; border-radius:10px; padding:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                            <div>
+                                <p style="margin:0; font-size:13px; font-weight:700; color:#1f2937;" th:text="${plan.name}">Welfare Fund</p>
+                                <p style="margin:3px 0 0 0; font-size:12px; color:#6b7280;"
+                                   th:text="${plan.billingCycle + ' • ₦' + #numbers.formatDecimal(plan.amount,1,2)}">MONTHLY • ₦0.00</p>
+                            </div>
+                            <button type="button"
+                                    th:attr="data-plan-id=${plan.id},data-plan-name=${plan.name},data-plan-cycle=${plan.billingCycle},data-plan-amount=${plan.amount}"
+                                    onclick="editMobileSubscriptionPlan(this)"
+                                    style="font-size:12px; font-weight:700; color:#6d28d9; background:none; border:none; padding:0; cursor:pointer;">
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div th:if="${hasActiveSubscription}" style="padding: 12px;">
             <div class="mobile-sub-active-badge" style="margin-bottom: 10px;">
                 <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1713,8 +1779,23 @@
                 </svg>
                 Active Subscription
             </div>
-            <p style="font-size: 14px; color: #374151;">You are subscribed. Subscription payments are made through generated invoices each cycle.</p>
-            <a href="/subscription/mobile/my-invoices" style="display:inline-block; margin-top:10px; font-size:13px; font-weight:600; color:#6d28d9;">View My Invoices</a>
+            <p style="font-size: 14px; color: #374151; margin:0 0 8px 0;">
+                You are enrolled in the club's configured subscription plans. Payments are managed through invoices.
+            </p>
+            <p th:if="${activeSubscriptionPlans != null and !#lists.isEmpty(activeSubscriptionPlans)}"
+               style="font-size:12px; color:#6b7280; margin:0 0 10px 0;">
+                Active plans: <span th:text="${#lists.size(activeSubscriptionPlans)}">0</span>
+            </p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="/subscription/mobile/my-invoices"
+                   style="display:inline-flex; align-items:center; padding:8px 10px; border-radius:10px; border:1px solid #ddd6fe; background:#f5f3ff; color:#6d28d9; font-size:12px; font-weight:700;">
+                    View All Invoices
+                </a>
+                <a href="/subscription/mobile/my-subscriptions"
+                   style="display:inline-flex; align-items:center; padding:8px 10px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; color:#374151; font-size:12px; font-weight:700;">
+                    Plan Invoices
+                </a>
+            </div>
         </div>
 
         <div th:if="${!hasActiveSubscription}" style="padding: 12px;">
@@ -1724,9 +1805,14 @@
                 </svg>
                 Not Subscribed
             </div>
-            <p style="font-size: 14px; color: #374151; margin-bottom: 16px;"
+            <p style="font-size: 14px; color: #374151; margin-bottom: 8px;"
                th:if="${activeSubscriptionPlan != null}">
-                Subscribe and pay by invoice:
+                Available subscription plans are configured by admin.
+            </p>
+            <p style="font-size: 13px; color: #6b7280; margin-bottom: 16px;"
+               th:if="${activeSubscriptionPlan != null}">
+                Next plan:
+                <strong th:text="${activeSubscriptionPlan.name}">Subscription</strong> —
                 <strong th:text="${'₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2)}">₦0.00</strong>
                 /
                 <strong th:text="${activeSubscriptionPlan.billingCycle}">MONTHLY</strong>.
@@ -1762,9 +1848,9 @@
                 <input type="hidden" name="amount"
                        th:value="${activeSubscriptionPlan != null ? activeSubscriptionPlan.amount : 0}">
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Plan Amount</label>
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Plan Details</label>
                     <input type="text"
-                           th:value="${activeSubscriptionPlan != null ? ('₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2) + ' / ' + activeSubscriptionPlan.billingCycle) : 'Plan not configured'}"
+                           th:value="${activeSubscriptionPlan != null ? (activeSubscriptionPlan.name + ' — ₦' + #numbers.formatDecimal(activeSubscriptionPlan.amount,1,2) + ' / ' + activeSubscriptionPlan.billingCycle) : 'Plan not configured'}"
                            class="mobile-sub-amount-input" readonly>
                 </div>
                 <button type="submit" class="mobile-subscribe-btn">
@@ -3249,6 +3335,41 @@
             var modal = document.getElementById('mobileSubscribeModal');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+        }
+
+        function editMobileSubscriptionPlan(button) {
+            const planIdInput = document.getElementById('mobileSubscriptionPlanId');
+            const nameInput = document.getElementById('mobileSubscriptionPlanName');
+            const cycleInput = document.getElementById('mobileSubscriptionPlanCycle');
+            const amountInput = document.getElementById('mobileSubscriptionPlanAmount');
+            const submitBtn = document.getElementById('mobileSubscriptionPlanSubmitBtn');
+            const resetBtn = document.getElementById('mobileSubscriptionPlanResetBtn');
+            if (!planIdInput || !nameInput || !cycleInput || !amountInput || !submitBtn || !resetBtn) return;
+
+            planIdInput.value = button.getAttribute('data-plan-id') || '';
+            nameInput.value = button.getAttribute('data-plan-name') || '';
+            cycleInput.value = button.getAttribute('data-plan-cycle') || 'MONTHLY';
+            amountInput.value = button.getAttribute('data-plan-amount') || '';
+            submitBtn.textContent = 'Update Plan';
+            resetBtn.style.display = 'block';
+            nameInput.focus();
+        }
+
+        function resetMobileSubscriptionPlanForm() {
+            const planIdInput = document.getElementById('mobileSubscriptionPlanId');
+            const nameInput = document.getElementById('mobileSubscriptionPlanName');
+            const cycleInput = document.getElementById('mobileSubscriptionPlanCycle');
+            const amountInput = document.getElementById('mobileSubscriptionPlanAmount');
+            const submitBtn = document.getElementById('mobileSubscriptionPlanSubmitBtn');
+            const resetBtn = document.getElementById('mobileSubscriptionPlanResetBtn');
+            if (!planIdInput || !nameInput || !cycleInput || !amountInput || !submitBtn || !resetBtn) return;
+
+            planIdInput.value = '';
+            nameInput.value = '';
+            cycleInput.value = 'MONTHLY';
+            amountInput.value = '';
+            submitBtn.textContent = 'Save Plan';
+            resetBtn.style.display = 'none';
         }
         function closeMobileSubscribeModal() {
             var modal = document.getElementById('mobileSubscribeModal');

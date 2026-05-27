@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justjava.mycommunity.account.AuthenticationManager;
 import com.justjava.mycommunity.chat.dto.SessionDTO;
 import com.justjava.mycommunity.community.CommunityService;
+import com.justjava.mycommunity.community.SubscriptionPlan;
 import com.justjava.mycommunity.community.repository.CommunityMembershipRepository;
 import com.justjava.mycommunity.event.EventService;
 import com.justjava.mycommunity.posts.PostService;
@@ -135,12 +136,16 @@ public class MobileHomeController {
 
         // Subscription status for the current user
         boolean hasActiveSubscription = false;
+        SubscriptionPlan activeSubscriptionPlan = null;
         try {
             hasActiveSubscription = communityService.hasActiveSubscription(currentUserId, selectedCommunityId);
+            activeSubscriptionPlan = communityService.getActiveSubscriptionPlan(selectedCommunityId).orElse(null);
         } catch (Exception e) {
             log.warn("Error checking subscription status: {}", e.getMessage());
         }
         model.addAttribute("hasActiveSubscription", hasActiveSubscription);
+        model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
+        model.addAttribute("activeSubscriptionPlans", communityService.getActiveSubscriptionPlans(selectedCommunityId));
 
         // Standalone community events (eventType = "EVENT") — for the events section & donate buttons
         List<com.justjava.mycommunity.event.Event> communityEvents =

@@ -190,6 +190,7 @@ public class MobileCommunityController {
                 System.out.println("Mobile - Error loading active subscription plan: " + e.getMessage());
             }
             model.addAttribute("activeSubscriptionPlan", activeSubscriptionPlan);
+            model.addAttribute("activeSubscriptionPlans", communityService.getActiveSubscriptionPlans(communityId));
 
             // Events for donation selector
             try {
