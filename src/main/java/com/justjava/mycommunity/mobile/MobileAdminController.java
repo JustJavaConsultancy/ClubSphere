@@ -40,6 +40,7 @@ public class MobileAdminController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model){
+        if (!authenticationManager.isAdmin()) return "redirect:/mobile/home";
         List<UserDTO> users = userService.getUsers();
         List<SessionDTO> completedSessions = eventService.getCompletedSessions();
         List<SessionDTO> upcomingSessions = eventService.getUpcomingSessions();
@@ -57,6 +58,7 @@ public class MobileAdminController {
 
     @GetMapping("/deleteUser/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId){
+        if (!authenticationManager.isAdmin()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         keycloakService.deleteUser(userId);
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/mobile/admin/dashboard");
@@ -65,6 +67,8 @@ public class MobileAdminController {
 
     @GetMapping("/approvals")
     public String getPendingApprovals(Model model, HttpSession session) {
+        if (!authenticationManager.isAdmin() && !authenticationManager.isCommunityAdmin())
+            return "redirect:/mobile/home";
         String adminUserId = (String) session.getAttribute("userId");
         if (adminUserId == null) adminUserId = (String) authenticationManager.get("sub");
         if (adminUserId == null) return "redirect:/login";
@@ -81,6 +85,8 @@ public class MobileAdminController {
                                        @RequestParam("decision") String decision,
                                        @RequestParam(value = "adminNote", required = false, defaultValue = "") String adminNote,
                                        RedirectAttributes redirectAttributes) {
+        if (!authenticationManager.isAdmin() && !authenticationManager.isCommunityAdmin())
+            return "redirect:/mobile/home";
         try {
             boolean approved = "approve".equalsIgnoreCase(decision);
             approvalService.completeTask(taskId, approved);

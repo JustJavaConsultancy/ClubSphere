@@ -66,9 +66,9 @@
                 <textarea name="description" rows="3" class="ev-input" placeholder="Describe the event..." required style="resize:vertical;"></textarea>
             </div>
             <div style="margin-bottom:14px;">
-                <label class="ev-label">Community <span style="color:#ef4444;">*</span></label>
+                <label class="ev-label">Club <span style="color:#ef4444;">*</span></label>
                 <select name="communityId" class="ev-input" required>
-                    <option value="" disabled selected>— Select a community —</option>
+                    <option value="" disabled selected>— Select a club —</option>
                     <option th:each="c : ${communities}"
                             th:value="${c.id}"
                             th:text="${c.name}"
@@ -76,7 +76,7 @@
                 </select>
                 <p th:if="${communities == null or #lists.isEmpty(communities)}"
                    style="margin-top:6px;font-size:12px;color:#ef4444;">
-                    You are not an admin of any community.
+                    You are not an admin of any club.
                 </p>
             </div>
             <div style="margin-bottom:14px;">

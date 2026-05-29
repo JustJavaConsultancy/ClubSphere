@@ -62,7 +62,7 @@
             <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:12px;">
                 <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;margin-bottom:6px;">Wants to join</div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-size:14px;font-weight:600;color:#1f2937;" th:text="${task.communityName ?: 'Community #' + task.communityId}">Club</span>
+                    <span style="font-size:14px;font-weight:600;color:#1f2937;" th:text="${task.communityName ?: 'Club #' + task.communityId}">Club</span>
                     <span th:if="${task.private}" class="ap-badge ap-private">🔒 Private</span>
                     <span th:unless="${task.private}" class="ap-badge ap-public">🌐 Public</span>
                 </div>

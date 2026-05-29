@@ -603,10 +603,10 @@
 
             <div class="modal-body">
                 <div class="community-info-section">
-                    <h3 class="section-title">Community Information</h3>
+                    <h3 class="section-title">Club Information</h3>
                     <div class="community-info">
                         <div class="community-name" id="modal-community-name">Club Name</div>
-                        <div class="community-description" id="modal-community-description">Community description will appear here...</div>
+                        <div class="community-description" id="modal-community-description">Club description will appear here...</div>
                     </div>
                 </div>
 
@@ -633,7 +633,7 @@
     <header class="page-header">
         <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-sm p-6 mb-6 text-white">
             <h1 class="text-2xl font-bold mb-2">My Groups</h1>
-            <p class="opacity-90">Groups you belong to across all communities</p>
+            <p class="opacity-90">Groups you belong to across all clubs</p>
 
             <div class="stats-container" th:if="${totalGroups != null and totalGroups > 0}">
                 <div class="stat-item">
@@ -642,7 +642,7 @@
                 </div>
                 <div class="stat-item">
                     <span class="stat-number" th:text="${totalCommunities ?: 0}">0</span>
-                    <span class="stat-label">Communities</span>
+                    <span class="stat-label">Clubs</span>
                 </div>
             </div>
         </div>
@@ -773,8 +773,8 @@
                     modalGroupDescription.textContent = groupDetails.groupDescription || 'No description available';
 
                     // Update mycommunity info
-                    modalCommunityName.textContent = groupDetails.communityName || 'Unknown Community';
-                    modalCommunityDescription.textContent = groupDetails.communityDescription || 'No community description available';
+                    modalCommunityName.textContent = groupDetails.communityName || 'Unknown Club';
+                    modalCommunityDescription.textContent = groupDetails.communityDescription || 'No club description available';
 
                     // Update member count
                     modalMemberCount.textContent = members ? members.length : 0;
@@ -809,7 +809,7 @@
                     modalGroupName.textContent = 'Error Loading Group';
                     modalGroupDescription.textContent = 'Unable to load group details. Please try again later.';
                     modalCommunityName.textContent = 'Error';
-                    modalCommunityDescription.textContent = 'Unable to load community details.';
+                    modalCommunityDescription.textContent = 'Unable to load club details.';
                     modalMemberCount.textContent = '0';
                     membersLoading.style.display = 'none';
                     membersList.innerHTML = '<div class="error-message">Failed to load members</div>';

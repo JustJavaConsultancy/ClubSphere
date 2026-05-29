@@ -98,6 +98,9 @@ public class MobileCommunityController {
 
             String currentUserId = (String) authenticationManager.get("sub");
             boolean isAdmin = authenticationManager.isAdmin();
+            if (!isAdmin) {
+                isAdmin = communityMembershipRepository.isUserCommunityAdmin(currentUserId, communityId);
+            }
 
             List<UserDTO> communityMembers = new ArrayList<>();
             List<UserDTO> availableUsersToInvite = new ArrayList<>();
@@ -230,7 +233,9 @@ public class MobileCommunityController {
                                       RedirectAttributes redirectAttributes,
                                       Model model) {
         try {
-            if (!authenticationManager.isAdmin()) {
+            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
+            if (!isCurrentUserAdmin(selectedCommunityId)) {
                 String errorMessage = "Access denied. Only administrators can update community settings.";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
@@ -251,9 +256,6 @@ public class MobileCommunityController {
                     return "redirect:/mobile/my-community";
                 }
             }
-
-            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
 
             if (selectedCommunityId == null) {
                 String errorMessage = "No community selected";
@@ -313,7 +315,9 @@ public class MobileCommunityController {
                                              RedirectAttributes redirectAttributes,
                                              Model model) {
         try {
-            if (!authenticationManager.isAdmin()) {
+            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
+            if (!isCurrentUserAdmin(selectedCommunityId)) {
                 String errorMessage = "Access denied. Only administrators can update community settings.";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
@@ -334,9 +338,6 @@ public class MobileCommunityController {
                     return "redirect:/mobile/my-community";
                 }
             }
-
-            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
 
             if (selectedCommunityId == null) {
                 String errorMessage = "No community selected";
@@ -398,7 +399,9 @@ public class MobileCommunityController {
                            RedirectAttributes redirectAttributes,
                            Model model) {
         try {
-            if (!authenticationManager.isAdmin()) {
+            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
+            if (!isCurrentUserAdmin(selectedCommunityId)) {
                 String errorMessage = "Access denied. Only administrators can create groups.";
                 if (isHtmxRequest(hxRequest)) {
                     model.addAttribute("errorMessage", errorMessage);
@@ -408,9 +411,6 @@ public class MobileCommunityController {
                     return "redirect:/mobile/my-community";
                 }
             }
-
-            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
 
             if (selectedCommunityId == null) {
                 String errorMessage = "No community selected";
@@ -551,7 +551,7 @@ public class MobileCommunityController {
     public String updateCommunityPrivacy(@RequestParam("communityId") Long communityId,
                                          @RequestParam("status") String status) {
         try {
-            if (!authenticationManager.isAdmin()) {
+            if (!isCurrentUserAdmin(communityId)) {
                 return "❌ Only administrators can change community privacy";
             }
 
@@ -585,10 +585,21 @@ public class MobileCommunityController {
         return "true".equals(hxRequest);
     }
 
+    private boolean isCurrentUserAdmin(Long communityId) {
+        if (authenticationManager.isAdmin()) return true;
+        if (communityId == null) return false;
+        String currentUserId = (String) authenticationManager.get("sub");
+        return communityMembershipRepository.isUserCommunityAdmin(currentUserId, communityId);
+    }
+
     @PostMapping("/invite")
     public String inviteMember(@RequestParam("userId") String userId,
                                @RequestParam("communityId") Long communityId,
                                RedirectAttributes redirectAttributes) {
+        if (!isCurrentUserAdmin(communityId)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only administrators can invite members to a club.");
+            return "redirect:/mobile/my-community";
+        }
         try {
             communityService.inviteUserToCommunity(userId, communityId);
             redirectAttributes.addFlashAttribute("successMessage", "Invitation sent successfully!");
@@ -605,7 +616,7 @@ public class MobileCommunityController {
                             @RequestParam(value = "communityId", required = false) Long communityId,
                             RedirectAttributes redirectAttributes) {
         try {
-            if (!authenticationManager.isAdmin()) {
+            if (!isCurrentUserAdmin(communityId)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Only administrators can edit groups.");
                 return "redirect:/mobile/my-community";
             }
@@ -624,7 +635,9 @@ public class MobileCommunityController {
     @PostMapping("/groups/{id}/delete")
     public String deleteGroup(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            if (!authenticationManager.isAdmin()) {
+            HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            Long selectedCommunityId = (Long) httpRequest.getSession().getAttribute("selectedCommunityId");
+            if (!isCurrentUserAdmin(selectedCommunityId)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Only administrators can delete groups.");
                 return "redirect:/mobile/my-community";
             }
@@ -661,6 +674,9 @@ public class MobileCommunityController {
 
             String currentUserId = (String) authenticationManager.get("sub");
             boolean isAdmin = authenticationManager.isAdmin();
+            if (!isAdmin) {
+                isAdmin = communityMembershipRepository.isUserCommunityAdmin(currentUserId, communityId);
+            }
 
             List<Map<String, Object>> processedGroups = new ArrayList<>();
             List<CreateChatDTO> groupsResponse = isAdmin

@@ -112,8 +112,8 @@ public class CommunityGroupService {
             communityInfo.put("communityDescription", community.getDescription());
         } else {
             communityInfo.put("id", null);
-            communityInfo.put("communityName", "Unknown Community");
-            communityInfo.put("communityDescription", "No mycommunity information available");
+            communityInfo.put("communityName", "Unknown Club");
+            communityInfo.put("communityDescription", "No club information available");
         }
 
         return communityInfo;
@@ -191,8 +191,8 @@ public class CommunityGroupService {
                     groupData.put("communityDescription", community.getDescription());
                 } else {
                     groupData.put("communityId", null);
-                    groupData.put("communityName", "Unknown Community");
-                    groupData.put("communityDescription", "No mycommunity information available");
+                    groupData.put("communityName", "Unknown Club");
+                    groupData.put("communityDescription", "No club information available");
                 }
 
                 userGroupsWithCommunity.add(groupData);
