@@ -199,7 +199,7 @@
                         <image>eclipse-temurin:21-jre-jammy</image>
                     </from>
                     <to>
-                        <image>kazeemakinrinde/csims</image>
+                        <image>kazeemakinrinde/clubshere</image>
                         <!-- Remove hardcoded credentials -->
                         <!-- <auth>...</auth> -->
                     </to>
