@@ -2163,32 +2163,258 @@
             </div>
             <h2 class="mobile-section-title">Invite Members</h2>
         </div>
-        <form hx-post="/mobile/my-community/invite"
+        <form id="mobileInviteForm"
+              hx-post="/mobile/my-community/invite"
               hx-target="#messages-container"
               hx-swap="innerHTML"
               hx-indicator="#invite-loading">
             <input type="hidden" name="communityId" th:value="${communityId}">
             <div class="mobile-form-group">
-                <label for="userSelect" class="mobile-form-label">Select User to Invite</label>
-                <select id="userSelect"
-                        name="userId"
-                        class="mobile-input"
-                        required>
-                    <option value="">Choose a user to invite...</option>
-                    <option th:each="user : ${availableUsersToInvite}"
-                            th:value="${user.userId}"
-                            th:text="${user.firstName != null && user.lastName != null ? user.firstName + ' ' + user.lastName + ' (' + user.email + ')' : user.email}">
-                        John Doe (john@example.com)
-                    </option>
-                </select>
+                <label class="mobile-form-label" for="mInviteSearch">Select Users to Invite</label>
+                <div id="mInviteCombo" class="m-invite-combo">
+                    <div id="mInviteChips" class="m-invite-chips"></div>
+                    <input type="text"
+                           id="mInviteSearch"
+                           autocomplete="off"
+                           placeholder="Search users…"
+                           class="m-invite-search">
+                    <div id="mInviteDropdown" class="m-invite-dropdown" hidden></div>
+                </div>
+                <div id="mInviteSelectedInputs"></div>
             </div>
             <button type="submit" class="mobile-button">
                 <span class="htmx-indicator" id="invite-loading">
                     <span class="mobile-loading"></span>
                 </span>
-                Send Invite
+                Send Invites
             </button>
         </form>
+
+        <style>
+            .m-invite-combo {
+                position: relative;
+                border: 1px solid #d1d5db;
+                border-radius: 10px;
+                padding: 6px;
+                background: #fff;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .m-invite-combo:focus-within {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            }
+            .m-invite-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .m-invite-chips:empty { display: none; }
+            .m-invite-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                background: #dbeafe;
+                color: #1e40af;
+                border-radius: 9999px;
+                padding: 4px 8px;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            .m-invite-chip button {
+                background: transparent;
+                border: 0;
+                color: #1e40af;
+                font-size: 14px;
+                line-height: 1;
+                padding: 0 2px;
+                cursor: pointer;
+            }
+            .m-invite-search {
+                border: 0;
+                outline: none;
+                padding: 8px 6px;
+                font-size: 14px;
+                width: 100%;
+                background: transparent;
+            }
+            .m-invite-dropdown {
+                position: fixed;
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                overflow-y: auto;
+                z-index: 9999;
+            }
+            .m-invite-option {
+                padding: 10px 12px;
+                font-size: 14px;
+                cursor: pointer;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            .m-invite-option:last-child { border-bottom: 0; }
+            .m-invite-option:hover,
+            .m-invite-option.active { background: #eff6ff; }
+            .m-invite-empty {
+                padding: 10px 12px;
+                font-size: 13px;
+                color: #6b7280;
+            }
+        </style>
+
+        <script th:inline="javascript">
+            (function () {
+                const AVAILABLE_USERS = /*[[${availableUsersToInvite}]]*/ [];
+                const combo = document.getElementById('mInviteCombo');
+                const search = document.getElementById('mInviteSearch');
+                const dropdown = document.getElementById('mInviteDropdown');
+                const chipsWrap = document.getElementById('mInviteChips');
+                const hiddenWrap = document.getElementById('mInviteSelectedInputs');
+                const form = document.getElementById('mobileInviteForm');
+                if (!combo || !search || !dropdown) return;
+
+                const selected = new Map();
+                let activeIndex = -1;
+
+                const label = u => (u.firstName && u.lastName)
+                    ? `${u.firstName} ${u.lastName} (${u.email})`
+                    : (u.email || u.userId);
+
+                function renderChips() {
+                    chipsWrap.innerHTML = '';
+                    hiddenWrap.innerHTML = '';
+                    selected.forEach((u, id) => {
+                        const chip = document.createElement('span');
+                        chip.className = 'm-invite-chip';
+                        chip.innerHTML = `<span></span><button type="button" aria-label="Remove">&times;</button>`;
+                        chip.querySelector('span').textContent = label(u);
+                        chip.querySelector('button').addEventListener('click', () => {
+                            selected.delete(id);
+                            renderChips();
+                            renderDropdown();
+                            search.focus();
+                        });
+                        chipsWrap.appendChild(chip);
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'userIds';
+                        hidden.value = id;
+                        hiddenWrap.appendChild(hidden);
+                    });
+                }
+
+                function filteredUsers() {
+                    const q = search.value.trim().toLowerCase();
+                    return AVAILABLE_USERS.filter(u => !selected.has(u.userId))
+                        .filter(u => !q || label(u).toLowerCase().includes(q))
+                        .slice(0, 50);
+                }
+
+                function positionDropdown() {
+                    const rect = combo.getBoundingClientRect();
+                    const gap = 4;
+                    const viewportH = window.innerHeight;
+                    const spaceBelow = viewportH - rect.bottom - gap - 8;
+                    const spaceAbove = rect.top - gap - 8;
+                    const preferredMax = 280;
+                    const openUp = spaceBelow < 180 && spaceAbove > spaceBelow;
+                    const maxH = Math.max(140, Math.min(preferredMax, openUp ? spaceAbove : spaceBelow));
+                    dropdown.style.left = rect.left + 'px';
+                    dropdown.style.width = rect.width + 'px';
+                    dropdown.style.maxHeight = maxH + 'px';
+                    if (openUp) {
+                        dropdown.style.top = 'auto';
+                        dropdown.style.bottom = (viewportH - rect.top + gap) + 'px';
+                    } else {
+                        dropdown.style.bottom = 'auto';
+                        dropdown.style.top = (rect.bottom + gap) + 'px';
+                    }
+                }
+
+                function renderDropdown() {
+                    const users = filteredUsers();
+                    if (users.length === 0) {
+                        dropdown.innerHTML = `<div class="m-invite-empty">No users found</div>`;
+                    } else {
+                        dropdown.innerHTML = users.map((u, i) =>
+                            `<div class="m-invite-option ${i === activeIndex ? 'active' : ''}" data-userid="${u.userId}"></div>`
+                        ).join('');
+                        Array.from(dropdown.querySelectorAll('.m-invite-option')).forEach((el, i) => {
+                            el.textContent = label(users[i]);
+                            el.addEventListener('mousedown', e => {
+                                e.preventDefault();
+                                addUser(el.dataset.userid);
+                            });
+                            el.addEventListener('touchstart', e => {
+                                e.preventDefault();
+                                addUser(el.dataset.userid);
+                            }, { passive: false });
+                        });
+                    }
+                    dropdown.hidden = false;
+                    positionDropdown();
+                }
+
+                const reposition = () => { if (!dropdown.hidden) positionDropdown(); };
+                window.addEventListener('scroll', reposition, true);
+                window.addEventListener('resize', reposition);
+
+                function addUser(id) {
+                    const u = AVAILABLE_USERS.find(x => x.userId === id);
+                    if (!u) return;
+                    selected.set(id, u);
+                    search.value = '';
+                    activeIndex = -1;
+                    renderChips();
+                    renderDropdown();
+                    search.focus();
+                }
+
+                search.addEventListener('focus', renderDropdown);
+                search.addEventListener('input', () => { activeIndex = -1; renderDropdown(); });
+                search.addEventListener('keydown', e => {
+                    const opts = dropdown.querySelectorAll('.m-invite-option');
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        activeIndex = Math.min(opts.length - 1, activeIndex + 1);
+                        renderDropdown();
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        activeIndex = Math.max(0, activeIndex - 1);
+                        renderDropdown();
+                    } else if (e.key === 'Enter') {
+                        if (activeIndex >= 0 && opts[activeIndex]) {
+                            e.preventDefault();
+                            addUser(opts[activeIndex].dataset.userid);
+                        }
+                    } else if (e.key === 'Backspace' && !search.value && selected.size > 0) {
+                        const lastId = Array.from(selected.keys()).pop();
+                        selected.delete(lastId);
+                        renderChips();
+                        renderDropdown();
+                    }
+                });
+                document.addEventListener('click', e => {
+                    if (!combo.contains(e.target)) dropdown.hidden = true;
+                });
+                form.addEventListener('submit', e => {
+                    if (selected.size === 0) {
+                        e.preventDefault();
+                        search.focus();
+                        search.placeholder = 'Please select at least one user…';
+                    }
+                });
+                document.body.addEventListener('htmx:afterOnLoad', e => {
+                    if (e.detail.elt === form) {
+                        selected.clear();
+                        renderChips();
+                        dropdown.hidden = true;
+                    }
+                });
+            })();
+        </script>
     </div>
 
     <!-- Community Members Section -->

@@ -593,18 +593,44 @@ public class MobileCommunityController {
     }
 
     @PostMapping("/invite")
-    public String inviteMember(@RequestParam("userId") String userId,
+    public String inviteMember(@RequestParam(value = "userIds", required = false) List<String> userIds,
+                               @RequestParam(value = "userId", required = false) String legacyUserId,
                                @RequestParam("communityId") Long communityId,
                                RedirectAttributes redirectAttributes) {
         if (!isCurrentUserAdmin(communityId)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Only administrators can invite members to a club.");
             return "redirect:/mobile/my-community";
         }
-        try {
-            communityService.inviteUserToCommunity(userId, communityId);
-            redirectAttributes.addFlashAttribute("successMessage", "Invitation sent successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error sending invitation: " + e.getMessage());
+
+        List<String> targetIds = new ArrayList<>();
+        if (userIds != null) targetIds.addAll(userIds);
+        if (legacyUserId != null && !legacyUserId.isBlank()) targetIds.add(legacyUserId);
+        targetIds = targetIds.stream().filter(id -> id != null && !id.isBlank()).distinct().toList();
+
+        if (targetIds.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please select at least one user to invite.");
+            return "redirect:/mobile/my-community";
+        }
+
+        int successCount = 0;
+        List<String> failures = new ArrayList<>();
+        for (String uid : targetIds) {
+            try {
+                communityService.inviteUserToCommunity(uid, communityId);
+                successCount++;
+            } catch (Exception e) {
+                failures.add(uid + " (" + e.getMessage() + ")");
+            }
+        }
+
+        if (failures.isEmpty()) {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    successCount == 1 ? "Invitation sent successfully!" : successCount + " invitations sent successfully!");
+        } else if (successCount == 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to send invitations: " + String.join("; ", failures));
+        } else {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    successCount + " invitation(s) sent. " + failures.size() + " failed: " + String.join("; ", failures));
         }
         return "redirect:/mobile/my-community";
     }

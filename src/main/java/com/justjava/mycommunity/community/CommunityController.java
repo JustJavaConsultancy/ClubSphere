@@ -761,12 +761,30 @@ public class CommunityController {
 
     // HTMX endpoint for inviting members
     @PostMapping("/invite")
-    public String inviteMember(@RequestParam("userId") String userId,
+    public String inviteMember(@RequestParam(value = "userIds", required = false) List<String> userIds,
+                               @RequestParam(value = "userId", required = false) String legacyUserId,
                                @RequestParam(value = "communityId", required = true) Long communityId,
                                @RequestHeader(value = "HX-Request", required = false) String hxRequest,
                                RedirectAttributes redirectAttributes,
                                Model model) {
+        // Merge legacy single-user param with new multi-user param for backwards compatibility
+        List<String> targetIds = new ArrayList<>();
+        if (userIds != null) targetIds.addAll(userIds);
+        if (legacyUserId != null && !legacyUserId.isBlank()) targetIds.add(legacyUserId);
+        targetIds = targetIds.stream().filter(id -> id != null && !id.isBlank()).distinct().toList();
+
         try {
+            if (targetIds.isEmpty()) {
+                String errorMessage = "Please select at least one user to invite";
+                if (isHtmxRequest(hxRequest)) {
+                    model.addAttribute("errorMessage", errorMessage);
+                    return "fragments/message :: error";
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+                    return "redirect:/my-mycommunity?communityId=" + communityId;
+                }
+            }
+
             // Check if user is admin or if mycommunity is public (for public communities, any member can invite)
             Object communityResponse = communityService.getCommunityById(communityId);
             Map<String, Object> community = extractCommunityData(communityResponse);
@@ -783,10 +801,35 @@ public class CommunityController {
                 }
             }
 
-            // Send invitation
-            communityService.inviteUserToCommunity(userId, communityId);
+            int successCount = 0;
+            List<String> failures = new ArrayList<>();
+            for (String uid : targetIds) {
+                try {
+                    communityService.inviteUserToCommunity(uid, communityId);
+                    successCount++;
+                } catch (Exception ex) {
+                    failures.add(uid + " (" + ex.getMessage() + ")");
+                }
+            }
 
-            String successMessage = "Invitation sent successfully!";
+            String successMessage;
+            if (failures.isEmpty()) {
+                successMessage = successCount == 1
+                        ? "Invitation sent successfully!"
+                        : successCount + " invitations sent successfully!";
+            } else if (successCount == 0) {
+                String errorMessage = "Failed to send invitations: " + String.join("; ", failures);
+                if (isHtmxRequest(hxRequest)) {
+                    model.addAttribute("errorMessage", errorMessage);
+                    return "fragments/message :: error";
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+                    return "redirect:/my-mycommunity?communityId=" + communityId;
+                }
+            } else {
+                successMessage = successCount + " invitation(s) sent. " + failures.size() + " failed: " + String.join("; ", failures);
+            }
+
             if (isHtmxRequest(hxRequest)) {
                 model.addAttribute("successMessage", successMessage);
                 return "fragments/message :: success";

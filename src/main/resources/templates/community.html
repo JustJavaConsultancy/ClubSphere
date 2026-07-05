@@ -2136,31 +2136,185 @@
                         </svg>
                         Invite Members
                     </h2>
-                    <form hx-post="/my-community/invite"
+                    <form id="inviteMembersForm"
+                          hx-post="/my-community/invite"
                           hx-target="#messages-container"
                           hx-swap="innerHTML"
                           hx-indicator="#invite-loading"
-                          class="flex gap-4">
+                          class="flex flex-col gap-3 md:flex-row md:items-start">
                         <input type="hidden" name="communityId" th:value="${communityId}" required>
-                        <div class="flex-1">
-                            <select name="userId"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    required>
-                                <option value="">Select a user to invite...</option>
-                                <option th:each="user : ${availableUsersToInvite}"
-                                        th:value="${user.userId}"
-                                        th:text="${user.firstName != null && user.lastName != null ? user.firstName + ' ' + user.lastName + ' (' + user.email + ')' : user.email}">
-                                    John Doe (<template class="__cf_email__" data-cfemail="2b414443456b4e534a465b474e05484446">[email&#160;protected]</template>)
-                                </option>
-                            </select>
+                        <div class="flex-1 relative" id="inviteComboWrap">
+                            <div id="inviteCombo" class="invite-combo w-full border border-gray-300 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent bg-white cursor-text flex flex-wrap items-center gap-1 min-h-[42px]">
+                                <span id="inviteChips" class="flex flex-wrap gap-1"></span>
+                                <input type="text"
+                                       id="inviteSearch"
+                                       autocomplete="off"
+                                       placeholder="Search users to invite…"
+                                       class="flex-1 min-w-[140px] border-0 outline-none py-1 px-1 bg-transparent text-sm">
+                            </div>
+                            <div id="inviteDropdown" class="invite-dropdown hidden overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg" style="position:fixed;z-index:9999;"></div>
+                            <div id="inviteSelectedInputs"></div>
                         </div>
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 btn-transition">
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 btn-transition whitespace-nowrap">
                 <span class="htmx-indicator" id="invite-loading">
                     <span class="loading-spinner"></span>
                 </span>
-                            Send Invite
+                            Send Invites
                         </button>
                     </form>
+
+                    <script th:inline="javascript">
+                        (function () {
+                            const AVAILABLE_USERS = /*[[${availableUsersToInvite}]]*/ [];
+                            const combo = document.getElementById('inviteCombo');
+                            const search = document.getElementById('inviteSearch');
+                            const dropdown = document.getElementById('inviteDropdown');
+                            const chipsWrap = document.getElementById('inviteChips');
+                            const hiddenWrap = document.getElementById('inviteSelectedInputs');
+                            const form = document.getElementById('inviteMembersForm');
+                            if (!combo || !search || !dropdown) return;
+
+                            const selected = new Map();
+                            let activeIndex = -1;
+
+                            const label = u => (u.firstName && u.lastName)
+                                ? `${u.firstName} ${u.lastName} (${u.email})`
+                                : (u.email || u.userId);
+
+                            function renderChips() {
+                                chipsWrap.innerHTML = '';
+                                hiddenWrap.innerHTML = '';
+                                selected.forEach((u, id) => {
+                                    const chip = document.createElement('span');
+                                    chip.className = 'inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium pl-2 pr-1 py-1 rounded-full';
+                                    chip.innerHTML = `<span>${label(u)}</span><button type="button" aria-label="Remove" class="ml-1 rounded-full hover:bg-blue-200 w-4 h-4 flex items-center justify-center text-blue-700">&times;</button>`;
+                                    chip.querySelector('button').addEventListener('click', () => {
+                                        selected.delete(id);
+                                        renderChips();
+                                        renderDropdown();
+                                        search.focus();
+                                    });
+                                    chipsWrap.appendChild(chip);
+                                    const hidden = document.createElement('input');
+                                    hidden.type = 'hidden';
+                                    hidden.name = 'userIds';
+                                    hidden.value = id;
+                                    hiddenWrap.appendChild(hidden);
+                                });
+                            }
+
+                            function filteredUsers() {
+                                const q = search.value.trim().toLowerCase();
+                                return AVAILABLE_USERS.filter(u => !selected.has(u.userId))
+                                    .filter(u => !q || label(u).toLowerCase().includes(q))
+                                    .slice(0, 50);
+                            }
+
+                            function positionDropdown() {
+                                const rect = combo.getBoundingClientRect();
+                                const gap = 4;
+                                const viewportH = window.innerHeight;
+                                const spaceBelow = viewportH - rect.bottom - gap - 8;
+                                const spaceAbove = rect.top - gap - 8;
+                                const preferredMax = 320;
+                                const openUp = spaceBelow < 200 && spaceAbove > spaceBelow;
+                                const maxH = Math.max(140, Math.min(preferredMax, openUp ? spaceAbove : spaceBelow));
+                                dropdown.style.left = rect.left + 'px';
+                                dropdown.style.width = rect.width + 'px';
+                                dropdown.style.maxHeight = maxH + 'px';
+                                if (openUp) {
+                                    dropdown.style.top = 'auto';
+                                    dropdown.style.bottom = (viewportH - rect.top + gap) + 'px';
+                                } else {
+                                    dropdown.style.bottom = 'auto';
+                                    dropdown.style.top = (rect.bottom + gap) + 'px';
+                                }
+                            }
+
+                            function renderDropdown() {
+                                const users = filteredUsers();
+                                if (users.length === 0) {
+                                    dropdown.innerHTML = `<div class="px-3 py-2 text-sm text-gray-500">No users found</div>`;
+                                } else {
+                                    dropdown.innerHTML = users.map((u, i) =>
+                                        `<div class="invite-option px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 ${i === activeIndex ? 'bg-blue-50' : ''}" data-userid="${u.userId}">${label(u)}</div>`
+                                    ).join('');
+                                    dropdown.querySelectorAll('.invite-option').forEach(el => {
+                                        el.addEventListener('mousedown', e => {
+                                            e.preventDefault();
+                                            addUser(el.dataset.userid);
+                                        });
+                                    });
+                                }
+                                dropdown.classList.remove('hidden');
+                                positionDropdown();
+                            }
+
+                            const reposition = () => { if (!dropdown.classList.contains('hidden')) positionDropdown(); };
+                            window.addEventListener('scroll', reposition, true);
+                            window.addEventListener('resize', reposition);
+
+                            function addUser(id) {
+                                const u = AVAILABLE_USERS.find(x => x.userId === id);
+                                if (!u) return;
+                                selected.set(id, u);
+                                search.value = '';
+                                activeIndex = -1;
+                                renderChips();
+                                renderDropdown();
+                                search.focus();
+                            }
+
+                            combo.addEventListener('click', e => {
+                                if (e.target === combo || e.target === chipsWrap) search.focus();
+                            });
+                            search.addEventListener('focus', renderDropdown);
+                            search.addEventListener('input', () => { activeIndex = -1; renderDropdown(); });
+                            search.addEventListener('keydown', e => {
+                                const opts = dropdown.querySelectorAll('.invite-option');
+                                if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    activeIndex = Math.min(opts.length - 1, activeIndex + 1);
+                                    renderDropdown();
+                                } else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    activeIndex = Math.max(0, activeIndex - 1);
+                                    renderDropdown();
+                                } else if (e.key === 'Enter') {
+                                    if (activeIndex >= 0 && opts[activeIndex]) {
+                                        e.preventDefault();
+                                        addUser(opts[activeIndex].dataset.userid);
+                                    }
+                                } else if (e.key === 'Backspace' && !search.value && selected.size > 0) {
+                                    const lastId = Array.from(selected.keys()).pop();
+                                    selected.delete(lastId);
+                                    renderChips();
+                                    renderDropdown();
+                                } else if (e.key === 'Escape') {
+                                    dropdown.classList.add('hidden');
+                                }
+                            });
+                            document.addEventListener('click', e => {
+                                if (!combo.contains(e.target) && !dropdown.contains(e.target)) {
+                                    dropdown.classList.add('hidden');
+                                }
+                            });
+                            form.addEventListener('submit', e => {
+                                if (selected.size === 0) {
+                                    e.preventDefault();
+                                    search.focus();
+                                    search.placeholder = 'Please select at least one user…';
+                                }
+                            });
+                            document.body.addEventListener('htmx:afterOnLoad', e => {
+                                if (e.detail.elt === form) {
+                                    selected.clear();
+                                    renderChips();
+                                    dropdown.classList.add('hidden');
+                                }
+                            });
+                        })();
+                    </script>
                 </div>
 
             </div><!-- END members tab -->
