@@ -137,6 +137,10 @@
             <svg class="btn-icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Sign In to Your Portal
         </a>
+        <a th:href="@{/register-club}" href="/register-club" class="btn-s">
+            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/><circle cx="12" cy="12" r="10"/></svg>
+            Register Your Community
+        </a>
         <a href="#features" class="btn-s">
             <svg class="btn-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             Explore the Platform
@@ -223,6 +227,12 @@
                 <h3>Club Portal</h3>
                 <p>For members of a club or association. Access your club, groups, news feed, channels and activity.</p>
                 <div class="portal-enter">Enter <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+            </a>
+            <a th:href="@{/register-club}" href="/register-club" class="portal c2">
+                <div class="portal-ico"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/><circle cx="12" cy="12" r="10"/></svg></div>
+                <h3>Register a New Community</h3>
+                <p>Starting a new club or association? Create your account and register your community in one step &mdash; you&apos;ll be set up as its administrator.</p>
+                <div class="portal-enter">Start <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
             </a>
         </div>
     </div>

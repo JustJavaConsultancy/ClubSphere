@@ -28,6 +28,8 @@ import com.justjava.mycommunity.organization.TownHallChannelService;
 import com.justjava.mycommunity.invoice.Invoice;
 import com.justjava.mycommunity.invoice.InvoiceRepository;
 import com.justjava.mycommunity.invoice.Status;
+import com.justjava.mycommunity.keycloak.KeycloakAdminService;
+import com.justjava.mycommunity.keycloak.KeycloakResource;
 import com.justjava.mycommunity.userManagement.UserRepository;
 import com.justjava.mycommunity.userManagement.UserDTO;
 import com.justjava.mycommunity.community.dto.CommunityDTO;
@@ -68,6 +70,7 @@ public class CommunityService {
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final SubscriptionBillingService subscriptionBillingService;
     private final InvoiceRepository invoiceRepository;
+    private final KeycloakAdminService keycloakAdminService;
 
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
@@ -89,6 +92,63 @@ public class CommunityService {
         linkUserToCommunity(user, community, Role.CREATOR);
 
         return communityMapper.toDto(community,communityMembershipRepository);
+    }
+
+    /**
+     * If this user registered via the landing-page "Register your community" flow,
+     * their Keycloak user has attributes describing the club to create. Do it now,
+     * then clear the attributes so the flow only ever fires once.
+     */
+    @Transactional
+    public void processPendingClubCreation(String userId) {
+        if (userId == null || userId.isBlank()) return;
+
+        Optional<String> pending = keycloakAdminService.getUserAttribute(
+                KeycloakResource.COMMUNITY_REALM, userId, "pendingClubCreation");
+        if (pending.isEmpty() || !"true".equalsIgnoreCase(pending.get())) return;
+
+        String clubName = keycloakAdminService
+                .getUserAttribute(KeycloakResource.COMMUNITY_REALM, userId, "clubName")
+                .map(String::trim).orElse("");
+        if (clubName.isEmpty()) {
+            keycloakAdminService.clearUserAttributes(
+                    KeycloakResource.COMMUNITY_REALM, userId,
+                    List.of("pendingClubCreation", "clubName", "clubDescription", "clubPrivacy"));
+            return;
+        }
+
+        String clubDescription = keycloakAdminService
+                .getUserAttribute(KeycloakResource.COMMUNITY_REALM, userId, "clubDescription")
+                .orElse("");
+        boolean isPrivate = keycloakAdminService
+                .getUserAttribute(KeycloakResource.COMMUNITY_REALM, userId, "clubPrivacy")
+                .map(v -> "true".equalsIgnoreCase(v) || "private".equalsIgnoreCase(v))
+                .orElse(false);
+
+        User localUser = userRepository.findByUserId(userId);
+        if (localUser == null || localUser.getEmail() == null) {
+            // User not saved locally yet — leave the attributes in place so the next login retries.
+            return;
+        }
+
+        CreateCommunityVO vo = CreateCommunityVO.builder()
+                .communityName(clubName)
+                .communityDescription(clubDescription)
+                .channelName(clubName)
+                .channelDescription(clubDescription)
+                .townHallName(clubName)
+                .townHallDescription(clubDescription)
+                .userEmail(localUser.getEmail())
+                .isPrivate(isPrivate)
+                .build();
+
+        try {
+            createCommunity(vo);
+        } finally {
+            keycloakAdminService.clearUserAttributes(
+                    KeycloakResource.COMMUNITY_REALM, userId,
+                    List.of("pendingClubCreation", "clubName", "clubDescription", "clubPrivacy"));
+        }
     }
 
     private User resolveUser(String userEmail) {

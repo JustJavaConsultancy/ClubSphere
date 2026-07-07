@@ -112,6 +112,14 @@ public class HomeController {
         String currentUserId = (String) authenticationManager.get("sub");
         boolean isAdmin = authenticationManager.isAdmin();
 
+        // If this user signed up via the landing-page "Register your community" flow,
+        // finish creating their club now (idempotent — the KC attributes are cleared afterwards).
+        try {
+            communityService.processPendingClubCreation(currentUserId);
+        } catch (Exception ex) {
+            System.err.println("processPendingClubCreation failed for " + currentUserId + ": " + ex.getMessage());
+        }
+
         // Get selected mycommunity ID from session
         Long selectedCommunityId = (Long) request.getSession().getAttribute("selectedCommunityId");
         String selectedCommunityName = (String) request.getSession().getAttribute("selectedCommunityName");

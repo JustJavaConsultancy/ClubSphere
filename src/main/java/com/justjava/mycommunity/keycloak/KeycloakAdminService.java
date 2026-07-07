@@ -218,6 +218,45 @@ public class KeycloakAdminService {
     }
 
     /* ============================================================
+       User Attribute Helpers
+       ============================================================ */
+
+    public Optional<String> getUserAttribute(String realmName, String userId, String key) {
+        try {
+            UserRepresentation rep = user(realmName, userId).toRepresentation();
+            Map<String, List<String>> attributes = rep.getAttributes();
+            if (attributes == null) return Optional.empty();
+            List<String> values = attributes.get(key);
+            if (values == null || values.isEmpty()) return Optional.empty();
+            return Optional.ofNullable(values.get(0));
+        } catch (Exception ex) {
+            log.warn("Failed reading attribute {} for user {}: {}", key, userId, ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public void clearUserAttributes(String realmName, String userId, List<String> keys) {
+        try {
+            UserResource userResource = user(realmName, userId);
+            UserRepresentation rep = userResource.toRepresentation();
+            Map<String, List<String>> attributes = rep.getAttributes();
+            if (attributes == null || attributes.isEmpty()) return;
+
+            Map<String, List<String>> mutable = new HashMap<>(attributes);
+            boolean changed = false;
+            for (String key : keys) {
+                if (mutable.remove(key) != null) changed = true;
+            }
+            if (!changed) return;
+
+            rep.setAttributes(mutable);
+            userResource.update(rep);
+        } catch (Exception ex) {
+            log.warn("Failed clearing attributes {} for user {}: {}", keys, userId, ex.getMessage());
+        }
+    }
+
+    /* ============================================================
        Password & Email Actions
        ============================================================ */
 
