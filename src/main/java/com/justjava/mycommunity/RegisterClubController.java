@@ -33,6 +33,11 @@ public class RegisterClubController {
 
         String redirectUri = base + "/register-club-callback";
 
+        // Note: the intent is passed as a URL fragment (#intent=create-club) rather than a
+        // query param. Keycloak drops unknown query params when it internally 302s from
+        // /protocol/openid-connect/registrations to /login-actions/registration, but browsers
+        // preserve the URL fragment across HTTP redirects (RFC 7231). The FTL JS then reads
+        // it from window.location.hash.
         String url = keycloakBaseUrl
                 + "/realms/" + keycloakRealm
                 + "/protocol/openid-connect/registrations"
@@ -40,7 +45,7 @@ public class RegisterClubController {
                 + "&response_type=code"
                 + "&scope=openid"
                 + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
-                + "&intent=create-club";
+                + "#intent=create-club";
 
         response.sendRedirect(url);
     }
