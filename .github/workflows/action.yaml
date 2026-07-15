@@ -74,5 +74,5 @@ jobs:
           echo "Updating service image to: $IMAGE_REF"
           railway variables --set "RAILWAY_SERVICE_IMAGE=$IMAGE_REF" --service $RAILWAY_SERVICE_ID
           
-          
+          #testing auto deploy
           
