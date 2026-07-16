@@ -74,7 +74,7 @@ public class CommunityService {
 
 
     public CommunityDTO createCommunity(CreateCommunityVO dto) {
-        User user = resolveUser(dto.getUserEmail());
+        User user = resolveUser(dto);
         Channel channel = townHallChannelService.createChannel(dto.getChannelName(), dto.getChannelDescription());
 
         TownHall townHall = townHallChannelService.createTownHall(dto.getTownHallName(), dto.getTownHallDescription());
@@ -100,35 +100,51 @@ public class CommunityService {
      * then clear the attributes so the flow only ever fires once.
      */
     @Transactional
-    public void processPendingClubCreation(String userId) {
-        if (userId == null || userId.isBlank()) return;
+    public boolean processPendingClubCreation(String userId) {
+        System.out.println("[CLUB-CREATE] === processPendingClubCreation called with userId=" + userId + " ===");
+        if (userId == null || userId.isBlank()) {
+            System.out.println("[CLUB-CREATE] ABORT: userId is null/blank");
+            return false;
+        }
 
-        Optional<String> pending = keycloakAdminService.getUserAttribute(
-                KeycloakResource.COMMUNITY_REALM, userId, "pendingClubCreation");
-        if (pending.isEmpty() || !"true".equalsIgnoreCase(pending.get())) return;
+        // Dump ALL Keycloak attributes for this user so we can see exactly what's there
+        Map<String, List<String>> allAttrs =
+                keycloakAdminService.dumpUserAttributes(KeycloakResource.COMMUNITY_REALM, userId);
 
-        String clubName = keycloakAdminService
-                .getUserAttribute(KeycloakResource.COMMUNITY_REALM, userId, "clubName")
-                .map(String::trim).orElse("");
+        java.util.function.Function<String, String> attr = key -> {
+            List<String> v = allAttrs.get(key);
+            return (v == null || v.isEmpty()) ? null : v.get(0);
+        };
+
+        String pending = attr.apply("pendingClubCreation");
+        System.out.println("[CLUB-CREATE] pendingClubCreation attribute value = " + pending);
+        if (pending == null || !"true".equalsIgnoreCase(pending.trim())) {
+            System.out.println("[CLUB-CREATE] ABORT: pendingClubCreation is not 'true' (was: " + pending + ")");
+            return false;
+        }
+
+        String clubName = attr.apply("clubName");
+        clubName = clubName == null ? "" : clubName.trim();
+        System.out.println("[CLUB-CREATE] clubName = '" + clubName + "'");
         if (clubName.isEmpty()) {
+            System.out.println("[CLUB-CREATE] ABORT: clubName is empty — clearing attrs");
             keycloakAdminService.clearUserAttributes(
                     KeycloakResource.COMMUNITY_REALM, userId,
                     List.of("pendingClubCreation", "clubName", "clubDescription", "clubPrivacy"));
-            return;
+            return false;
         }
 
-        String clubDescription = keycloakAdminService
-                .getUserAttribute(KeycloakResource.COMMUNITY_REALM, userId, "clubDescription")
-                .orElse("");
-        boolean isPrivate = keycloakAdminService
-                .getUserAttribute(KeycloakResource.COMMUNITY_REALM, userId, "clubPrivacy")
-                .map(v -> "true".equalsIgnoreCase(v) || "private".equalsIgnoreCase(v))
-                .orElse(false);
+        String clubDescription = attr.apply("clubDescription");
+        clubDescription = clubDescription == null ? "" : clubDescription;
+        String clubPrivacyRaw = attr.apply("clubPrivacy");
+        boolean isPrivate = "true".equalsIgnoreCase(clubPrivacyRaw) || "private".equalsIgnoreCase(clubPrivacyRaw);
+        System.out.println("[CLUB-CREATE] clubDescription = '" + clubDescription + "' clubPrivacyRaw='" + clubPrivacyRaw + "' isPrivate=" + isPrivate);
 
         User localUser = userRepository.findByUserId(userId);
+        System.out.println("[CLUB-CREATE] local User lookup by userId: " + (localUser == null ? "null" : ("id=" + localUser.getId() + " email=" + localUser.getEmail())));
         if (localUser == null || localUser.getEmail() == null) {
-            // User not saved locally yet — leave the attributes in place so the next login retries.
-            return;
+            System.out.println("[CLUB-CREATE] ABORT: local user not yet persisted — will retry on next request. Attributes left in place.");
+            return false;
         }
 
         CreateCommunityVO vo = CreateCommunityVO.builder()
@@ -138,22 +154,42 @@ public class CommunityService {
                 .channelDescription(clubDescription)
                 .townHallName(clubName)
                 .townHallDescription(clubDescription)
+                .userId(userId)
                 .userEmail(localUser.getEmail())
                 .isPrivate(isPrivate)
                 .build();
 
         try {
-            createCommunity(vo);
+            System.out.println("[CLUB-CREATE] Calling createCommunity(...) with VO for '" + clubName + "'");
+            CommunityDTO created = createCommunity(vo);
+            System.out.println("[CLUB-CREATE] SUCCESS: created community id=" + (created != null ? created.getId() : "?"));
+            return true;
+        } catch (RuntimeException ex) {
+            System.err.println("[CLUB-CREATE] FAILED createCommunity: " + ex.getClass().getName() + ": " + ex.getMessage());
+            ex.printStackTrace();
+            throw ex;
         } finally {
+            System.out.println("[CLUB-CREATE] Clearing pending* attributes on Keycloak user " + userId);
             keycloakAdminService.clearUserAttributes(
                     KeycloakResource.COMMUNITY_REALM, userId,
                     List.of("pendingClubCreation", "clubName", "clubDescription", "clubPrivacy"));
         }
     }
 
-    private User resolveUser(String userEmail) {
-        return Optional.ofNullable(userRepository.findByEmail(userEmail))
-                .orElseThrow(() -> new EntityNotFoundException("User with email " + userEmail + " not found"));
+    private User resolveUser(CreateCommunityVO dto) {
+        // Prefer userId (Keycloak sub) — it's unique. Email lookups can throw
+        // NonUniqueResultException when the same address exists on multiple rows
+        // (e.g. after a Keycloak re-sync).
+        if (dto.getUserId() != null && !dto.getUserId().isBlank()) {
+            User byId = userRepository.findByUserId(dto.getUserId());
+            if (byId != null) return byId;
+        }
+        if (dto.getUserEmail() != null && !dto.getUserEmail().isBlank()) {
+            User byEmail = userRepository.findFirstByEmailOrderByIdAsc(dto.getUserEmail());
+            if (byEmail != null) return byEmail;
+        }
+        throw new EntityNotFoundException(
+                "User not found (userId=" + dto.getUserId() + ", email=" + dto.getUserEmail() + ")");
     }
 
     private Organization resolveOrganization(User user) {

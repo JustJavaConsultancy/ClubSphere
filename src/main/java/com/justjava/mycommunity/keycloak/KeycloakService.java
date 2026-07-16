@@ -5,6 +5,7 @@ import com.justjava.mycommunity.chat.entity.Conversation;
 import com.justjava.mycommunity.chat.entity.User;
 import com.justjava.mycommunity.chat.repository.ChatGroupRepository;
 import com.justjava.mycommunity.chat.repository.ConversationRepository;
+import com.justjava.mycommunity.chat.repository.ParticipantRepository;
 import com.justjava.mycommunity.network.ChatGroup;
 import com.justjava.mycommunity.network.NetworkService;
 import com.justjava.mycommunity.userManagement.UserDTO;
@@ -43,6 +44,7 @@ public class KeycloakService {
     private final KeycloakFeignClient keycloakFeignClient;
     private final ChatGroupRepository chatGroupRepository;
     private final NetworkService networkService;
+    private final ParticipantRepository participantRepository;
 
     @Value("${keycloak.client-id}")
     String clientId;
@@ -348,6 +350,9 @@ public class KeycloakService {
     }
     @Transactional
     protected void deleteUser(User user) {
+        participantRepository.deleteEventParticipantsByUserId(user.getId());
+        participantRepository.deleteAllByUserId(user.getId());
+
         for (Conversation conversation : user.getConversations()) {
             conversation.getMembers().remove(user);
         }

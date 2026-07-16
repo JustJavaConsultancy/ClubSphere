@@ -43,7 +43,6 @@ public class Oauth2SecurityConfig {
                         httpSecuritySessionManagementConfigurer
                                 .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .csrf(CsrfConfigurer::disable)
-//                .oauth2Login(Customizer.withDefaults())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/landing")
                         .successHandler(oidcAuthenticationSuccessHandler()))

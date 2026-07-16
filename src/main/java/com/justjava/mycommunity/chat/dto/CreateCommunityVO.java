@@ -13,6 +13,7 @@ public class CreateCommunityVO {
     private String townHallName;
     private String townHallDescription;
     private String userEmail;
+    private String userId;
     private Boolean isPrivate;
 
     // Custom getter method for isPrivate

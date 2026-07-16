@@ -25,6 +25,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmail(String email);
 
+    // Duplicate-email tolerant lookup — some sync paths can produce two rows
+    // for the same address. Callers that only have the email as a lookup key
+    // want *any* match rather than a NonUniqueResultException.
+    User findFirstByEmailOrderByIdAsc(String email);
+
     @Query("""
         SELECT u
         FROM User u

@@ -235,6 +235,27 @@ public class KeycloakAdminService {
         }
     }
 
+    /** Debug helper: dump every attribute on a user, plus username/email, so we can
+     *  see exactly what Keycloak has for a given userId. */
+    public Map<String, List<String>> dumpUserAttributes(String realmName, String userId) {
+        try {
+            UserRepresentation rep = user(realmName, userId).toRepresentation();
+            log.info("[KC-DUMP] realm={} userId={} username={} email={} enabled={}",
+                    realmName, userId, rep.getUsername(), rep.getEmail(), rep.isEnabled());
+            Map<String, List<String>> attributes = rep.getAttributes();
+            if (attributes == null || attributes.isEmpty()) {
+                log.info("[KC-DUMP] user has NO attributes");
+                return Collections.emptyMap();
+            }
+            attributes.forEach((k, v) -> log.info("[KC-DUMP]   attr {} = {}", k, v));
+            return attributes;
+        } catch (Exception ex) {
+            log.warn("[KC-DUMP] Failed to dump attributes for realm={} userId={}: {}",
+                    realmName, userId, ex.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
     public void clearUserAttributes(String realmName, String userId, List<String> keys) {
         try {
             UserResource userResource = user(realmName, userId);
@@ -506,7 +527,14 @@ public class KeycloakAdminService {
                 .toList();
 
         if (!usersToDelete.isEmpty()) {
-            usersToDelete.forEach(keycloakService::deleteUser);
+            // Do NOT hard-delete: these users have posts, participants, chat groups,
+            // memberships, network connections, etc. that reference them. Cascading
+            // through all of that on every sync is fragile and blows up on FK
+            // constraints. Just disable them so they can no longer log in / act,
+            // but their history stays intact.
+            usersToDelete.forEach(u -> u.setStatus(false));
+            userRepository.saveAll(usersToDelete);
+            log.info("Disabled {} user(s) missing from Keycloak (not deleted).", usersToDelete.size());
         }
         networkService.createChatGroupForUsers(usersToSave.values().stream().toList());
         log.info("\nDone Syncing Users");

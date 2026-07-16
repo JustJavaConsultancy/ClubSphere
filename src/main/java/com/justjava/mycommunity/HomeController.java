@@ -17,6 +17,7 @@ import com.justjava.mycommunity.posts.PostService;
 import com.justjava.mycommunity.support.AISupportService;
 import com.justjava.mycommunity.support.SupportFeignClient;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -112,12 +113,25 @@ public class HomeController {
         String currentUserId = (String) authenticationManager.get("sub");
         boolean isAdmin = authenticationManager.isAdmin();
 
-        // If this user signed up via the landing-page "Register your community" flow,
-        // finish creating their club now (idempotent — the KC attributes are cleared afterwards).
+        // If this user signed up via the landing-page "Register your club" flow,
+        // register.ftl stored the club details as Keycloak user attributes.
+        // Materialise the community now; the attributes are cleared inside so
+        // this only ever fires once per signup.
+        HttpSession existingSession = request.getSession(false);
+        Object intentFlag = existingSession != null ? existingSession.getAttribute(RegisterClubController.SESSION_INTENT_KEY) : null;
+        System.out.println("[HOME] === / hit ===  userId=" + currentUserId
+                + "  sessionId=" + (existingSession != null ? existingSession.getId() : "null")
+                + "  registerClubIntent=" + intentFlag);
         try {
-            communityService.processPendingClubCreation(currentUserId);
+            boolean created = communityService.processPendingClubCreation(currentUserId);
+            System.out.println("[HOME] processPendingClubCreation returned: " + created);
         } catch (Exception ex) {
-            System.err.println("processPendingClubCreation failed for " + currentUserId + ": " + ex.getMessage());
+            System.err.println("[HOME] processPendingClubCreation THREW for " + currentUserId + ": " + ex.getMessage());
+            ex.printStackTrace();
+        }
+        if (existingSession != null
+                && Boolean.TRUE.equals(existingSession.getAttribute(RegisterClubController.SESSION_INTENT_KEY))) {
+            existingSession.removeAttribute(RegisterClubController.SESSION_INTENT_KEY);
         }
 
         // Get selected mycommunity ID from session
