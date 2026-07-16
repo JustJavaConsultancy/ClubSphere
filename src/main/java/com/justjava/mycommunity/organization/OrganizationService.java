@@ -99,7 +99,6 @@ public class OrganizationService {
 
     @Transactional
     public void createDefaultOrgAndCommunity (){
-        User user = userRepository.findByEmail("idea@gmail.com");
         if (organizationRepository.count() < 1) {
             createOrganization(CreateOrgDTO.builder()
                     .orgName("Default Organization")
@@ -112,6 +111,10 @@ public class OrganizationService {
                     .townHallDescription("Default Town Hall Description")
                     .adminEmail("idea@gmail.com")
                     .build());
+        }
+        User user = userRepository.findByEmail("idea@gmail.com");
+        if (user == null || user.getOrganization() == null) {
+            return;
         }
         if (!communityRepository.existsByOrganization_Id(user.getOrganization().getId())) {
             communityService.createCommunity(CreateCommunityVO.builder()
