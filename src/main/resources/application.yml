@@ -2,9 +2,9 @@ spring:
   application:
     name: MyCommunity
   datasource:
-    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5433/mycommunity}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/mycommunity}
     username: ${JDBC_DATABASE_USERNAME:postgres}
-    password: ${JDBC_DATABASE_PASSWORD:020775Rashy!}
+    password: ${JDBC_DATABASE_PASSWORD:Boluwatife2006}
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 10
@@ -120,7 +120,7 @@ cloudinary:
 keycloak:
   base-url: ${KEYCLOAK_BASE_URI:https://ngcloak-production.up.railway.app}
   admin-id: ${KEYCLOAK_ADMIN_ID:admin-cli-client}
-  admin-secret: ${KEYCLOAK_ADMIN_SECRET:i4nLD8kmJbJvtXhcLeUJGPY5xyw5y5FA}
+  admin-secret: ${KEYCLOAK_ADMIN_SECRET:4tv4AsvrnbDyLa0W9ej4RAy1pX82gKHp6U6HpxP0lAMdUTH31kjrfubAqOXM8DtZCHTJZqmvFQMNXgPYxOqWZ4}
   client-id: ${KEYCLOAK_CLIENT_ID:community}
   client-secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
   realm-name: ${KEYCLOAK_REALM_NAME:community}
