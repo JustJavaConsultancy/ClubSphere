@@ -122,9 +122,10 @@ public class HomeController {
         System.out.println("[HOME] === / hit ===  userId=" + currentUserId
                 + "  sessionId=" + (existingSession != null ? existingSession.getId() : "null")
                 + "  registerClubIntent=" + intentFlag);
+        boolean justCreatedClub = false;
         try {
-            boolean created = communityService.processPendingClubCreation(currentUserId);
-            System.out.println("[HOME] processPendingClubCreation returned: " + created);
+            justCreatedClub = communityService.processPendingClubCreation(currentUserId);
+            System.out.println("[HOME] processPendingClubCreation returned: " + justCreatedClub);
         } catch (Exception ex) {
             System.err.println("[HOME] processPendingClubCreation THREW for " + currentUserId + ": " + ex.getMessage());
             ex.printStackTrace();
@@ -132,6 +133,15 @@ public class HomeController {
         if (existingSession != null
                 && Boolean.TRUE.equals(existingSession.getAttribute(RegisterClubController.SESSION_INTENT_KEY))) {
             existingSession.removeAttribute(RegisterClubController.SESSION_INTENT_KEY);
+        }
+        // Short-circuit right after club creation. The first / hit already did
+        // club creation + two Keycloak admin round-trips; adding the full home()
+        // render on top pushes past Railway's proxy timeout ("train has not
+        // arrived"). Bounce to /  so the response completes fast, and let the
+        // next request do the dashboard render (by which point
+        // processPendingClubCreation is a no-op).
+        if (justCreatedClub) {
+            return "redirect:/";
         }
 
         // Get selected mycommunity ID from session
