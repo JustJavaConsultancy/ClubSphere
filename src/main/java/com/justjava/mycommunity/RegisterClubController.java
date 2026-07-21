@@ -34,6 +34,37 @@ public class RegisterClubController {
     @Value("${app.base.url}")
     private String appBaseUrl;
 
+    /**
+     * Normalise APP_BASE_URL. Railway env vars regularly ship without an
+     * `https://` prefix (or with a trailing slash), which produces a malformed
+     * `redirect_uri` and lands the browser at a 404. Rather than depend on the
+     * env var being set perfectly, coerce it into a valid absolute URL here.
+     * Also prefer X-Forwarded-Host if present so it works even when APP_BASE_URL
+     * is empty/misconfigured — the request itself tells us what host to use.
+     */
+    private String resolveBaseUrl(HttpServletRequest request) {
+        String base = appBaseUrl == null ? "" : appBaseUrl.trim();
+
+        // Strip common env-var junk.
+        while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+
+        // If empty, reconstruct from the incoming request (respecting the
+        // reverse-proxy headers Railway sets).
+        if (base.isEmpty()) {
+            String scheme = header(request, "X-Forwarded-Proto", request.getScheme());
+            String host = header(request, "X-Forwarded-Host", request.getServerName());
+            base = scheme + "://" + host;
+        } else if (!base.startsWith("http://") && !base.startsWith("https://")) {
+            base = "https://" + base;
+        }
+        return base;
+    }
+
+    private static String header(HttpServletRequest request, String name, String fallback) {
+        String v = request.getHeader(name);
+        return (v == null || v.isBlank()) ? fallback : v.split(",")[0].trim();
+    }
+
     @GetMapping("/register-club")
     public void registerClub(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession s = request.getSession(true);
@@ -48,7 +79,7 @@ public class RegisterClubController {
         // `#intent=create-club` URL fragment DOES survive that redirect (browsers
         // preserve fragments across HTTP redirects) — so it reliably reaches
         // register.ftl's JS, which reveals the club-creation fields.
-        String redirectUri = appBaseUrl + "/register-club-callback";
+        String redirectUri = resolveBaseUrl(request) + "/register-club-callback";
         String url = keycloakBaseUrl
                 + "/realms/" + keycloakRealm
                 + "/protocol/openid-connect/registrations"
@@ -58,7 +89,7 @@ public class RegisterClubController {
                 + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
                 + "#intent=create-club";
 
-        log.info("[register-club] Redirecting to Keycloak registration: {}", url);
+        log.info("[register-club] appBaseUrl='{}' resolved redirect_uri='{}' -> {}", appBaseUrl, redirectUri, url);
         response.sendRedirect(url);
     }
 
