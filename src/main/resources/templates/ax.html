@@ -1,0 +1,1941 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta
+      name="description"
+      content="WebHive is a boutique web development agency that builds modern, high-performing websites and web apps for ambitious small businesses and startups."
+    />
+    <title>WebHive. — Boutique Web Development for Ambitious Businesses</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "nexus-bg": "#fbfaf8",
+              "nexus-muted": "#f5f3ef",
+              "nexus-primary": "#6366f1",
+              "nexus-dark": "#1a1a1a",
+            },
+            fontFamily: {
+              serif: ['"Playfair Display"', "serif"],
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      .heading-serif {
+        font-family: "Playfair Display", serif;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .sub-heading {
+        letter-spacing: 0.1em;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      @keyframes marquee {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .marquee-track {
+        display: flex;
+        animation: marquee 32s linear infinite;
+      }
+      .marquee-track:hover {
+        animation-play-state: paused;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition:
+          opacity 0.65s ease,
+          transform 0.65s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal-delay-1 {
+        transition-delay: 0.1s;
+      }
+      .reveal-delay-2 {
+        transition-delay: 0.2s;
+      }
+      .reveal-delay-3 {
+        transition-delay: 0.3s;
+      }
+      .card-hover {
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.09);
+      }
+      .service-card::before {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: #6366f1;
+        margin-bottom: 1.5rem;
+        transition: width 0.3s ease;
+      }
+      .service-card:hover::before {
+        width: 72px;
+      }
+      .work-overlay {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .work-card:hover .work-overlay {
+        opacity: 1;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #d1d5db;
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+      }
+      .dot.active {
+        background: #6366f1;
+        transform: scale(1.3);
+      }
+      .process-bg-num {
+        font-family: "Playfair Display", serif;
+        font-size: 7rem;
+        line-height: 1;
+        color: #f5f3ef;
+        font-weight: 900;
+        position: absolute;
+        top: -1.5rem;
+        left: -0.75rem;
+        z-index: 0;
+        user-select: none;
+      }
+      .f-link {
+        position: relative;
+      }
+      .f-link::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: #6366f1;
+        transition: width 0.3s;
+      }
+      .f-link:hover::after {
+        width: 100%;
+      }
+      #scroll-top {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #scroll-top.visible {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .cta-bg {
+        background: linear-gradient(140deg, #1a1a1a 0%, #252525 100%);
+      }
+      .guarantee-badge {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-nexus-bg font-sans text-nexus-dark antialiased overflow-x-hidden"
+  >
+    <!-- HEADER -->
+    <header
+      class="fixed top-0 left-0 right-0 z-50 pt-5 px-4 md:px-8"
+      id="site-header"
+    >
+      <nav
+        id="main-nav"
+        class="max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-gray-100 rounded-full py-3 px-6 md:px-8 flex items-center justify-between shadow-sm transition-shadow duration-300"
+      >
+        <a
+          href="#home"
+          class="text-xl font-black tracking-tighter hover:text-nexus-primary transition-colors"
+          >WEBHIVE.</a
+        >
+        <div
+          class="hidden md:flex items-center space-x-10 text-sm font-medium text-gray-600"
+        >
+          <a
+            class="hover:text-nexus-dark transition-colors"
+            href="#capabilities"
+            >Services</a
+          >
+          <a class="hover:text-nexus-dark transition-colors" href="#work"
+            >Portfolio</a
+          >
+          <a class="hover:text-nexus-dark transition-colors" href="#results"
+            >Results</a
+          >
+          <a class="hover:text-nexus-dark transition-colors" href="#agency"
+            >About</a
+          >
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            class="hidden md:inline-flex bg-nexus-dark text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-black transition-all"
+            href="#contact"
+            >Start Your Project</a
+          >
+          <button
+            id="menu-toggle"
+            class="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+          >
+            <svg
+              id="icon-open"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+            <svg
+              id="icon-close"
+              class="w-5 h-5 hidden"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      </nav>
+      <div id="mobile-menu" class="md:hidden hidden max-w-7xl mx-auto mt-2">
+        <div
+          class="bg-white/95 backdrop-blur-md border border-gray-100 rounded-3xl py-6 px-8 shadow-xl space-y-1 text-center"
+        >
+          <a
+            class="block py-2.5 text-sm font-medium text-gray-600 hover:text-nexus-dark"
+            href="#capabilities"
+            onclick="closeMobile()"
+            >Services</a
+          >
+          <a
+            class="block py-2.5 text-sm font-medium text-gray-600 hover:text-nexus-dark"
+            href="#work"
+            onclick="closeMobile()"
+            >Portfolio</a
+          >
+          <a
+            class="block py-2.5 text-sm font-medium text-gray-600 hover:text-nexus-dark"
+            href="#results"
+            onclick="closeMobile()"
+            >Results</a
+          >
+          <a
+            class="block py-2.5 text-sm font-medium text-gray-600 hover:text-nexus-dark"
+            href="#agency"
+            onclick="closeMobile()"
+            >About</a
+          >
+          <div class="pt-3 border-t border-gray-100">
+            <a
+              class="inline-flex bg-nexus-dark text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-black transition-all"
+              href="#contact"
+              onclick="closeMobile()"
+              >Start Your Project</a
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="pt-36 md:pt-52 pb-24 px-6 overflow-hidden" id="home">
+      <div
+        class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"
+      >
+        <div class="lg:col-span-6 space-y-8">
+          <p class="sub-heading text-nexus-primary uppercase reveal">
+            Boutique Web Development
+          </p>
+          <h1
+            class="heading-serif text-6xl md:text-[5.5rem] reveal reveal-delay-1"
+          >
+            Websites That Work<br />
+            As Hard As <em class="font-normal italic">You Do.</em>
+          </h1>
+          <p
+            class="text-lg md:text-xl text-gray-500 max-w-lg leading-relaxed reveal reveal-delay-2"
+          >
+            We're a two-person boutique agency with a background in building
+            large-scale applications — now bringing that same engineering
+            rigour to small businesses and startups who deserve better than
+            template sites.
+          </p>
+          <div class="flex flex-wrap gap-4 pt-2 reveal reveal-delay-3">
+            <a
+              href="#work"
+              class="bg-nexus-primary text-white px-8 py-4 rounded-full font-semibold hover:bg-indigo-600 transition-all shadow-lg shadow-nexus-primary/20"
+              >View Our Work</a
+            >
+            <a
+              href="#contact"
+              class="bg-white border border-gray-200 text-nexus-dark px-8 py-4 rounded-full font-semibold hover:bg-gray-50 transition-all"
+              >Free Consultation</a
+            >
+          </div>
+        </div>
+        <div class="lg:col-span-6 relative mt-10 lg:mt-0 reveal reveal-delay-2">
+          <div
+            class="relative z-10 rounded-3xl overflow-hidden shadow-2xl aspect-[4/3]"
+          >
+            <img
+              alt="Enterprise web development workspace"
+              class="w-full h-full object-cover"
+              src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80"
+            />
+          </div>
+          <div
+            class="absolute -bottom-6 -left-4 md:-left-10 z-20 bg-white p-6 rounded-2xl shadow-xl w-64"
+          >
+            <p class="sub-heading text-nexus-primary uppercase mb-3">
+              Our Approach
+            </p>
+            <p class="text-lg font-bold leading-snug">
+              Custom-built. No templates, no shortcuts.
+            </p>
+            <div class="flex items-center gap-2 mt-3">
+              <span
+                class="w-2 h-2 rounded-full bg-green-400 inline-block"
+              ></span>
+              <span class="text-xs text-gray-500"
+                >Handcrafted for your business</span
+              >
+            </div>
+          </div>
+          <div
+            class="absolute -top-5 -right-2 md:-right-5 z-20 bg-nexus-primary text-white p-5 rounded-2xl shadow-xl text-center w-32"
+          >
+            <p class="heading-serif text-4xl font-black">100%</p>
+            <p class="text-xs font-semibold mt-1 leading-tight">
+              Custom Code
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST INDICATORS -->
+    <section class="py-16 px-6 bg-white border-y border-gray-100">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center">
+          <p class="text-sm text-gray-500 font-medium mb-10">
+            What sets us apart
+          </p>
+          <div
+            class="flex flex-wrap items-center justify-center gap-10 md:gap-16"
+          >
+            <div class="text-center">
+              <p class="text-2xl font-black text-nexus-dark">Enterprise</p>
+              <p class="text-xs text-gray-500 mt-1">Background & Mindset</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-black text-nexus-dark">Boutique</p>
+              <p class="text-xs text-gray-500 mt-1">Team & Attention</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-black text-nexus-dark">Custom</p>
+              <p class="text-xs text-gray-500 mt-1">Code, Every Time</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-black text-nexus-dark">Founder</p>
+              <p class="text-xs text-gray-500 mt-1">Direct Access</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <section class="py-10 border-y border-gray-100 overflow-hidden bg-white">
+      <div class="overflow-hidden">
+        <div class="marquee-track whitespace-nowrap select-none">
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >REACT</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >NEXT.JS</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >TYPESCRIPT</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >TAILWIND</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >NODE.JS</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >MONGODB</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >FIGMA</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >VERCEL</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >REACT</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >NEXT.JS</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >TYPESCRIPT</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >TAILWIND</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >NODE.JS</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >MONGODB</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >FIGMA</span
+          >
+          <span
+            class="inline-block mx-12 text-gray-300 font-bold text-xl tracking-widest"
+            >VERCEL</span
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPABILITIES -->
+    <section class="py-28 px-6" id="capabilities">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-3xl mb-20">
+          <p class="sub-heading text-nexus-primary uppercase mb-4 reveal">
+            Core Services
+          </p>
+          <h2
+            class="heading-serif text-5xl md:text-6xl mb-6 reveal reveal-delay-1"
+          >
+            What We Build.
+          </h2>
+          <p
+            class="text-lg text-gray-500 leading-relaxed reveal reveal-delay-2"
+          >
+            We focus on outcomes small businesses actually care about: more
+            leads, a site that reflects your quality, and a foundation that
+            grows with you.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="service-card bg-white rounded-2xl p-8 card-hover reveal">
+            <h3 class="text-xl font-bold mb-3">Custom Web Applications</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Bespoke web apps built with React, Next.js, and TypeScript.
+              Designed to scale with your business — not just look good on
+              launch day.
+            </p>
+            <div class="mt-4 text-xs text-nexus-primary font-semibold">
+              ✓ Fast Load Times &nbsp;&nbsp; ✓ Mobile-Ready &nbsp;&nbsp; ✓
+              Built to Scale
+            </div>
+            <a
+              href="#contact"
+              class="inline-flex items-center gap-2 mt-6 text-sm font-semibold text-nexus-primary hover:gap-3 transition-all"
+              >Learn more
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                /></svg
+            ></a>
+          </div>
+          <div
+            class="service-card bg-white rounded-2xl p-8 card-hover reveal reveal-delay-1"
+          >
+            <h3 class="text-xl font-bold mb-3">Conversion-Focused Design</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Data-driven UI/UX design that converts visitors into customers.
+              Every element is optimized for user engagement and business goals.
+            </p>
+            <div class="mt-4 text-xs text-nexus-primary font-semibold">
+              ✓ A/B Testing &nbsp;&nbsp; ✓ User Analytics &nbsp;&nbsp; ✓
+              Conversion Optimization
+            </div>
+            <a
+              href="#contact"
+              class="inline-flex items-center gap-2 mt-6 text-sm font-semibold text-nexus-primary hover:gap-3 transition-all"
+              >Learn more
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                /></svg
+            ></a>
+          </div>
+          <div
+            class="service-card bg-white rounded-2xl p-8 card-hover reveal reveal-delay-2"
+          >
+            <h3 class="text-xl font-bold mb-3">E-Commerce Platforms</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              High-converting online stores with advanced features. Custom
+              checkout flows, inventory management, and payment processing.
+            </p>
+            <div class="mt-4 text-xs text-nexus-primary font-semibold">
+              ✓ Revenue Optimization &nbsp;&nbsp; ✓ Mobile-First &nbsp;&nbsp; ✓
+              Payment Security
+            </div>
+            <a
+              href="#contact"
+              class="inline-flex items-center gap-2 mt-6 text-sm font-semibold text-nexus-primary hover:gap-3 transition-all"
+              >Learn more
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                /></svg
+            ></a>
+          </div>
+          <div
+            class="service-card bg-white rounded-2xl p-8 card-hover reveal reveal-delay-1"
+          >
+            <h3 class="text-xl font-bold mb-3">Performance Optimization</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Comprehensive audits and optimization to boost site speed, SEO
+              rankings, and user experience. Guaranteed performance
+              improvements.
+            </p>
+            <div class="mt-4 text-xs text-nexus-primary font-semibold">
+              ✓ Speed Guarantee &nbsp;&nbsp; ✓ SEO Boost &nbsp;&nbsp; ✓ Core Web
+              Vitals
+            </div>
+            <a
+              href="#contact"
+              class="inline-flex items-center gap-2 mt-6 text-sm font-semibold text-nexus-primary hover:gap-3 transition-all"
+              >Learn more
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                /></svg
+            ></a>
+          </div>
+          <div
+            class="service-card bg-white rounded-2xl p-8 card-hover reveal reveal-delay-2"
+          >
+            <h3 class="text-xl font-bold mb-3">Website Redesigns</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Have a site that no longer reflects where your business is?
+              We rebuild from the ground up — better design, better speed,
+              better first impressions.
+            </p>
+            <div class="mt-4 text-xs text-nexus-primary font-semibold">
+              ✓ Before & After &nbsp;&nbsp; ✓ SEO-Friendly &nbsp;&nbsp;
+              ✓ No Template Limits
+            </div>
+            <a
+              href="#contact"
+              class="inline-flex items-center gap-2 mt-6 text-sm font-semibold text-nexus-primary hover:gap-3 transition-all"
+              >Learn more
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                /></svg
+            ></a>
+          </div>
+          <div
+            class="service-card guarantee-badge rounded-2xl p-8 card-hover reveal reveal-delay-3"
+          >
+            <h3 class="text-xl font-bold mb-3 text-white">
+              30-Day Money-Back Guarantee
+            </h3>
+            <p class="text-white/90 text-sm leading-relaxed">
+              Not satisfied with our work? Get a full refund within 30 days.
+              We're confident in our ability to exceed your expectations.
+            </p>
+            <a
+              href="#contact"
+              class="inline-flex items-center gap-2 mt-6 text-sm font-semibold text-white hover:gap-3 transition-all"
+              >Start Risk-Free
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                /></svg
+            ></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELECTED WORK -->
+    <section class="py-28 px-6 bg-nexus-dark text-white" id="work">
+      <div class="max-w-7xl mx-auto">
+        <div
+          class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6"
+        >
+          <div>
+            <p class="sub-heading text-nexus-primary uppercase mb-4 reveal">
+              Selected Work
+            </p>
+            <h2
+              class="heading-serif text-5xl md:text-6xl reveal reveal-delay-1"
+            >
+              What We Can Build.
+            </h2>
+          </div>
+        </div>
+        <div
+          class="work-card relative rounded-3xl overflow-hidden h-80 md:h-[480px] group reveal mb-6 cursor-pointer"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80"
+            alt="FinanceFlow Dashboard Concept"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
+          ></div>
+          <div
+            class="work-overlay absolute inset-0 bg-nexus-primary/15 rounded-3xl"
+          ></div>
+          <div class="absolute bottom-0 left-0 p-8 md:p-12">
+            <span
+              class="text-xs font-semibold tracking-widest text-nexus-primary uppercase"
+              >Concept Project &middot; Fintech Dashboard</span
+            >
+            <h3 class="heading-serif text-3xl md:text-4xl text-white mt-2">
+              FinanceFlow — Web Application Concept
+            </h3>
+            <p class="text-gray-300 text-sm mt-2 max-w-md">
+              A concept design for a fintech dashboard built around clean data
+              visualisation, intuitive navigation, and fast performance on any
+              device.
+            </p>
+            <div class="flex gap-6 mt-4 text-xs">
+              <span class="text-nexus-primary/80">React + Next.js</span>
+              <span class="text-nexus-primary/80">TypeScript</span>
+              <span class="text-nexus-primary/80">Tailwind CSS</span>
+            </div>
+          </div>
+          <div
+            class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <span
+              class="flex w-12 h-12 bg-white rounded-full items-center justify-center text-nexus-dark hover:bg-nexus-primary hover:text-white transition-colors"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            class="work-card relative rounded-3xl overflow-hidden h-72 group reveal reveal-delay-1 cursor-pointer"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80"
+              alt="RetailMax Store Concept"
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"
+            ></div>
+            <div
+              class="work-overlay absolute inset-0 bg-nexus-primary/15 rounded-3xl"
+            ></div>
+            <div class="absolute bottom-0 left-0 p-7">
+              <span
+                class="text-xs font-semibold tracking-widest text-nexus-primary uppercase"
+                >Concept Project &middot; E-Commerce</span
+              >
+              <h3 class="heading-serif text-2xl text-white mt-1">
+                RetailMax — Store Concept
+              </h3>
+              <p class="text-gray-300 text-xs mt-1">
+                Custom e-commerce concept with streamlined checkout, mobile-first
+                layout, and product discovery optimised for conversion.
+              </p>
+              <div class="flex gap-4 mt-2 text-xs">
+                <span class="text-nexus-primary/80">Next.js Commerce</span>
+                <span class="text-nexus-primary/80">Stripe</span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="work-card relative rounded-3xl overflow-hidden h-72 group reveal reveal-delay-2 cursor-pointer"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80"
+              alt="HealthTech Dashboard Concept"
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"
+            ></div>
+            <div
+              class="work-overlay absolute inset-0 bg-nexus-primary/15 rounded-3xl"
+            ></div>
+            <div class="absolute bottom-0 left-0 p-7">
+              <span
+                class="text-xs font-semibold tracking-widest text-nexus-primary uppercase"
+                >Concept Project &middot; SaaS Dashboard</span
+              >
+              <h3 class="heading-serif text-2xl text-white mt-1">
+                HealthTech — Dashboard Concept
+              </h3>
+              <p class="text-gray-300 text-xs mt-1">
+                A clean, accessible dashboard concept for healthcare data
+                management — built for clarity under high-information density.
+              </p>
+              <div class="flex gap-4 mt-2 text-xs">
+                <span class="text-nexus-primary/80">React</span>
+                <span class="text-nexus-primary/80">Node.js</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS SECTION -->
+    <section class="py-28 px-6 bg-nexus-muted" id="results">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+          <p class="sub-heading text-nexus-primary uppercase mb-4 reveal">
+            Client Results
+          </p>
+          <h2
+            class="heading-serif text-5xl md:text-6xl mb-6 reveal reveal-delay-1"
+          >
+            Why It Matters.
+          </h2>
+          <p
+            class="text-lg text-gray-500 leading-relaxed max-w-2xl mx-auto reveal reveal-delay-2"
+          >
+            The web is often the first thing a potential customer judges you
+            by. We make sure that first impression works in your favour.
+          </p>
+        </div>
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center mb-16"
+        >
+          <div class="reveal">
+            <p
+              class="heading-serif text-5xl md:text-6xl font-bold text-nexus-primary"
+            >
+              &lt;2s
+            </p>
+            <p class="text-sm text-gray-500 font-medium mt-2">
+              Target Load Time
+            </p>
+            <p class="text-xs text-gray-400 mt-1">Every site we ship</p>
+          </div>
+          <div class="reveal reveal-delay-1">
+            <p
+              class="heading-serif text-5xl md:text-6xl font-bold text-nexus-primary"
+            >
+              100%
+            </p>
+            <p class="text-sm text-gray-500 font-medium mt-2">
+              Mobile-Responsive
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+              Tested across real devices
+            </p>
+          </div>
+          <div class="reveal reveal-delay-2">
+            <p
+              class="heading-serif text-5xl md:text-6xl font-bold text-nexus-primary"
+            >
+              2
+            </p>
+            <p class="text-sm text-gray-500 font-medium mt-2">
+              Founders, No Junior Hand-offs
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+              You work with us directly
+            </p>
+          </div>
+          <div class="reveal reveal-delay-3">
+            <p
+              class="heading-serif text-5xl md:text-6xl font-bold text-nexus-primary"
+            >
+              30
+            </p>
+            <p class="text-sm text-gray-500 font-medium mt-2">
+              Day Money-Back Guarantee
+            </p>
+            <p class="text-xs text-gray-400 mt-1">Risk-free engagement</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-3xl p-8 md:p-12 reveal reveal-delay-2">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div class="lg:col-span-2">
+              <h3 class="text-2xl font-bold mb-4">
+                Why Small Businesses Choose WebHive
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex items-start gap-3">
+                  <div
+                    class="w-6 h-6 rounded-full bg-nexus-primary/10 flex items-center justify-center flex-shrink-0 mt-1"
+                  >
+                    <svg
+                      class="w-3 h-3 text-nexus-primary"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-sm">Enterprise-Level Skill</h4>
+                    <p class="text-xs text-gray-500">
+                      Background in large-scale systems, applied to your project
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <div
+                    class="w-6 h-6 rounded-full bg-nexus-primary/10 flex items-center justify-center flex-shrink-0 mt-1"
+                  >
+                    <svg
+                      class="w-3 h-3 text-nexus-primary"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-sm">Security by Default</h4>
+                    <p class="text-xs text-gray-500">
+                      Best practices baked in from day one, not bolted on later
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <div
+                    class="w-6 h-6 rounded-full bg-nexus-primary/10 flex items-center justify-center flex-shrink-0 mt-1"
+                  >
+                    <svg
+                      class="w-3 h-3 text-nexus-primary"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-sm">Responsive Communication</h4>
+                    <p class="text-xs text-gray-500">
+                      You always talk to the people doing the work
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <div
+                    class="w-6 h-6 rounded-full bg-nexus-primary/10 flex items-center justify-center flex-shrink-0 mt-1"
+                  >
+                    <svg
+                      class="w-3 h-3 text-nexus-primary"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-sm">Built to Grow</h4>
+                    <p class="text-xs text-gray-500">
+                      Code you can extend — not a template you'll outgrow
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="text-center lg:text-right">
+              <div
+                class="inline-flex items-center gap-2 bg-nexus-primary/10 text-nexus-primary px-4 py-2 rounded-full text-sm font-semibold mb-4"
+              >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  />
+                </svg>
+                Our Commitment
+              </div>
+              <p class="text-2xl font-bold text-nexus-dark">30-Day</p>
+              <p class="text-sm text-gray-500">
+                Money-back guarantee on every project
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METHOD -->
+    <section class="py-28 px-6" id="method">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-3xl mb-20">
+          <p class="sub-heading text-nexus-primary uppercase mb-4 reveal">
+            Our Process
+          </p>
+          <h2
+            class="heading-serif text-5xl md:text-6xl mb-6 reveal reveal-delay-1"
+          >
+            How We Work.
+          </h2>
+          <p
+            class="text-lg text-gray-500 leading-relaxed reveal reveal-delay-2"
+          >
+            A clear, transparent process so you always know where your project
+            stands — and why we're making the decisions we are.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+          <div
+            class="relative pl-8 py-8 border-l-2 border-nexus-primary reveal"
+          >
+            <span class="process-bg-num">01</span>
+            <div class="relative z-10">
+              <h3 class="text-2xl font-bold mb-3">Strategic Discovery</h3>
+              <p class="text-gray-500 leading-relaxed">
+                Comprehensive business analysis, competitor research, and
+                technical audits. We identify opportunities and define success
+                metrics before any development begins.
+              </p>
+            </div>
+          </div>
+          <div
+            class="relative pl-8 py-8 border-l-2 border-gray-200 reveal reveal-delay-1"
+          >
+            <span class="process-bg-num">02</span>
+            <div class="relative z-10">
+              <h3 class="text-2xl font-bold mb-3">Design & Architecture</h3>
+              <p class="text-gray-500 leading-relaxed">
+                User-centered design with conversion optimization. Technical
+                architecture planning for scalability, security, and performance
+                from day one.
+              </p>
+            </div>
+          </div>
+          <div
+            class="relative pl-8 py-8 border-l-2 border-gray-200 reveal reveal-delay-2"
+          >
+            <span class="process-bg-num">03</span>
+            <div class="relative z-10">
+              <h3 class="text-2xl font-bold mb-3">Agile Development</h3>
+              <p class="text-gray-500 leading-relaxed">
+                Sprint-based development with continuous testing and client
+                feedback. Real-time progress tracking and quality assurance
+                throughout the build process.
+              </p>
+            </div>
+          </div>
+          <div
+            class="relative pl-8 py-8 border-l-2 border-nexus-primary reveal reveal-delay-3"
+          >
+            <span class="process-bg-num">04</span>
+            <div class="relative z-10">
+              <h3 class="text-2xl font-bold mb-3">Launch & Optimization</h3>
+              <p class="text-gray-500 leading-relaxed">
+                Seamless deployment with performance monitoring. Ongoing
+                optimization based on real user data and business metrics to
+                maximize ROI.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="py-28 px-6 bg-white">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+          <p class="sub-heading text-nexus-primary uppercase mb-4 reveal">
+            Our Promise
+          </p>
+          <h2 class="heading-serif text-5xl md:text-6xl reveal reveal-delay-1">
+            What You Can Expect.
+          </h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 reveal reveal-delay-2">
+          <div class="bg-nexus-muted rounded-3xl p-8 text-center">
+            <div class="w-14 h-14 bg-nexus-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg class="w-7 h-7 text-nexus-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Transparent Process</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              You'll always know the current state of your project. No
+              mysterious delays, no vague updates — just clear, honest
+              communication from kickoff to launch.
+            </p>
+          </div>
+          <div class="bg-nexus-muted rounded-3xl p-8 text-center">
+            <div class="w-14 h-14 bg-nexus-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg class="w-7 h-7 text-nexus-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Built for Performance</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Every site we ship targets sub-2-second load times and a
+              perfect mobile experience. Fast sites rank better, convert
+              better, and leave better impressions.
+            </p>
+          </div>
+          <div class="bg-nexus-muted rounded-3xl p-8 text-center">
+            <div class="w-14 h-14 bg-nexus-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg class="w-7 h-7 text-nexus-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">You Own Everything</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Your code, your domain, your hosting — no lock-in. We hand
+              over clean, documented work that any developer can maintain
+              and build on in the future.
+            </p>
+          </div>
+        </div>
+        <div class="hidden">
+          <div
+            id="testimonial-track"
+            class="flex transition-transform duration-500 ease-in-out"
+          >
+            <div class="min-w-full px-4 md:px-24">
+              <div class="max-w-3xl mx-auto text-center space-y-7">
+                <div class="flex justify-center gap-1">
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                </div>
+                <blockquote
+                  class="heading-serif text-3xl md:text-4xl italic text-nexus-dark leading-relaxed"
+                >
+                  "WebHive transformed our entire digital presence. The new
+                  platform increased our conversion rate by 340% and generated
+                  an additional $2.3M in revenue within six months."
+                </blockquote>
+                <div class="flex items-center justify-center gap-4 pt-2">
+                  <img
+                    src="https://picsum.photos/seed/testimonial1/100/100"
+                    alt="Sarah Chen"
+                    class="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div class="text-left">
+                    <p class="font-semibold">Sarah Chen</p>
+                    <p class="text-sm text-gray-500">
+                      CEO, FinanceFlow (Series C)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="min-w-full px-4 md:px-24">
+              <div class="max-w-3xl mx-auto text-center space-y-7">
+                <div class="flex justify-center gap-1">
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                </div>
+                <blockquote
+                  class="heading-serif text-3xl md:text-4xl italic text-nexus-dark leading-relaxed"
+                >
+                  "The team at WebHive doesn't just build websites — they build
+                  business solutions. Our e-commerce revenue increased 180% in
+                  the first quarter after launch."
+                </blockquote>
+                <div class="flex items-center justify-center gap-4 pt-2">
+                  <img
+                    src="https://picsum.photos/seed/testimonial2/100/100"
+                    alt="Michael Rodriguez"
+                    class="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div class="text-left">
+                    <p class="font-semibold">Michael Rodriguez</p>
+                    <p class="text-sm text-gray-500">
+                      Founder, RetailMax ($50M ARR)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="min-w-full px-4 md:px-24">
+              <div class="max-w-3xl mx-auto text-center space-y-7">
+                <div class="flex justify-center gap-1">
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-5 h-5 text-nexus-primary fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                </div>
+                <blockquote
+                  class="heading-serif text-3xl md:text-4xl italic text-nexus-dark leading-relaxed"
+                >
+                  "WebHive built our patient management system that now serves
+                  50,000+ users daily with 99.9% uptime. Their technical
+                  expertise is unmatched."
+                </blockquote>
+                <div class="flex items-center justify-center gap-4 pt-2">
+                  <img
+                    src="https://picsum.photos/seed/testimonial3/100/100"
+                    alt="Dr. Lisa Park"
+                    class="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div class="text-left">
+                    <p class="font-semibold">Dr. Lisa Park</p>
+                    <p class="text-sm text-gray-500">
+                      CTO, HealthTech Solutions
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-center gap-3 mt-10">
+            <button
+              class="dot active"
+              onclick="goToSlide(0)"
+              aria-label="Testimonial 1"
+            ></button>
+            <button
+              class="dot"
+              onclick="goToSlide(1)"
+              aria-label="Testimonial 2"
+            ></button>
+            <button
+              class="dot"
+              onclick="goToSlide(2)"
+              aria-label="Testimonial 3"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="py-28 px-6 bg-nexus-bg" id="agency">
+      <div
+        class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+      >
+        <div class="space-y-8 order-2 lg:order-1">
+          <div>
+            <p class="sub-heading text-nexus-primary uppercase mb-4 reveal">
+              About WebHive
+            </p>
+            <h2
+              class="heading-serif text-5xl md:text-6xl mb-6 reveal reveal-delay-1"
+            >
+              Two Developers.<br />One Standard.
+            </h2>
+          </div>
+          <p
+            class="text-lg text-gray-500 leading-relaxed reveal reveal-delay-2"
+          >
+            WebHive is a boutique web development studio. Our background is in
+            building complex, large-scale applications — now we're channelling
+            that experience into websites and web apps for small businesses and
+            startups who deserve the same quality.
+          </p>
+          <p class="text-gray-500 leading-relaxed reveal reveal-delay-3">
+            When you work with us, you work with the people writing your code —
+            not a project manager relaying messages to a junior developer. Every
+            project gets our full attention, from the first conversation to
+            launch day.
+          </p>
+          <div class="flex flex-wrap gap-4 pt-2 reveal reveal-delay-3">
+            <a
+              href="#contact"
+              class="bg-nexus-dark text-white px-8 py-4 rounded-full font-semibold hover:bg-black transition-all"
+              >Start Your Project</a
+            >
+            <a
+              href="#results"
+              class="text-nexus-dark border border-gray-200 px-8 py-4 rounded-full font-semibold hover:bg-gray-50 transition-all"
+              >View Results &rarr;</a
+            >
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 order-1 lg:order-2 reveal reveal-delay-2"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=500&q=80"
+            alt="Developers collaborating"
+            class="rounded-2xl object-cover w-full h-64 lg:h-72"
+          />
+          <img
+            src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=500&q=80"
+            alt="Writing code"
+            class="rounded-2xl object-cover w-full h-64 lg:h-72 mt-8"
+          />
+          <img
+            src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=500&q=80"
+            alt="UX design planning"
+            class="rounded-2xl object-cover w-full h-48 -mt-6"
+          />
+          <img
+            src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=500&q=80"
+            alt="Working at a laptop"
+            class="rounded-2xl object-cover w-full h-48"
+          />
+        </div>
+      </div>
+    </section>
+
+
+    <!-- CONTACT CTA -->
+    <section class="py-28 px-6 cta-bg" id="contact">
+      <div class="max-w-4xl mx-auto text-white text-center">
+        <p class="sub-heading text-nexus-primary uppercase mb-6 reveal">
+          Let's Talk
+        </p>
+        <h2
+          class="heading-serif text-5xl md:text-7xl mb-6 reveal reveal-delay-1"
+        >
+          Let's Build Something
+          <em class="font-normal italic">Extraordinary.</em>
+        </h2>
+        <p
+          class="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto mb-12 reveal reveal-delay-2"
+        >
+          Tell us about your business and what you need. We'll come back with
+          a clear plan, honest timeline, and a price that makes sense.
+        </p>
+        <form
+          id="contact-form"
+          class="max-w-2xl mx-auto space-y-4 text-left reveal reveal-delay-2"
+          novalidate
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-400 mb-2"
+                for="cf-name"
+                >Full Name</label
+              >
+              <input
+                type="text"
+                id="cf-name"
+                name="name"
+                required
+                autocomplete="name"
+                placeholder="John Smith"
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-nexus-primary transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-400 mb-2"
+                for="cf-email"
+                >Business Email</label
+              >
+              <input
+                type="email"
+                id="cf-email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="john@company.com"
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-nexus-primary transition-colors"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-400 mb-2"
+                for="cf-company"
+                >Company</label
+              >
+              <input
+                type="text"
+                id="cf-company"
+                name="company"
+                required
+                autocomplete="organization"
+                placeholder="Your Company Inc."
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-nexus-primary transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-400 mb-2"
+                for="cf-budget"
+                >Project Budget</label
+              >
+              <select
+                id="cf-budget"
+                name="budget"
+                class="w-full bg-[#252525] border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-nexus-primary transition-colors"
+              >
+                <option value="">Select budget range&hellip;</option>
+                <option value="under-2k">Under $2,000</option>
+                <option value="2k-5k">$2,000 – $5,000</option>
+                <option value="5k-15k">$5,000 – $15,000</option>
+                <option value="15k+">$15,000+</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-400 mb-2"
+              for="cf-service"
+              >Primary Need</label
+            >
+            <select
+              id="cf-service"
+              name="service"
+              class="w-full bg-[#252525] border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-nexus-primary transition-colors"
+            >
+              <option value="">Select primary need&hellip;</option>
+              <option value="enterprise">Enterprise Web Application</option>
+              <option value="ecommerce">E-Commerce Platform</option>
+              <option value="optimization">Performance Optimization</option>
+              <option value="transformation">Digital Transformation</option>
+              <option value="design">Conversion-Focused Design</option>
+              <option value="consultation">Strategic Consultation</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-400 mb-2"
+              for="cf-message"
+              >Project Details</label
+            >
+            <textarea
+              id="cf-message"
+              name="message"
+              rows="4"
+              required
+              placeholder="Tell us about your project goals, current challenges, and timeline. The more details you provide, the better we can help you."
+              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-nexus-primary transition-colors resize-none"
+            ></textarea>
+          </div>
+          <p id="form-error" class="hidden text-red-400 text-sm"></p>
+          <p
+            id="form-success"
+            class="hidden bg-nexus-primary/20 border border-nexus-primary/40 rounded-xl px-4 py-3 text-nexus-primary text-sm"
+          >
+            Thank you! We'll send you a detailed proposal within 24 hours.
+          </p>
+          <button
+            type="submit"
+            id="submit-btn"
+            class="w-full bg-nexus-primary text-white px-8 py-4 rounded-full font-semibold hover:bg-indigo-600 transition-all shadow-lg text-base"
+          >
+            Get Free Consultation &rarr;
+          </button>
+          <p class="text-xs text-gray-500 text-center mt-4">
+            ✓ Free consultation &nbsp;&nbsp; ✓ Clear quote, no surprises
+            &nbsp;&nbsp; ✓ 30-day money-back guarantee
+          </p>
+        </form>
+        <div
+          class="mt-14 pt-10 border-t border-white/10 flex flex-col md:flex-row items-center justify-center gap-8 text-sm text-gray-400"
+        >
+          <a
+            href="mailto:hello@webhive.dev"
+            class="hover:text-white transition-colors flex items-center gap-2"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            hello@webhive.dev
+          </a>
+          <span class="hidden md:block text-gray-700">&middot;</span>
+          <a
+            href="tel:+15551234567"
+            class="hover:text-white transition-colors flex items-center gap-2"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+              />
+            </svg>
+            +1 (555) 123-4567
+          </a>
+          <span class="hidden md:block text-gray-700">&middot;</span>
+          <span class="flex items-center gap-2">
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            San Francisco, CA
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-nexus-dark text-white py-16 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10"
+        >
+          <div class="lg:col-span-2 space-y-4">
+            <a
+              href="#home"
+              class="text-2xl font-black tracking-tighter hover:text-nexus-primary transition-colors"
+              >WEBHIVE.</a
+            >
+            <p class="text-gray-400 text-sm leading-relaxed max-w-xs">
+              Boutique web development for ambitious small businesses.
+              Custom-built, performance-first, honest process.
+            </p>
+          </div>
+          <div>
+            <p
+              class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-5"
+            >
+              Services
+            </p>
+            <ul class="space-y-3 text-sm text-gray-400">
+              <li>
+                <a
+                  href="#capabilities"
+                  class="f-link hover:text-white transition-colors"
+                  >Custom Web Apps</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#capabilities"
+                  class="f-link hover:text-white transition-colors"
+                  >Conversion Design</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#capabilities"
+                  class="f-link hover:text-white transition-colors"
+                  >E-Commerce Platforms</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#capabilities"
+                  class="f-link hover:text-white transition-colors"
+                  >Performance Optimization</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#capabilities"
+                  class="f-link hover:text-white transition-colors"
+                  >Digital Transformation</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p
+              class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-5"
+            >
+              Company
+            </p>
+            <ul class="space-y-3 text-sm text-gray-400">
+              <li>
+                <a
+                  href="#agency"
+                  class="f-link hover:text-white transition-colors"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#work"
+                  class="f-link hover:text-white transition-colors"
+                  >Portfolio</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#results"
+                  class="f-link hover:text-white transition-colors"
+                  >Results</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p
+              class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-5"
+            >
+              Get Started
+            </p>
+            <ul class="space-y-3 text-sm text-gray-400">
+              <li>
+                <a
+                  href="mailto:hello@webhive.dev"
+                  class="f-link hover:text-white transition-colors"
+                  >hello@webhive.dev</a
+                >
+              </li>
+              <li>
+                <a
+                  href="tel:+15551234567"
+                  class="f-link hover:text-white transition-colors"
+                  >+1 (555) 123-4567</a
+                >
+              </li>
+              <li class="text-gray-600">San Francisco, California</li>
+              <li class="pt-2">
+                <a
+                  href="#contact"
+                  class="inline-flex bg-nexus-primary text-white px-5 py-2 rounded-full text-xs font-semibold hover:bg-indigo-600 transition-all"
+                  >Free Consultation</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          class="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600"
+        >
+          <p>&copy; 2024 WebHive. All rights reserved.</p>
+          <div class="flex gap-6">
+            <a href="#" class="hover:text-gray-400 transition-colors"
+              >Privacy Policy</a
+            >
+            <a href="#" class="hover:text-gray-400 transition-colors"
+              >Terms of Service</a
+            >
+            <a href="#" class="hover:text-gray-400 transition-colors"
+              >Security</a
+            >
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <button
+      id="scroll-top"
+      onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+      aria-label="Scroll to top"
+      class="fixed bottom-8 right-8 z-40 w-12 h-12 bg-nexus-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-600 transition-all"
+    >
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 15l7-7 7 7"
+        />
+      </svg>
+    </button>
+
+    <script>
+      (function () {
+        "use strict";
+        var toggle = document.getElementById("menu-toggle"),
+          drawer = document.getElementById("mobile-menu"),
+          iOpen = document.getElementById("icon-open"),
+          iClose = document.getElementById("icon-close");
+        toggle.addEventListener("click", function () {
+          var h = drawer.classList.contains("hidden");
+          drawer.classList.toggle("hidden", !h);
+          iOpen.classList.toggle("hidden", h);
+          iClose.classList.toggle("hidden", !h);
+          toggle.setAttribute("aria-expanded", String(h));
+        });
+        function closeMobile() {
+          drawer.classList.add("hidden");
+          iOpen.classList.remove("hidden");
+          iClose.classList.add("hidden");
+          toggle.setAttribute("aria-expanded", "false");
+        }
+        window.closeMobile = closeMobile;
+
+        var io = new IntersectionObserver(
+          function (e) {
+            e.forEach(function (x) {
+              if (x.isIntersecting) {
+                x.target.classList.add("visible");
+                io.unobserve(x.target);
+              }
+            });
+          },
+          { threshold: 0.12 },
+        );
+        document.querySelectorAll(".reveal").forEach(function (el) {
+          io.observe(el);
+        });
+
+        var sio = new IntersectionObserver(
+          function (e) {
+            e.forEach(function (x) {
+              if (!x.isIntersecting) return;
+              var el = x.target,
+                tgt = parseInt(el.dataset.target, 10),
+                sfx = el.dataset.suffix || "",
+                cur = 0,
+                step = Math.ceil(tgt / (1400 / 16));
+              var t = setInterval(function () {
+                cur = Math.min(cur + step, tgt);
+                el.textContent = cur + sfx;
+                if (cur >= tgt) clearInterval(t);
+              }, 16);
+              sio.unobserve(el);
+            });
+          },
+          { threshold: 0.5 },
+        );
+        document.querySelectorAll("[data-target]").forEach(function (el) {
+          sio.observe(el);
+        });
+
+        var slide = 0,
+          track = document.getElementById("testimonial-track"),
+          dots = document.querySelectorAll(".dot"),
+          auto = setInterval(function () {
+            goToSlide((slide + 1) % 3);
+          }, 6000);
+        function goToSlide(i) {
+          slide = i;
+          track.style.transform = "translateX(-" + i * 100 + "%)";
+          dots.forEach(function (d, j) {
+            d.classList.toggle("active", j === i);
+          });
+          clearInterval(auto);
+          auto = setInterval(function () {
+            goToSlide((slide + 1) % 3);
+          }, 6000);
+        }
+        window.goToSlide = goToSlide;
+
+        var sb = document.getElementById("scroll-top");
+        window.addEventListener(
+          "scroll",
+          function () {
+            sb.classList.toggle("visible", window.scrollY > 450);
+          },
+          { passive: true },
+        );
+
+        var nav = document.getElementById("main-nav");
+        window.addEventListener(
+          "scroll",
+          function () {
+            nav.classList.toggle("shadow-lg", window.scrollY > 30);
+          },
+          { passive: true },
+        );
+
+        var form = document.getElementById("contact-form"),
+          errEl = document.getElementById("form-error"),
+          succEl = document.getElementById("form-success"),
+          btn = document.getElementById("submit-btn");
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          errEl.classList.add("hidden");
+          succEl.classList.add("hidden");
+          var name = document.getElementById("cf-name").value.trim(),
+            email = document.getElementById("cf-email").value.trim(),
+            company = document.getElementById("cf-company").value.trim(),
+            msg = document.getElementById("cf-message").value.trim();
+          if (!name || !email || !company || !msg) {
+            errEl.textContent = "Please fill in all required fields.";
+            errEl.classList.remove("hidden");
+            return;
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errEl.textContent = "Please enter a valid business email address.";
+            errEl.classList.remove("hidden");
+            return;
+          }
+          btn.textContent = "Sending\u2026";
+          btn.disabled = true;
+          setTimeout(function () {
+            form.reset();
+            btn.textContent = "Get Free Consultation \u2192";
+            btn.disabled = false;
+            succEl.classList.remove("hidden");
+          }, 1200);
+        });
+      })();
+    </script>
+  </body>
+</html>
