@@ -38,7 +38,7 @@ spring:
       client:
         provider:
           keycloak:
-            issuer-uri: ${ISSUER_URI:https://ngcloak-production.up.railway.app/realms/community}
+            issuer-uri: ${ISSUER_URI:https://ngcloak-production.up.railway.app/realms/clubknit}
 
           keycloak-project-client:
             issuer-uri: ${ISSUER_URI_PROJECT_CLIENT:https://ngcloak-production.up.railway.app/realms/projectClient}
@@ -49,15 +49,15 @@ spring:
         registration:
           keycloak:
             provider: keycloak
-            client_id: ${KEYCLOAK_CLIENT_ID:community}
-            client_secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
+            client_id: ${KEYCLOAK_CLIENT_ID:clubknit}
+            client_secret: ${KEYCLOAK_CLIENT_SECRET:0IMyUiBlMEKhJYkIZ4duXhqU2qAFLhgTMbx5dkJMX9KmnVhRzKRY6VydTtjGcb4PKZCbbEfz58r7xwnvO7Ee6V}
             authorization-grant-type: authorization_code
             scope: openid,profile,email
 
           keycloak-mobile:
             provider: keycloak
-            client-id: ${KEYCLOAK_CLIENT_ID:community}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
+            client-id: ${KEYCLOAK_CLIENT_ID:clubknit}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:0IMyUiBlMEKhJYkIZ4duXhqU2qAFLhgTMbx5dkJMX9KmnVhRzKRY6VydTtjGcb4PKZCbbEfz58r7xwnvO7Ee6V}
             authorization-grant-type: authorization_code
             scope: openid,profile,email
 
@@ -77,7 +77,7 @@ spring:
 
       resourceserver:
         jwt:
-          issuer-uri: ${ISSUER_URI:https://ngcloak-production.up.railway.app/realms/community}
+          issuer-uri: ${ISSUER_URI:https://ngcloak-production.up.railway.app/realms/clubknit}
 
   main:
     allow-bean-definition-overriding: true
@@ -121,9 +121,9 @@ keycloak:
   base-url: ${KEYCLOAK_BASE_URI:https://ngcloak-production.up.railway.app}
   admin-id: ${KEYCLOAK_ADMIN_ID:admin-cli-client}
   admin-secret: ${KEYCLOAK_ADMIN_SECRET:4tv4AsvrnbDyLa0W9ej4RAy1pX82gKHp6U6HpxP0lAMdUTH31kjrfubAqOXM8DtZCHTJZqmvFQMNXgPYxOqWZ4}
-  client-id: ${KEYCLOAK_CLIENT_ID:community}
-  client-secret: ${KEYCLOAK_CLIENT_SECRET:g53shElTTVgGoMej0QJGXP5Z16GDaULU}
-  realm-name: ${KEYCLOAK_REALM_NAME:community}
+  client-id: ${KEYCLOAK_CLIENT_ID:clubknit}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET:0IMyUiBlMEKhJYkIZ4duXhqU2qAFLhgTMbx5dkJMX9KmnVhRzKRY6VydTtjGcb4PKZCbbEfz58r7xwnvO7Ee6V}
+  realm-name: ${KEYCLOAK_REALM_NAME:clubknit}
 sendgrid:
   api-key: ${SENDGRID_API_KEY:}
   from-email: ${SENDGRID_FROM_EMAIL:boluwatifeomotoshofresh.2006@gmail.com}

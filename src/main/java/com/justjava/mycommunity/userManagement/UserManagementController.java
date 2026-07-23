@@ -73,7 +73,7 @@ public class UserManagementController {
 
     @PostMapping("/createUser")
     public String createUser(@RequestParam Map<String, String> params ,Model model){
-        keycloakAdminService.createUser(KeycloakResource.COMMUNITY_REALM, params);
+        keycloakAdminService.createUser(KeycloakResource.CLUBKNIT_REALM, params);
 //        keycloakService.createUserInGroup(params);
         model.addAttribute("status","added");
         return "userManagement/userStatus";
@@ -82,7 +82,7 @@ public class UserManagementController {
     @PostMapping("/createGroup")
     public ResponseEntity<Void> createGroup(@RequestParam Map<String, String> params){
 
-        keycloakAdminService.createGroup(KeycloakResource.COMMUNITY_REALM, params.get("groupName"), params.get("groupDescription"));
+        keycloakAdminService.createGroup(KeycloakResource.CLUBKNIT_REALM, params.get("groupName"), params.get("groupDescription"));
 //        keycloakService.createGroup(params.get("groupName"), params.get("groupDescription"));
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users/groups");
@@ -91,7 +91,7 @@ public class UserManagementController {
 
     @PostMapping("/editGroup")
     public ResponseEntity<Void> editGroup(@RequestParam Map<String, String> params){
-        keycloakAdminService.updateGroup(KeycloakResource.COMMUNITY_REALM,
+        keycloakAdminService.updateGroup(KeycloakResource.CLUBKNIT_REALM,
                 params.get("groupId"),
                 params.get("groupName"),
                 params.get("groupDescription"));
@@ -102,7 +102,7 @@ public class UserManagementController {
     }
     @PostMapping("/editUser")
     public String editUser(@RequestParam Map<String, String> params, Model model){
-        keycloakAdminService.updateUser(KeycloakResource.COMMUNITY_REALM,
+        keycloakAdminService.updateUser(KeycloakResource.CLUBKNIT_REALM,
                 params.get("id"),
                 params.get("username"),
                 params.get("email"),
@@ -116,7 +116,7 @@ public class UserManagementController {
     }
     @GetMapping("/deleteUser/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId){
-        keycloakAdminService.deleteUser(KeycloakResource.COMMUNITY_REALM, userId);
+        keycloakAdminService.deleteUser(KeycloakResource.CLUBKNIT_REALM, userId);
 //        keycloakService.deleteUser(userId);
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users");
@@ -125,7 +125,7 @@ public class UserManagementController {
 
     @GetMapping("/deleteGroup/{groupId}")
     public ResponseEntity<Void> deleteGroup(@PathVariable String groupId){
-        keycloakAdminService.deleteGroup(KeycloakResource.COMMUNITY_REALM, groupId);
+        keycloakAdminService.deleteGroup(KeycloakResource.CLUBKNIT_REALM, groupId);
 //        keycloakService.deleteClientGroup(groupId);
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/users/groups");

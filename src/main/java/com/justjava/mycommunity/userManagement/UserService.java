@@ -132,7 +132,7 @@ public class UserService {
         if (user == null){
             user = keycloakService.getUser(userId);
             user = userRepository.save(user);
-            user.setRealm("community");
+            user.setRealm("clubknit");
             networkService.createChatGroupForUsers(Collections.singletonList(user));
         }
         keycloakService.updateUserGroupOfUser(user);

@@ -109,7 +109,7 @@ public class CommunityService {
 
         // Dump ALL Keycloak attributes for this user so we can see exactly what's there
         Map<String, List<String>> allAttrs =
-                keycloakAdminService.dumpUserAttributes(KeycloakResource.COMMUNITY_REALM, userId);
+                keycloakAdminService.dumpUserAttributes(KeycloakResource.CLUBKNIT_REALM, userId);
 
         java.util.function.Function<String, String> attr = key -> {
             List<String> v = allAttrs.get(key);
@@ -129,7 +129,7 @@ public class CommunityService {
         if (clubName.isEmpty()) {
             System.out.println("[CLUB-CREATE] ABORT: clubName is empty — clearing attrs");
             keycloakAdminService.clearUserAttributes(
-                    KeycloakResource.COMMUNITY_REALM, userId,
+                    KeycloakResource.CLUBKNIT_REALM, userId,
                     List.of("pendingClubCreation", "clubName", "clubDescription", "clubPrivacy"));
             return false;
         }
@@ -171,7 +171,7 @@ public class CommunityService {
         } finally {
             System.out.println("[CLUB-CREATE] Clearing pending* attributes on Keycloak user " + userId);
             keycloakAdminService.clearUserAttributes(
-                    KeycloakResource.COMMUNITY_REALM, userId,
+                    KeycloakResource.CLUBKNIT_REALM, userId,
                     List.of("pendingClubCreation", "clubName", "clubDescription", "clubPrivacy"));
         }
     }

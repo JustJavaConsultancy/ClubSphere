@@ -455,10 +455,10 @@ public class KeycloakAdminService {
     public void syncGroups(){
         //TODO: implement multi realm synchronization
         log.info("\nSyncing Groups:::");
-        List<GroupRepresentation> groups= groups(KeycloakResource.COMMUNITY_REALM).groups();
-        List<UserGroup> d = userGroupRepository.findAllByRealm(KeycloakResource.COMMUNITY_REALM);
+        List<GroupRepresentation> groups= groups(KeycloakResource.CLUBKNIT_REALM).groups();
+        List<UserGroup> d = userGroupRepository.findAllByRealm(KeycloakResource.CLUBKNIT_REALM);
 
-        Map<String, UserGroup> existingGroupsMap = userGroupRepository.findAllByRealm(KeycloakResource.COMMUNITY_REALM).stream()
+        Map<String, UserGroup> existingGroupsMap = userGroupRepository.findAllByRealm(KeycloakResource.CLUBKNIT_REALM).stream()
                 .collect(Collectors.toMap(g -> g.getGroupName().toLowerCase(), g -> g));
 
         List<UserGroup> groupsToSave = new ArrayList<>();
@@ -474,14 +474,14 @@ public class KeycloakAdminService {
                 userGroup.setGroupId(groupId);
                 userGroup.setGroupName(groupName);
                 userGroup.setDescription(description);
-                userGroup.setRealm(KeycloakResource.COMMUNITY_REALM);
+                userGroup.setRealm(KeycloakResource.CLUBKNIT_REALM);
                 groupsToSave.add(userGroup);
             } else {
                 groupsToSave.add(UserGroup.builder()
                                 .groupId(groupId)
                                 .groupName(groupName)
                                 .description(description)
-                                .realm(KeycloakResource.COMMUNITY_REALM)
+                                .realm(KeycloakResource.CLUBKNIT_REALM)
                                 .build());
             }
         }
@@ -500,11 +500,11 @@ public class KeycloakAdminService {
     public void syncUsers(){
         log.info("\nSyncing Users:::");
 
-        List<UserRepresentation> usersReps = users(KeycloakResource.COMMUNITY_REALM).list();
-        Map<String, UserGroup> userGroup = userGroupRepository.findAllByRealm(KeycloakResource.COMMUNITY_REALM)
+        List<UserRepresentation> usersReps = users(KeycloakResource.CLUBKNIT_REALM).list();
+        Map<String, UserGroup> userGroup = userGroupRepository.findAllByRealm(KeycloakResource.CLUBKNIT_REALM)
                 .stream().collect(Collectors.toMap(UserGroup::getGroupName, g -> g));
 
-        Map<String, User> savedUsersMap = userRepository.findAllByRealm(KeycloakResource.COMMUNITY_REALM)
+        Map<String, User> savedUsersMap = userRepository.findAllByRealm(KeycloakResource.CLUBKNIT_REALM)
                 .stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
         Map<String, User> usersToSave = new HashMap<>();
@@ -513,7 +513,7 @@ public class KeycloakAdminService {
             User user = savedUsersMap.getOrDefault(rep.getId(), new User());
             List<UserGroup> userGroups = getUserGroups(rep, userGroup);
             mapUser(rep, user, userGroups);
-            user.setRealm(KeycloakResource.COMMUNITY_REALM);
+            user.setRealm(KeycloakResource.CLUBKNIT_REALM);
             usersToSave.put(user.getUserId(), user);
         }
         //TODO: Group member count is not being set
@@ -547,7 +547,7 @@ public class KeycloakAdminService {
         user.setLastName(rep.getLastName());
         user.setEmail(rep.getEmail());
         user.setStatus(rep.isEnabled());
-        user.setRealm("community");
+        user.setRealm("clubknit");
         user.getUserGroup().addAll(group);
     }
     private List<UserGroup> getUserGroups(UserRepresentation rep, Map<String, UserGroup> userGroup){
